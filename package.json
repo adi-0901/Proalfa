@@ -34,7 +34,7 @@
   ],
   "license": "0BSD",
   "scripts": {
-    "build": "gatsby build",
+    "build": "NODE_OPTIONS='--openssl-legacy-provider' gatsby build",
     "deploy": "gatsby build --prefix-path",
     "develop": "gatsby develop",
     "format": "prettier --write \"**/*.{js,jsx,ts,tsx,json,md}\"",

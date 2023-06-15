@@ -1,11 +1,11 @@
 module.exports = {
   siteMetadata: {
-    title: `Icebox`,
-    description: `Kick off your next, great Gatsby project with this default starter. This barebones starter ships with the main Gatsby configuration files you might need.`,
+    title: `Proalfa Dynamic`,
+    description: `Proalfa Dynamic Pre-Engineered Building (PEB) solution are tailormade to fit the customer's needs and requirements.We offer complete solution from concept to implementation.`,
     author: `@gatsbyjs`,
     siteUrl: `https://gatsbystarterdefaultsource.gatsbyjs.io/`,
   },
-  pathPrefix: "/creative-studio",
+  // pathPrefix: "/creative-studio",
   plugins: [
     `gatsby-plugin-react-helmet`,
     `gatsby-plugin-image`,
