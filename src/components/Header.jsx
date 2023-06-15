@@ -42,7 +42,7 @@ const Header = () => {
       <Container>
         <Flex spaceBetween noHeight>
           <Logo isHomePage={isHomePage}>
-            <Link
+            {/* <Link
               to="/"
               onMouseEnter={() => setCursor("pointer")}
               onMouseLeave={setCursor}
@@ -60,6 +60,13 @@ const Header = () => {
               onMouseLeave={setCursor}
             >
               X
+            </Link> */}
+            <Link
+              to="/"
+              onMouseEnter={() => setCursor("pointer")}
+              onMouseLeave={setCursor}
+            >
+              Proalfa Dynamic
             </Link>
           </Logo>
           {/* <Menu onClick={onMenuClick} isHomePage={isHomePage}> */}
@@ -74,12 +81,43 @@ const Header = () => {
               </div>
             </button> */}
           {/* </Menu> */}
-          {/* <JumpToProjects
-            onMouseEnter={() => setCursor("melt")}
-            onMouseLeave={setCursor}
-          >
-            <p class="nav-item">PROJECTS</p>
-          </JumpToProjects> */}
+          <div style={{
+            display: 'flex',
+            columnGap: '30px',
+            fontSize: '12px'
+          }}>
+            <Link to='/about-us'
+              onMouseEnter={() => setCursor("pointer")}
+              onMouseLeave={setCursor}
+            >
+              <p2 class="nav-item">About Us</p2>
+            </Link>
+            <Link to='/applications'
+              onMouseEnter={() => setCursor("pointer")}
+              onMouseLeave={setCursor}
+            >
+              <p class="nav-item">Applications</p>
+            </Link>
+            <Link to='/projects'
+              onMouseEnter={() => setCursor("pointer")}
+              onMouseLeave={setCursor}
+            >
+              <p class="nav-item">Projects</p>
+            </Link>
+            <Link to='/services'
+              onMouseEnter={() => setCursor("pointer")}
+              onMouseLeave={setCursor}
+            >
+              <p class="nav-item">Services</p>
+            </Link>
+            <Link to='/contact-us'
+              onMouseEnter={() => setCursor("pointer")}
+              onMouseLeave={setCursor}
+            >
+              <p class="nav-item">Contact Us</p>
+            </Link>
+          </div>
+
         </Flex>
       </Container>
     </HeaderNav>

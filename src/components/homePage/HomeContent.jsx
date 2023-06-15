@@ -37,9 +37,9 @@ const HomeContent = () => {
         }}
         exit="exit"
       >
-        Great stories don’t just happen— they need to be uncovered. And we dig
-        deep to discover the great stories that lie just below the surface. Dirt
-        under our fingernails and all.
+        We're is on a mission to improve the quality of Pre Engineered building in India. 
+        We will provide customized designs and implement them with perfect care. 
+        The quality is assured at each stage of production and it is based on strict values.
       </ContentText>
     </HomeContentContainer>
   )

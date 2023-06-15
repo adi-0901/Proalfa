@@ -36,8 +36,15 @@ export const GlobalStyle = createGlobalStyle`
   }
 
   .nav-item{
-      font-size: 1.8rem;
+      font-size: 1.5rem;
       font-weight: 800;
+  }
+  a{
+    color: ${props => props.theme.current.color};
+    transition: color 0.4s ease-in-out;
+    &:hover {
+      color: ${props => props.theme.current.red};
+    }
   }
 `
 

@@ -105,6 +105,7 @@ const HomeCanvas = () => {
     initial: { y: 800 },
     animate: {
       y: 0,
+      x: 20,
       transition: { duration: 1, ease: [0.6, 0.05, -0.01, 0.9] },
     },
   }
@@ -140,8 +141,8 @@ const HomeCanvas = () => {
           initial="initial"
           animate="animate"
         >
-          <Headline variants={headlineAnimate}>DIG</Headline>
-          <Headline variants={headlineAnimate}>DEEP</Headline>
+          <Headline variants={headlineAnimate}>BUILT STRONG</Headline>
+          <Headline variants={headlineAnimate}>TO BUILD STRONGEST</Headline>
         </BannerTitle>
       </Banner>
     </div>

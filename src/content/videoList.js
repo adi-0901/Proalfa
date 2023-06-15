@@ -34,7 +34,7 @@ export const videoList = [
 export const serviceList = [
   {
     id: 0,
-    title: "Pre-Production",
+    title: "Surveying",
     results: [
       "Creative Development",
       "Writing",
@@ -47,12 +47,12 @@ export const serviceList = [
   },
   {
     id: 1,
-    title: "Video Production",
+    title: "Civil Work",
     results: ["Principle Photography", "Production Management", "Crew"],
   },
   {
     id: 2,
-    title: "Post-Production",
+    title: "Production",
     results: [
       "Colour correction",
       "Offline editing",
@@ -63,7 +63,7 @@ export const serviceList = [
   },
   {
     id: 3,
-    title: "Audio Post-Production",
+    title: "Erection",
     results: [
       "We work with some amazing partners who provide:",
       "Sound Design",

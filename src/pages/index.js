@@ -13,7 +13,7 @@ const IndexPage = props => {
       <Seo title="Home" />
       <HomeCanvas />
       <HomeContent />
-      <Projects />
+      {/* <Projects /> */}
       <About />
       <Footer />
     </Layout>

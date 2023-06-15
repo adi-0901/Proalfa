@@ -10,6 +10,8 @@ import { serviceList } from "../../content/videoList"
 
 import { useInView } from "react-intersection-observer"
 import { useAnimation } from "framer-motion"
+import { useGlobalDispatchContext } from "../../context/globalContext"
+import { Link } from "gatsby"
 
 const About = () => {
   const [shouldExpand, setShouldExpand] = useState(0)
@@ -19,6 +21,12 @@ const About = () => {
     triggerOnce: true,
     rootMargin: "-200px",
   })
+
+  const dispatch = useGlobalDispatchContext()
+  const setCursor = cursorType => {
+    console.log('cursor!')
+    dispatch({ type: "CURSOR_TYPE", value: cursorType })
+  }
 
   useEffect(() => {
     if (isInView) {
@@ -54,19 +62,31 @@ const About = () => {
       <AboutText>
         <div className="about-text-head">
           <p>
-            Icebox is an integrated, full-service creative studio offering video
-            production, creative development, and post-production services.
+          Proalfa Dynamic Pre-Engineered Building (PEB) solution are tailormade to fit the customer's needs and requirements. 
           </p>
         </div>
         <div className="about-text-foot">
           <p>
-            Everybody’s got a story. And we don’t stop until we’ve uncovered
-            what makes yours worth telling. Whether it’s working directly with
-            you, an agency partner, or putting the finishing touches on
-            something special, we’re ready to dig in and get our hands dirty—are
-            you?
+            They offer complete solution from concept to implementation. This mode of construction uses standard section and connection, 
+            reducing design time significantly. PEB's are flexible enough to suit different building dimensions as they are expandable, 
+            resistant to harsh climatic conditions and come with maintenance-free exteriors
           </p>
         </div>
+        <Link
+          to="/about-us"
+          onMouseEnter={() => setCursor("pointer")}
+          onMouseLeave={setCursor}
+        >
+          <div 
+            className="about-text-foot primary-color"
+          >
+            <p style={{fontSize: '24px'}}>
+              Know More          
+            </p>
+          </div>
+        </Link>
+        
+
       </AboutText>
       <AboutAccordion>
         <div className="accordion-head">Services</div>
@@ -76,20 +96,20 @@ const About = () => {
             key={service.id}
             onClick={() => toggleExpand(service.id)}
           >
-            <ServiceHead expand={shouldExpand === service.id}>
+            <ServiceHead >
               <div className="arrow">
                 <span id="span-one"></span>
                 <span id="span-two"></span>
               </div>
               <p className="service-title">{service.title}</p>
             </ServiceHead>
-            <ServiceList expand={shouldExpand === service.id}>
+            {/* <ServiceList expand={shouldExpand === service.id}>
               <ul>
                 {service.results.map(result => (
                   <li key={result}>{result}</li>
                 ))}
               </ul>
-            </ServiceList>
+            </ServiceList> */}
           </div>
         ))}
       </AboutAccordion>

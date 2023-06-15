@@ -34,7 +34,7 @@ export const BannerTitle = styled(motion.h1)`
 
 export const Headline = styled(motion.span)`
   display: block;
-  font-size: 10rem;
+  font-size: 5rem;
   font-weight: 900;
   line-height: 0.76;
 `
@@ -46,7 +46,7 @@ export const HomeContentContainer = styled.div`
   justify-content: center;
   background: ${props => props.theme.current.background};
   color: ${props => props.theme.current.color};
-  padding: 7rem;
+  padding: 7rem 0 1rem 0;
 `
 
 export const ContentText = styled(motion.h2)`
@@ -59,7 +59,7 @@ export const ContentText = styled(motion.h2)`
 export const AboutContainer = styled(motion.div)`
   display: flex;
   justify-content: center;
-  margin: 7rem 0 7rem 0;
+  margin: 4rem 0 7rem 0;
 
   @media (max-width: 900px) {
     flex-direction: column;
@@ -74,7 +74,9 @@ export const AboutText = styled.div`
   .about-text-head,
   .about-text-foot {
     display: flex;
+    flex-direction: column;
     justify-content: center;
+    align-items:center;
     margin-bottom: 1.5rem;
     p {
       max-width: 40rem;
@@ -89,6 +91,10 @@ export const AboutText = styled.div`
     font-size: 1.1rem;
     font-weight: bold;
   }
+  .primary-color{
+        color: ${props => props.theme.current.red};
+  }
+
 `
 
 export const AboutAccordion = styled.div`
@@ -148,6 +154,7 @@ export const ServiceHead = styled.div`
 
   .service-title {
     margin-left: 20px;
+    margin-bottom: 10px;
     transition: all 0.4s ease-in-out;
   }
 `
