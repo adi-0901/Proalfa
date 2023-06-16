@@ -7,6 +7,7 @@ module.exports = {
   },
   // pathPrefix: "/creative-studio",
   plugins: [
+    `gatsby-plugin-postcss`,
     `gatsby-plugin-react-helmet`,
     `gatsby-plugin-image`,
     {

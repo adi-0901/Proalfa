@@ -1,6 +1,7 @@
 import React from "react"
 import { GlobalProvider } from "./src/context/globalContext"
 import { AnimatePresence } from "framer-motion"
+import './src/styles/global.css'
 
 export const wrapRootElement = ({ element }) => {
   return (

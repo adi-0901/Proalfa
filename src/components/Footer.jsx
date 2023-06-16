@@ -1,4 +1,4 @@
-import React from "react"
+import React, { useEffect, useRef } from "react"
 import {
   FooterContainer,
   FooterContent,
@@ -6,28 +6,41 @@ import {
 } from "../styles/footerStyles"
 import { YoutubeLogo, InstagramLogo } from "../assets/svg/social-icons"
 import { useGlobalDispatchContext } from "../context/globalContext"
+import TruckWarehouseAnimation from '../assets/lottie/truck-warehouse.json'
+import Lottie from "lottie-react";
+import LottieMedia from '../components/lottie/LottieMedia'
 
 const Footer = () => {
   const dispatch = useGlobalDispatchContext()
   const setCursor = cursorType => {
     dispatch({ type: "CURSOR_TYPE", value: cursorType })
   }
+
+
+  const lottieRef = useRef(null)
+
+  useEffect(() => {
+    console.log('lottieRef: ', lottieRef.current)
+    lottieRef.current.setDirection(-1)
+  }, [lottieRef])
+
   return (
-    <FooterContainer>
-      <FooterContent>
+    <FooterContainer className="relative">
+      <FooterContent >
         <div
           className="content-one"
           onMouseEnter={() => setCursor("pointer")}
           onMouseLeave={setCursor}
         >
+          
           <a href="mailto:proalfadynamic@gmail.com" id='email'>
             <p id="email">proalfadynamic@gmail.com</p>
           </a>
           <a href="tel:+918308823148">
             <p id="address">+91 8308823148</p>
           </a>
-          <a href="tel:+919822399538">
-            <p id="address">+91 9822399538</p>
+          <a href="tel:+919922997720">
+            <p id="address">+91 9922997720</p>
           </a>  
         </div>
         <div className="content-two">
@@ -47,7 +60,25 @@ const Footer = () => {
           </a>  
         </div> */}
       </FooterContent>
-      <FooterLinks>
+      <div className="w-[500px]"></div>
+      <div className="absolute top-[-250px] w-[500px] h-[500px] right-[0] scale-x-[-1]">
+        <LottieMedia
+          className={''} 
+          ref={lottieRef} 
+          animationData={TruckWarehouseAnimation}
+          interactivity={{
+            mode: 'scroll',
+            actions: [
+              {
+                visibility: [0, 0.6],
+                type: "seek",
+                frames: [0,180],
+              },
+            ],
+          }}
+        />
+      </div>
+      {/* <FooterLinks>
         <YoutubeLogo
           onMouseEnter={() => setCursor("pointer")}
           onMouseLeave={setCursor}
@@ -60,7 +91,7 @@ const Footer = () => {
           fillColor="crimson"
           width="48px"
         />
-      </FooterLinks>
+      </FooterLinks> */}
     </FooterContainer>
   )
 }

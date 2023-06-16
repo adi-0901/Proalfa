@@ -67,7 +67,7 @@ const About = () => {
         </div>
         <div className="about-text-foot">
           <p>
-            They offer complete solution from concept to implementation. This mode of construction uses standard section and connection, 
+            We offer complete solution from concept to implementation. This mode of construction uses standard section and connection, 
             reducing design time significantly. PEB's are flexible enough to suit different building dimensions as they are expandable, 
             resistant to harsh climatic conditions and come with maintenance-free exteriors
           </p>

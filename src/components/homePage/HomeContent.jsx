@@ -37,7 +37,7 @@ const HomeContent = () => {
         }}
         exit="exit"
       >
-        We're is on a mission to improve the quality of Pre Engineered building in India. 
+        We're is on a mission to improve the quality of Pre-Engineered buildings in India. 
         We will provide customized designs and implement them with perfect care. 
         The quality is assured at each stage of production and it is based on strict values.
       </ContentText>

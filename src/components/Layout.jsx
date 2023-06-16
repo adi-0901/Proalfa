@@ -62,7 +62,7 @@ const Layout = ({ children }) => {
       <GlobalStyle />
       <CustomCursor />
       <Header />
-      <main>{children}</main>
+      <main className="overflow-hidden">{children}</main>
     </ThemeProvider>
   )
 }
