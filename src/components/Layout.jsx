@@ -12,6 +12,7 @@ import Header from "./Header"
 
 // context
 import { useGlobalStateContext } from "../context/globalContext"
+import Footer from "./Footer"
 
 // gatsby hates randomness
 // https://spectrum.chat/gatsby-js/general/random-value-at-build-time~0dfc465a-c52a-45de-97e3-f9380a1c0cf6
@@ -58,11 +59,15 @@ const Layout = ({ children }) => {
         current: currentTheme === "dark" ? darkTheme : lightTheme,
         anti: currentTheme === "dark" ? lightTheme : darkTheme,
       }}
+      
     >
-      <GlobalStyle />
-      <CustomCursor />
-      <Header />
-      <main className="overflow-hidden">{children}</main>
+      <div className='overflow-hidden'>
+        <GlobalStyle />
+        <CustomCursor />
+        <Header />
+        <main className="overflow-hidden">{children}</main>
+        <Footer />
+      </div>
     </ThemeProvider>
   )
 }

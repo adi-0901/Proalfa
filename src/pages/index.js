@@ -15,7 +15,6 @@ const IndexPage = props => {
       <HomeContent />
       {/* <Projects /> */}
       <About />
-      <Footer />
     </Layout>
   )
 }
