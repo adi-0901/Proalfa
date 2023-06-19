@@ -29,7 +29,7 @@ const universalTheme = {
 
 const darkTheme = {
   name: "dark",
-  background: "#000",
+  background: "#191919",
   color: "#ffffff",
   ...universalTheme,
 }

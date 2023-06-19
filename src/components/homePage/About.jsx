@@ -12,6 +12,7 @@ import { useInView } from "react-intersection-observer"
 import { useAnimation } from "framer-motion"
 import { useGlobalDispatchContext } from "../../context/globalContext"
 import { Link } from "gatsby"
+import AnimatedText from "../AnimatedText"
 
 const About = () => {
   const [shouldExpand, setShouldExpand] = useState(0)
@@ -62,15 +63,19 @@ const About = () => {
       <AboutText>
         <div className="about-text-head">
           <p>
-          Proalfa Dynamic Pre-Engineered Building (PEB) solution are tailormade to fit the customer's needs and requirements. 
+          Proalfa Dynamic Pre-Engineered Building (PEB) solution are tailormade to fit the customer's needs and requirements.
           </p>
         </div>
         <div className="about-text-foot">
-          <p>
+          {/* <p>
             We offer complete solution from concept to implementation. This mode of construction uses standard section and connection, 
             reducing design time significantly. PEB's are flexible enough to suit different building dimensions as they are expandable, 
             resistant to harsh climatic conditions and come with maintenance-free exteriors
-          </p>
+          </p> */}
+          <AnimatedText
+            className={'w-full h-full flex items-center justify-center mt-10'} 
+            text={`We offer complete solution from concept to implementation. This mode of construction uses standard section and connection, reducing design time significantly. PEB's are flexible enough to suit different building dimensions as they are expandable, resistant to harsh climatic conditions and come with maintenance-free exteriors`}
+          />
         </div>
         <Link
           to="/about-us"

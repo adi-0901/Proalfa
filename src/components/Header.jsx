@@ -90,31 +90,31 @@ const Header = () => {
               onMouseEnter={() => setCursor("pointer")}
               onMouseLeave={setCursor}
             >
-              <p2 class="nav-item">About Us</p2>
+              <p2 className="nav-item">About Us</p2>
             </Link>
             <Link to='/applications'
               onMouseEnter={() => setCursor("pointer")}
               onMouseLeave={setCursor}
             >
-              <p class="nav-item">Applications</p>
+              <p className="nav-item">Applications</p>
             </Link>
             <Link to='/projects'
               onMouseEnter={() => setCursor("pointer")}
               onMouseLeave={setCursor}
             >
-              <p class="nav-item">Projects</p>
+              <p className="nav-item">Projects</p>
             </Link>
             {/* <Link to='/services'
               onMouseEnter={() => setCursor("pointer")}
               onMouseLeave={setCursor}
             >
-              <p class="nav-item">Services</p>
+              <p className="nav-item">Services</p>
             </Link> */}
             <Link to='/contact-us'
               onMouseEnter={() => setCursor("pointer")}
               onMouseLeave={setCursor}
             >
-              <p class="nav-item">Contact Us</p>
+              <p className="nav-item">Contact Us</p>
             </Link>
           </div>
 
