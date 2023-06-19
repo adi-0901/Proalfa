@@ -24,7 +24,7 @@ import Footer from "./Footer"
 // const randomPrimaryColor = pastelColors[Math.round(Math.random() * pastelColors.length)]
 
 const universalTheme = {
-  red: "crimson",
+  red: "#6D4AEA",
 }
 
 const darkTheme = {

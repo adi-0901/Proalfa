@@ -104,12 +104,12 @@ const Header = () => {
             >
               <p class="nav-item">Projects</p>
             </Link>
-            <Link to='/services'
+            {/* <Link to='/services'
               onMouseEnter={() => setCursor("pointer")}
               onMouseLeave={setCursor}
             >
               <p class="nav-item">Services</p>
-            </Link>
+            </Link> */}
             <Link to='/contact-us'
               onMouseEnter={() => setCursor("pointer")}
               onMouseLeave={setCursor}
