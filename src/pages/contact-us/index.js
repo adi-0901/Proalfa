@@ -9,6 +9,7 @@ import emailjs from '@emailjs/browser';
 import { toast } from 'react-toastify';
 import "react-toastify/dist/ReactToastify.css";
 import { LoadingOutlined } from '@ant-design/icons';
+import { useGlobalDispatchContext } from '../../context/globalContext';
 
 
 const ContactUs = () => {
@@ -18,6 +19,7 @@ const ContactUs = () => {
   const EMAILJS_PUBLIC_KEY = process.env.GATSBY_EMAILJS_PUBLIC_KEY
 
   const [submitInProgress, setSubmitInProgress] = useState(false)
+  const dispatch = useGlobalDispatchContext()
 
   const formik = useFormik({
     initialValues: {
@@ -76,6 +78,10 @@ const ContactUs = () => {
     }
   })
 
+  const setCursor = cursorType => {
+    dispatch({ type: "CURSOR_TYPE", value: cursorType })
+  }
+
   return (
     <Layout>
       <div className='my-40 w-full flex mx-20 '>
@@ -124,6 +130,8 @@ const ContactUs = () => {
               color: formik.isValid ? 'white' : 'gray',
             }}
             onClick={() => formik.handleSubmit()}
+            onMouseEnter={() => formik.isValid && setCursor("pointer")}
+            onMouseLeave={setCursor}
           >
             { submitInProgress && <LoadingOutlined />}
             <div>Submit</div>
