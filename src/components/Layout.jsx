@@ -13,6 +13,7 @@ import Header from "./Header"
 // context
 import { useGlobalStateContext } from "../context/globalContext"
 import Footer from "./Footer"
+import { ToastContainer } from "react-toastify"
 
 // gatsby hates randomness
 // https://spectrum.chat/gatsby-js/general/random-value-at-build-time~0dfc465a-c52a-45de-97e3-f9380a1c0cf6
@@ -67,6 +68,7 @@ const Layout = ({ children }) => {
         <Header />
         <main className="overflow-hidden">{children}</main>
         <Footer />
+        <ToastContainer />
       </div>
     </ThemeProvider>
   )

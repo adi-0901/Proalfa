@@ -6,9 +6,14 @@
   "author": "Kyle Mathews <mathews.kyle@gmail.com>",
   "homepage": "https://itskaustubh.github.io/creative-studio",
   "dependencies": {
+    "@emailjs/browser": "^3.11.0",
+    "antd": "^5.6.2",
     "babel-plugin-styled-components": "^1.13.2",
+    "dotenv": "^16.3.1",
+    "formik": "^2.4.2",
     "framer-motion": "^4.1.17",
     "gatsby": "^3.11.1",
+    "gatsby-plugin-antd": "^2.2.0",
     "gatsby-plugin-gatsby-cloud": "^2.11.0",
     "gatsby-plugin-image": "^1.11.0",
     "gatsby-plugin-manifest": "^3.11.0",
@@ -25,10 +30,13 @@
     "react-dom": "^17.0.1",
     "react-helmet": "^6.1.0",
     "react-intersection-observer": "^8.32.2",
+    "react-toastify": "^9.1.3",
     "styled-components": "^5.3.1",
-    "styled-normalize": "^8.0.7"
+    "styled-normalize": "^8.0.7",
+    "yup": "^1.2.0"
   },
   "devDependencies": {
+    "@babel/plugin-transform-runtime": "^7.22.5",
     "autoprefixer": "^10.4.14",
     "postcss": "^8.4.24",
     "prettier": "2.3.2",
@@ -41,7 +49,8 @@
   "scripts": {
     "build": "NODE_OPTIONS='--openssl-legacy-provider' gatsby build",
     "deploy": "gatsby build --prefix-path",
-    "develop": "gatsby develop",
+    "develop": "NODE_OPTIONS='--openssl-legacy-provider' gatsby develop",
+    "dev": "NODE_OPTIONS='--openssl-legacy-provider' gatsby develop",
     "format": "prettier --write \"**/*.{js,jsx,ts,tsx,json,md}\"",
     "start": "npm run develop",
     "serve": "gatsby serve",

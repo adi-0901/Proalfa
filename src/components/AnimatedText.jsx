@@ -41,26 +41,27 @@ const AnimatedText = ({text, className}) => {
     <div className={className}>
         <div className='flex'>
             <p ref={elementRef}>
-                {text.split('').map((letter, letterIndex) => letter === ' ' ? <span>&nbsp;</span> : (<div data-index={letterIndex} key={`${letterIndex}`} className='relative inline-block will-change-[opacity]'
+                {/* {text.split('').map((letter, letterIndex) => letter === ' ' ? <span>&nbsp;</span> : (<div data-index={letterIndex} key={`${letterIndex}`} className='relative inline-block will-change-[opacity]'
                     style={{
                         opacity: opacity >= (Math.floor(((letterIndex - 0) * 100) / (text.length - 0)) / 100) ? 1 : 0.2,
                         transition: '0.7s opacity ease-in-out'
                     }}>
                     {letter} 
-                </div>))}
+                </div>))} */}
 
-                 {/* {text.split(' ').map((word, wordIndex) => 
+                 {text.split(' ').map((word, wordIndex, list) => 
                     (<div key={wordIndex} className='relative inline-block'>
-                        {word.split('').map((letter, letterIndex) => (<div key={`${wordIndex}${letterIndex}`} className='relative inline-block will-change-[opacity]'
+                        {word.split('').map((letter, letterIndex) => (
+                        <div key={`${wordIndex}${letterIndex}`} className='relative inline-block will-change-[opacity]'
                             style={{
-                                opacity: opacity >= (Math.floor(((letterIndex - 0) * 100) / (text.length - 0)) / 100) ? 1 : 0.2,
+                                opacity: opacity >= (Math.floor(((wordIndex - 0) * 100) / (list.length - 0)) / 100) ? 1 : 0.2,
                                 transition: '0.7s opacity ease-in-out'
                             }}>
                             {letter}
                         </div>))}
                         &nbsp;
                     </div>))
-                } */}
+                }
             </p>
         </div>
     </div>

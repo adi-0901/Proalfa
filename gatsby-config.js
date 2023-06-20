@@ -1,3 +1,5 @@
+require('dotenv').config();
+
 module.exports = {
   siteMetadata: {
     title: `Proalfa Dynamic`,
@@ -32,6 +34,8 @@ module.exports = {
       },
     },
     `gatsby-plugin-gatsby-cloud`,
+    'gatsby-plugin-antd',
+    "@babel/plugin-transform-runtime"
     // this (optional) plugin enables Progressive Web App + Offline functionality
     // To learn more, visit: https://gatsby.dev/offline
     // `gatsby-plugin-offline`,
