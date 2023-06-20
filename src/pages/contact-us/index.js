@@ -8,12 +8,16 @@ import CustomButton from '../../components/CustomButton';
 import emailjs from '@emailjs/browser';
 import { toast } from 'react-toastify';
 import "react-toastify/dist/ReactToastify.css";
+import { LoadingOutlined } from '@ant-design/icons';
+
 
 const ContactUs = () => {
 
   const SERVICE_ID = process.env.GATSBY_EMAILJS_SERVICE_ID
   const TEMPLATE_ID = process.env.GATSBY_EMAILJS_TEMPLATE_ID
   const EMAILJS_PUBLIC_KEY = process.env.GATSBY_EMAILJS_PUBLIC_KEY
+
+  const [submitInProgress, setSubmitInProgress] = useState(false)
 
   const formik = useFormik({
     initialValues: {
@@ -57,17 +61,17 @@ const ContactUs = () => {
           theme: "dark",
     }
 
-    toast.success('Enquiry message sent successfully!', toastProps);
+    setSubmitInProgress(true)
+    emailjs.send(SERVICE_ID,TEMPLATE_ID, templateParams, EMAILJS_PUBLIC_KEY)
+      .then((response) => {
+        toast.success('Enquiry message sent successfully!', toastProps);
+      }, (err) => {
+         toast.error('Enquiry message sending failed. Please try after some time or contact us on our email or phone', toastProps);
+      }).finally(() => {
+        setSubmitInProgress(false)
+        resetForm()
+      });
 
-    
-    // emailjs.send(SERVICE_ID,TEMPLATE_ID, templateParams, EMAILJS_PUBLIC_KEY)
-    //   .then((response) => {
-    //     toast.success('Enquiry message sent successfully!', toastProps);
-    //   }, (err) => {
-    //      toast.error('Enquiry message sending failed. Please try after some time or contact us on our email or phone', toastProps);
-    //   }).finally(() => {
-    //     resetForm()
-    //   });
 
     }
   })
@@ -78,7 +82,7 @@ const ContactUs = () => {
         <div className='flex-1 flex flex-col items-center justify-center'>
           <div className='mb-10'>
             <div className='text-6xl'>Hello there!</div>
-            <div className='text-6xl'>Let’s break the ice.</div>
+            <div className='text-6xl mb-2'>Let’s break the ice.</div>
           </div>
           <CustomInput
             name={'name'}
@@ -115,12 +119,15 @@ const ContactUs = () => {
             {...formik.getFieldProps('notes')}
           />
 
-          <div className='font-bold text-2xl'
+          <div className='font-bold text-2xl mt-2 flex items-center justify-center gap-4'
             style={{
               color: formik.isValid ? 'white' : 'gray',
             }}
             onClick={() => formik.handleSubmit()}
-          >Submit</div>
+          >
+            { submitInProgress && <LoadingOutlined />}
+            <div>Submit</div>
+          </div>
 
         </div>
         <div className='flex-1'></div>
