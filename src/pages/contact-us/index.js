@@ -10,6 +10,10 @@ import { toast } from 'react-toastify';
 import "react-toastify/dist/ReactToastify.css";
 import { LoadingOutlined } from '@ant-design/icons';
 import { useGlobalDispatchContext } from '../../context/globalContext';
+import LottieMedia from '../../components/lottie/LottieMedia';
+
+import ContactUsPlane from '../../assets/lottie/contact_us_plane.json'
+import ContactUsBubble from '../../assets/lottie/contact_us_bubble.json'
 
 
 const ContactUs = () => {
@@ -85,9 +89,9 @@ const ContactUs = () => {
   return (
     <Layout>
       <div className='my-40 w-full flex mx-20 '>
-        <div className='flex-1 flex flex-col items-center justify-center'>
-          <div className='mb-10'>
-            <div className='text-6xl'>Hello there!</div>
+        <div className='flex-1 flex flex-col justify-center ml-10'>
+          <div className='mb-10 '>
+            <div className='text-6xl leading-[130%]'>Hello there!</div>
             <div className='text-6xl mb-2'>Let’s break the ice.</div>
           </div>
           <CustomInput
@@ -138,7 +142,25 @@ const ContactUs = () => {
           </div>
 
         </div>
-        <div className='flex-1'></div>
+        <div className='flex-1 flex items-center '>
+          <div className='w-96 h-96 relative flex items-center justify-center'>
+            <div className='absolute top-0 left-0'>
+              <LottieMedia
+                animationData={ContactUsPlane}
+                loop
+                autoplay
+
+              />
+            </div>
+            <div className='absolute top-0 left-0'>
+              <LottieMedia
+                animationData={ContactUsBubble}
+                loop
+                autoplay
+              />
+            </div>
+          </div>
+        </div>
       </div>
 
     </Layout>
