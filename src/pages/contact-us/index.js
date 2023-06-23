@@ -25,6 +25,10 @@ const ContactUs = () => {
   const [submitInProgress, setSubmitInProgress] = useState(false)
   const dispatch = useGlobalDispatchContext()
 
+  const setCursor = cursorType => {
+    dispatch({ type: "CURSOR_TYPE", value: cursorType })
+  }
+
   const formik = useFormik({
     initialValues: {
       name: null,
@@ -82,68 +86,23 @@ const ContactUs = () => {
     }
   })
 
-  const setCursor = cursorType => {
-    dispatch({ type: "CURSOR_TYPE", value: cursorType })
-  }
+
 
   return (
     <Layout>
-      <div className='my-40 w-full flex mx-20 '>
-        <div className='flex-1 flex flex-col justify-center ml-10'>
-          <div className='mb-10 '>
+      <div className='h-screen mb-24 flex items-center justify-center w-full mx-20 '
+        style={{
+          paddingTop: '45px',
+        }}
+      >
+
+        <div className='flex-1 flex flex-col ml-10 justify-center '>
+        <div className=' '>
             <div className='text-6xl leading-[130%]'>Hello there!</div>
             <div className='text-6xl mb-2'>Let’s break the ice.</div>
           </div>
-          <CustomInput
-            name={'name'}
-            autoComplete={'off'}
-            placeholder={'Your name'}
-            formikHook={formik}
-            className={'w-[60%] mb-8'}
-            {...formik.getFieldProps('name')}
-          />
-          <CustomInput
-            name={'email'}
-            autoComplete={'off'}
-            placeholder={'Your email'}
-            formikHook={formik}
-            type={'email'}
-            className={'w-[60%] mb-8'}
-            {...formik.getFieldProps('email')}
-          />
-          <CustomInput
-            name={'phone'}
-            autoComplete={'off'}
-            placeholder={'Your phone number'}
-            formikHook={formik}
-            maxLength={10}
-            className={'w-[60%] mb-8'}
-            {...formik.getFieldProps('phone')}
-          />
-          <CustomInput
-            name={'notes'}
-            autoComplete={'off'}
-            placeholder={'How can we help you?'}
-            formikHook={formik}
-            className={'w-[60%] mb-8'}
-            {...formik.getFieldProps('notes')}
-          />
-
-          <div className='font-bold text-2xl mt-2 flex items-center justify-center gap-4'
-            style={{
-              color: formik.isValid ? 'white' : 'gray',
-            }}
-            onClick={() => formik.handleSubmit()}
-            onMouseEnter={() => formik.isValid && setCursor("pointer")}
-            onMouseLeave={setCursor}
-          >
-            { submitInProgress && <LoadingOutlined />}
-            <div>Submit</div>
-          </div>
-
-        </div>
-        <div className='flex-1 flex items-center '>
           <div className='w-96 h-96 relative flex items-center justify-center'>
+            
             <div className='absolute top-0 left-0'>
               <LottieMedia
                 animationData={ContactUsPlane}
@@ -160,6 +119,60 @@ const ContactUs = () => {
               />
             </div>
           </div>
+        </div>
+        <div className='flex-1 flex items-center  ml-10'>
+          <div className='w-[70%] flex flex-col  gap-10 '>
+            <CustomInput
+              name={'name'}
+              autoComplete={'off'}
+              placeholder={'Your name'}
+              formikHook={formik}
+              className={' '}
+              {...formik.getFieldProps('name')}
+            />
+            <CustomInput
+              name={'email'}
+              autoComplete={'off'}
+              placeholder={'Your email'}
+              formikHook={formik}
+              type={'email'}
+              className={' '}
+              {...formik.getFieldProps('email')}
+            />
+            <CustomInput
+              name={'phone'}
+              autoComplete={'off'}
+              placeholder={'Your phone number'}
+              formikHook={formik}
+              maxLength={10}
+              className={' '}
+              {...formik.getFieldProps('phone')}
+            />
+            <CustomInput
+              name={'notes'}
+              autoComplete={'off'}
+              placeholder={'How can we help you?'}
+              formikHook={formik}
+              className={' '}
+              {...formik.getFieldProps('notes')}
+            />
+
+            <div className='font-bold flex items-center justify-center text-2xl mt-2  gap-4'
+              style={{
+                color: formik.isValid ? 'white' : 'gray',
+              }}
+              onClick={() => formik.handleSubmit()}
+              onMouseEnter={() => formik.isValid && setCursor("pointer")}
+              onMouseLeave={setCursor}
+            >
+              { submitInProgress && <LoadingOutlined />}
+              <div className='text-center '>Submit</div>
+            </div>
+
+
+          </div>
+          
+
         </div>
       </div>
 

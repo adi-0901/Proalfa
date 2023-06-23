@@ -19,10 +19,10 @@ const Footer = () => {
 
   const lottieRef = useRef(null)
 
-  useEffect(() => {
-    console.log('lottieRef: ', lottieRef.current)
-    lottieRef.current.setDirection(-1)
-  }, [lottieRef])
+  // useEffect(() => {
+  //   console.log('lottieRef: ', lottieRef.current)
+  //   lottieRef.current.setDirection(-1)
+  // }, [lottieRef])
 
   return (
     <FooterContainer className="relative">
@@ -61,7 +61,7 @@ const Footer = () => {
         </div> */}
       </FooterContent>
       <div className="w-[500px]"></div>
-      <div className="absolute top-[-250px] w-[500px] h-[500px] right-[0] scale-x-[-1]">
+      {/* <div className="absolute top-[-250px] w-[500px] h-[500px] right-[0] scale-x-[-1]">
         <LottieMedia
           className={''} 
           ref={lottieRef} 
@@ -77,7 +77,7 @@ const Footer = () => {
             ],
           }}
         />
-      </div>
+      </div> */}
       {/* <FooterLinks>
         <YoutubeLogo
           onMouseEnter={() => setCursor("pointer")}
