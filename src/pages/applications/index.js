@@ -126,7 +126,7 @@ const Applications = () => {
                   mode: 'scroll',
                   actions: [
                     {
-                      visibility: [0, 1],
+                      visibility: [0, 0.9],
                       type: "seek",
                       frames: [0,397],
                     },
