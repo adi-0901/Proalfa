@@ -90,8 +90,6 @@ const About = () => {
             </p>
           </div>
         </Link>
-        
-
       </AboutText>
       <AboutAccordion>
         <div className="accordion-head">Services</div>

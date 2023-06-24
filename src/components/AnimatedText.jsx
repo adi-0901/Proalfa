@@ -34,7 +34,7 @@ const AnimatedText = ({text, className}) => {
         }
       }, [isOnScreen])
 
-      console.log(opacity)
+    //   console.log(opacity)
 
       
   return (
