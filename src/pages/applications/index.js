@@ -1,6 +1,6 @@
 import React, { useEffect, useRef } from 'react'
 import Layout from '../../components/Layout'
-import LottieApplications from '../../assets/lottie/proalpha.json'
+import LottieApplications from '../../assets/lottie/proalfa.json'
 import LottieMedia from '../../components/lottie/LottieMedia'
 import { useState } from 'react'
 import CustomInput from '../../components/CustomInput'
@@ -128,7 +128,7 @@ const Applications = () => {
                     {
                       visibility: [0, 0.9],
                       type: "seek",
-                      frames: [0,397],
+                      frames: [0,383],
                     },
                   ],
                 }}
