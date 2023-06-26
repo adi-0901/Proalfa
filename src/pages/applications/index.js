@@ -1,6 +1,6 @@
 import React, { useEffect, useRef } from 'react'
 import Layout from '../../components/Layout'
-import LottieApplications from '../../assets/lottie/proalfa_3.json'
+import LottieApplications from '../../assets/lottie/proalfa_3.1.json'
 import LottieMedia from '../../components/lottie/LottieMedia'
 import { useState } from 'react'
 import CustomInput from '../../components/CustomInput'
@@ -117,22 +117,25 @@ const Applications = () => {
                 </div>
             </div>
         </div> */}
-        <div>
+        <div >
             <LottieMedia
-                className={'w-full mt-[500px]'} 
+                className={'w-full mt-[500px] mb-20'} 
                 ref={lottieRef}
                 animationData={LottieApplications}
                 interactivity={{
                   mode: 'scroll',
                   actions: [
                     {
-                      visibility: [0, 0.9],
+                      visibility: [0, 0.7],
                       type: "seek",
-                      frames: [0,2100],
+                      frames: [0,2700],
                     },
                   ],
                 }}
             />
+        </div>
+        <div className='mb-20'>
+
         </div>
     </Layout>
    
