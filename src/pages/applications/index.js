@@ -1,6 +1,6 @@
 import React, { useEffect, useRef } from 'react'
 import Layout from '../../components/Layout'
-import LottieApplications from '../../assets/lottie/proalfa_3.2.json'
+import LottieApplications from '../../assets/lottie/proalfa_3.4.json'
 import LottieMedia from '../../components/lottie/LottieMedia'
 import { useState } from 'react'
 import CustomInput from '../../components/CustomInput'
