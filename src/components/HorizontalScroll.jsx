@@ -33,92 +33,71 @@
 // export default HorizontalScroll
 
 import React, { useRef, useEffect } from 'react';
+import RangeAndScope from '../assets/svg/why_range_scope.svg'
+import RangeAndScopeBullet from '../assets/svg/openmoji_telescope.svg'
+import Advantages from '../assets/svg/why_advantages.svg'
+import AdvantagesBullet from '../assets/svg/ph_warehouse.svg'
 
 const MyComponent = () => {
-  const divRef = useRef(null);
-  const isScrollingHorizontally = useRef(false);
 
-  useEffect(() => {
-    const handleScroll = (event) => {
-      const delta = Math.sign(event.deltaY);
-      const scrollAmount = 100;
-      const scrollLeft = divRef.current.scrollLeft;
-      const maxScrollLeft = divRef.current.scrollWidth - divRef.current.clientWidth;
 
-      if (!isScrollingHorizontally.current && scrollLeft === maxScrollLeft && delta === 1) {
-        event.preventDefault();
-        return;
-      }
+  const rangeAndScopePoints = [
+    "High-rise commercial Buildings",
+    "Large Span Buildings, warehouses, factories, School, Hostel, Auditoriums, Stadiums, Supermarkets, Shopping Malls.",
+    "Buildings with Complex design",
+    "Residential Buildings-Multi/single stories",
+    "Energy Efficient construction",
+    "Buildings at Seismic Zone, Hilly Regions, Remote Localities",
+    "Construction of Light weight Buildings",
+    "Fast Track Construction",
+  ]
 
-      if (delta === 1 && scrollLeft === maxScrollLeft) {
-        console.log('wewewewe')
-        enableBodyScroll()
-        // isScrollingHorizontally.current = false;
-        event.preventDefault();
-        return;
-      }
-
-      if (delta === 1 && scrollLeft < maxScrollLeft) {
-        isScrollingHorizontally.current = true;
-        disableBodyScroll();
-      }
-
-      if (delta === -1 && scrollLeft === 0) {
-        isScrollingHorizontally.current = false;
-        enableBodyScroll();
-        event.preventDefault();
-        return;
-      }
-
-      if (!isScrollingHorizontally.current) {
-        event.preventDefault();
-      }
-
-      divRef.current.scrollTo({
-        left: scrollLeft + scrollAmount * delta,
-        behavior: 'smooth'
-      });
-    };
-
-    const disableBodyScroll = () => {
-      document.body.style.overflow = 'hidden';
-    };
-
-    const enableBodyScroll = () => {
-      document.body.style.overflow = '';
-    };
-
-    const handleWindowScroll = () => {
-      const divTop = divRef.current.getBoundingClientRect().top;
-      if (divTop <= 0) {
-        window.addEventListener('wheel', handleScroll, { passive: false });
-      } else {
-        window.removeEventListener('wheel', handleScroll);
-      }
-    };
-
-    window.addEventListener('scroll', handleWindowScroll);
-
-    return () => {
-      window.removeEventListener('scroll', handleWindowScroll);
-      window.removeEventListener('wheel', handleScroll);
-      enableBodyScroll();
-    };
-  }, []);
 
   return (
     <div
-      ref={divRef}
-      style={{
-        overflowX: 'auto',
-        whiteSpace: 'nowrap',
-        height: '100vh',
-        backgroundColor: 'red'
-      }}
+      className='w-auto mb-[100px] overflow-x-auto whitespace-nowrap h-[100vh]'
     >
       {/* Content for testing */}
-      <div style={{ display: 'inline-block', width: '1000px' }}>
-        Lorem ipsum dolor sit amet, consectetur adipiscing elit. Duis varius mi quis mauris vulputate, eu sollicitudin neque euismod. Quisque vel nisl in turpis posuere venenatis vel ac mauris. Nunc lacinia, mauris nec feugiat tristique, odio nulla finibus elit, id tempor elit turpis ac urna. Aenean efficitur eu mi id interdum. Sed ac felis pretium, venenatis ex sed, consectetur metus. Donec eleifend augue et leo tristique facilisis. Nullam id sem id ipsum efficitur tempus. Nullam ut aliquam velit, id auctor lacus. Phasellus pellentesque, ex eget iaculis dapibus, neque tellus efficitur tellus, ac faucibus nisi lorem a justo.
+      <div className='mx-20 flex items-center h-full w-full'>
+          <div className='text-[72px] mr-[150px]'>
+            <p>Why go for</p>
+            <p>pre-engineered</p>
+            <p>solutions</p>
+          </div>
+          <div className='h-full py-10 mr-6'>
+            <div className='border border-[#373737] rounded-[20px] h-full w-full  px-[100px] flex items-center justify-center'>
+              <img className='max-w-[initial] mr-[150px]' alt="" src={RangeAndScope}  />
+              <div>
+                <p className='mb-[26px] text-[36px] font-normal'>Range and Scope</p>
+                <div className='flex flex-col gap-y-6  w-max-[450px] w-[450px] overflow-hidden'>
+                  {rangeAndScopePoints.map(point => (
+                    <div className='flex items-center gap-x-4' key={point}>
+                      <img src={RangeAndScopeBullet} alt="" />
+                      <p className='text-base font-normal text-[#AAAAAA] text-ellipsis whitespace-[initial]'>{point}</p>
+                    </div>
+                  ))}
+                </div>
+                
+              </div>
+            </div>
+          </div>
+          <div className='h-full py-10  mr-6'>
+            <div className='border border-[#373737] rounded-[20px] h-full w-full  px-[100px] flex items-center justify-center'>
+              <img className='max-w-[initial] mr-[150px]' alt="" src={Advantages}  />
+              <div>
+                <p className='mb-[26px] text-[36px] font-normal'>Range and Scope</p>
+                <div className='flex flex-col gap-y-6  w-max-[450px] w-[450px] overflow-hidden'>
+                  {rangeAndScopePoints.map(point => (
+                    <div className='flex items-center gap-x-4' key={point}>
+                      <img src={AdvantagesBullet} alt="" />
+                      <p className='text-base font-normal text-[#AAAAAA] text-ellipsis whitespace-[initial]'>{point}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+          <div className='w-[1px] h-full text-transparent'>.</div>
       </div>
     </div>
   );
