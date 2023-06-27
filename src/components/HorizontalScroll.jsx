@@ -32,12 +32,13 @@
 
 // export default HorizontalScroll
 
-import React, { useEffect } from 'react';
+import React, { useEffect, useRef } from 'react';
 import RangeAndScope from '../assets/svg/why_range_scope.svg'
 import RangeAndScopeBullet from '../assets/svg/openmoji_telescope.svg'
 import Advantages from '../assets/svg/why_advantages.svg'
 import AdvantagesBullet from '../assets/svg/ph_warehouse.svg'
 import useHorizontalScroll from '../hooks/useHorizontalScroll';
+import { useState } from 'react';
 
 
 
@@ -55,64 +56,73 @@ const MyComponent = () => {
     "Fast Track Construction",
   ]
 
-  const scrollRef = useHorizontalScroll();
+  const [isIntersecting, setIsIntersecting] = useState(false)
+  const scrollRef = useHorizontalScroll(isIntersecting, setIsIntersecting);
+  const interRef = useRef(null)
 
-  // useEffect(() => {
-  //   const observer = new IntersectionObserver(([entry]) => {
-  //     setIsIntersecting(entry.isIntersecting);
-  //   });
-  //   console.log(isIntersecting);
-  //   observer.observe(scrollRef.current);
-  //   return () => observer.disconnect();
-  // }, []);
+  useEffect(() => {
+    const observer = new IntersectionObserver(([entry]) => {
+      // setIsIntersecting(entry.isIntersecting);
+      console.log('intersecting!!')
+      document.body.style.overflow = 'hidden';
+      setIsIntersecting(true)
+    });
+    observer.observe(interRef.current);
+    return () => observer.disconnect();
+  }, [interRef]);
 
 
   return (
-    <div
-      className='w-auto mb-[100px] overflow-x-auto whitespace-nowrap h-[100vh]'
-      ref={scrollRef}
-    >
-      {/* Content for testing */}
-      <div className='mx-20 flex items-center h-full w-full'>
-          <div className='text-[72px] mr-[150px]'>
-            <p>Why go for</p>
-            <p>pre-engineered</p>
-            <p>solutions</p>
-          </div>
-          <div className='h-full py-10 mr-6'>
-            <div className='border border-[#373737] rounded-[20px] h-full w-full  px-[100px] flex items-center justify-center'>
-              <img className='max-w-[initial] mr-[150px]' alt="" src={RangeAndScope}  />
-              <div>
-                <p className='mb-[26px] text-[36px] font-normal'>Range and Scope</p>
-                <div className='flex flex-col gap-y-6  w-max-[450px] w-[450px] overflow-hidden'>
-                  {rangeAndScopePoints.map(point => (
-                    <div className='flex items-center gap-x-4' key={point}>
-                      <img src={RangeAndScopeBullet} alt="" />
-                      <p className='text-base font-normal text-[#AAAAAA] text-ellipsis whitespace-[initial]'>{point}</p>
-                    </div>
-                  ))}
-                </div>
-                
-              </div>
+    <div className='relative'>
+      <div className='absolute bottom-0' ref={interRef}></div>
+      {/* <div className='absolute top-0'>isIntersecting: {isIntersecting ? 'true': 'false'}</div> */}
+
+      <div
+        className='w-auto mb-[100px] overflow-x-auto whitespace-nowrap h-[100vh] relative'
+        ref={scrollRef}
+      >
+        {/* Content for testing */}
+        <div className='mx-20 flex items-center h-full w-full'>
+            <div className='text-[72px] mr-[150px]'>
+              <p>Why go for</p>
+              <p>pre-engineered</p>
+              <p>solutions</p>
             </div>
-          </div>
-          <div className='h-full py-10  mr-6'>
-            <div className='border border-[#373737] rounded-[20px] h-full w-full  px-[100px] flex items-center justify-center'>
-              <img className='max-w-[initial] mr-[150px]' alt="" src={Advantages}  />
-              <div>
-                <p className='mb-[26px] text-[36px] font-normal'>Range and Scope</p>
-                <div className='flex flex-col gap-y-6  w-max-[450px] w-[450px] overflow-hidden'>
-                  {rangeAndScopePoints.map(point => (
-                    <div className='flex items-center gap-x-4' key={point}>
-                      <img src={AdvantagesBullet} alt="" />
-                      <p className='text-base font-normal text-[#AAAAAA] text-ellipsis whitespace-[initial]'>{point}</p>
-                    </div>
-                  ))}
+            <div className='h-full py-10 mr-6'>
+              <div className='border border-[#373737] rounded-[20px] h-full w-full  px-[100px] flex items-center justify-center'>
+                <img className='max-w-[initial] mr-[150px]' alt="" src={RangeAndScope}  />
+                <div>
+                  <p className='mb-[26px] text-[36px] font-normal'>Range and Scope</p>
+                  <div className='flex flex-col gap-y-6  w-max-[450px] w-[450px] overflow-hidden'>
+                    {rangeAndScopePoints.map(point => (
+                      <div className='flex items-center gap-x-4' key={point}>
+                        <img src={RangeAndScopeBullet} alt="" />
+                        <p className='text-base font-normal text-[#AAAAAA] text-ellipsis whitespace-[initial]'>{point}</p>
+                      </div>
+                    ))}
+                  </div>
+                  
                 </div>
               </div>
             </div>
-          </div>
-          <div className='w-[1px] h-full text-transparent'>.</div>
+            <div className='h-full py-10  mr-6'>
+              <div className='border border-[#373737] rounded-[20px] h-full w-full  px-[100px] flex items-center justify-center'>
+                <img className='max-w-[initial] mr-[150px]' alt="" src={Advantages}  />
+                <div>
+                  <p className='mb-[26px] text-[36px] font-normal'>Range and Scope</p>
+                  <div className='flex flex-col gap-y-6  w-max-[450px] w-[450px] overflow-hidden'>
+                    {rangeAndScopePoints.map(point => (
+                      <div className='flex items-center gap-x-4' key={point}>
+                        <img src={AdvantagesBullet} alt="" />
+                        <p className='text-base font-normal text-[#AAAAAA] text-ellipsis whitespace-[initial]'>{point}</p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div className='w-[1px] h-full text-transparent'>.</div>
+        </div>
       </div>
     </div>
   );
