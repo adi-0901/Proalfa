@@ -63,8 +63,8 @@ const MyComponent = () => {
   useEffect(() => {
     const observer = new IntersectionObserver(([entry]) => {
       // setIsIntersecting(entry.isIntersecting);
-      console.log('intersecting!!')
-      document.body.style.overflow = 'hidden';
+      console.log('intersecting!!',  )
+      if(window.scrollY) document.body.style.overflow = 'hidden';
       setIsIntersecting(true)
     });
     observer.observe(interRef.current);
