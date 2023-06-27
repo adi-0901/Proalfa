@@ -32,11 +32,14 @@
 
 // export default HorizontalScroll
 
-import React, { useRef, useEffect } from 'react';
+import React, { useEffect } from 'react';
 import RangeAndScope from '../assets/svg/why_range_scope.svg'
 import RangeAndScopeBullet from '../assets/svg/openmoji_telescope.svg'
 import Advantages from '../assets/svg/why_advantages.svg'
 import AdvantagesBullet from '../assets/svg/ph_warehouse.svg'
+import useHorizontalScroll from '../hooks/useHorizontalScroll';
+
+
 
 const MyComponent = () => {
 
@@ -52,10 +55,22 @@ const MyComponent = () => {
     "Fast Track Construction",
   ]
 
+  const scrollRef = useHorizontalScroll();
+
+  // useEffect(() => {
+  //   const observer = new IntersectionObserver(([entry]) => {
+  //     setIsIntersecting(entry.isIntersecting);
+  //   });
+  //   console.log(isIntersecting);
+  //   observer.observe(scrollRef.current);
+  //   return () => observer.disconnect();
+  // }, []);
+
 
   return (
     <div
       className='w-auto mb-[100px] overflow-x-auto whitespace-nowrap h-[100vh]'
+      ref={scrollRef}
     >
       {/* Content for testing */}
       <div className='mx-20 flex items-center h-full w-full'>
