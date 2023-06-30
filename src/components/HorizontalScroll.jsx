@@ -64,8 +64,10 @@ const MyComponent = () => {
     const observer = new IntersectionObserver(([entry]) => {
       // setIsIntersecting(entry.isIntersecting);
       console.log('intersecting!!',  )
-      if(window.scrollY) document.body.style.overflow = 'hidden';
-      setIsIntersecting(true)
+      if(window.scrollY) {
+        document.body.style.overflow = 'hidden';
+        setIsIntersecting(true)
+      }
     });
     observer.observe(interRef.current);
     return () => observer.disconnect();
