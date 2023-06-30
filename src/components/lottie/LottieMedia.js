@@ -6,7 +6,7 @@ import Lottie from 'lottie-react';
 const LottieMedia = forwardRef(
   function LottieMedia({ externalRef=true, autoplay=true, loop=false, className, 
     animationData, interactivity=undefined, onMouseOver, animateOnHover, 
-    width, height, onClick, onLoadedImages, onDivRef},ref)  {
+    width, height, onClick, onLoadedImages, onDivSizeChange},ref)  {
 
   const internalRef = useRef()
 
@@ -20,7 +20,26 @@ const LottieMedia = forwardRef(
   const divRef = useRef(null)
 
   useEffect(() => {
-    if(typeof onDivRef === 'function') onDivRef(divRef.current)
+    
+  }, [divRef])
+
+
+  // Start observing the element when the component is mounted
+  useEffect(() => {
+    const element = divRef?.current;
+
+    if (!element) return;
+
+    const observer = new ResizeObserver(([entry]) => {
+      // 👉 Do something when the element is resized
+      if(typeof onDivSizeChange === 'function') onDivSizeChange(element)
+    });
+
+    observer.observe(element);
+    return () => {
+      // Cleanup the observer by unobserving all elements
+      observer.disconnect();
+    };
   }, [divRef])
 
   return (

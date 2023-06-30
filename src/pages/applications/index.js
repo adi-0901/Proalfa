@@ -78,11 +78,17 @@ const Applications = () => {
        itemsRef.current = itemsRef.current.slice(0, 7);
     }, []);
 
+
     useEffect(() => {
-      const observer = new IntersectionObserver(([entry]) => {
-        // setIsIntersecting(entry.isIntersecting);
-        console.log('intersecting!!', entry.target.getAttribute('name') )
+      const observer = new IntersectionObserver(([entry])  => {
+        if(entry.isIntersecting) {
+          console.log('intersecting!!', entry.target.getAttribute('index'))
+          entry.target.style.opacity = 1
+        }
+      }, {
+        // rootMargin: '-300px'
       });
+
       observer.observe(itemsRef.current[0]);
       observer.observe(itemsRef.current[1]);
       observer.observe(itemsRef.current[2]);
@@ -96,7 +102,7 @@ const Applications = () => {
     const items = [
       {top: divHeight * 0.115, width: divWidth * 0.4, left: divWidth * 0.06, title: 'Industrial', description: `Explore our tailored pre-engineered building solutions for manufacturing plants, warehouses, and 
                   distribution centres, designed for functionality, efficiency, and cost-effectiveness`},
-      {top: divHeight * 0.225, width: divWidth * 0.4, right: divWidth * 0.02, title: `Institutional`, description: `Discover our customizable pre-engineered buildings for educational institutions, 
+      {top: divHeight * 0.2, width: divWidth * 0.4, right: divWidth * 0.02, title: `Institutional`, description: `Discover our customizable pre-engineered buildings for educational institutions, 
                 healthcare facilities, government buildings, and more, ensuring safe and adaptable spaces for various institutional needs`},
       {top: divHeight * 0.347, width: divWidth * 0.4, left: divWidth * 0.06, title: `Commercial`, description: `Experience our versatile pre-engineered structures for retail spaces, 
                   offices, showrooms, and other commercial establishments, combining aesthetics, functionality, and quick construction timelines`},
@@ -116,98 +122,21 @@ const Applications = () => {
         <div className='relative'>
             {items.map((item, index) => (
               <div className='absolute' 
-              ref={el => itemsRef.current[index] = el}
-              name='hello'
-              style={{
-                top: `${item.top}px`,
-                width: `${item.width}px`,
-                left: item.left ? `${item.left}px` : undefined,
-                right: item.right ? `${item.right}px` : undefined,
-              }}>
-                <div className='text-[40px] font-bold text-[#e5e5e5] text-just'>{item.title}</div>
-                <div className='text-[#b1b1b1] leading-[150%] mt-3'>{item.description}</div>
-            </div>
+                key={index}
+                ref={el => itemsRef.current[index] = el}
+                index={index}
+                style={{
+                  top: `${item.top}px`,
+                  width: `${item.width}px`,
+                  left: item.left ? `${item.left}px` : undefined,
+                  right: item.right ? `${item.right}px` : undefined,
+                  opacity: 0,
+                  transition: '0.3s opacity ease-in-out'
+                }}>
+                  <div className='md:text-[40px] sm:text-[32px] text-[20px] font-bold text-[#e5e5e5] '>{item.title}</div>
+                  <div className='text-[#b1b1b1] leading-[150%] mt-3 md:text-base  sm:text-[12px] text-[0px]'>{item.description}</div>
+              </div>
             ))}
-            {/* <div className='absolute' 
-              ref={el => itemsRef.current[0] = el}
-              name='hello'
-              style={{
-                top: `${divHeight * 0.115}px`,
-                width: `${divWidth * 0.4}px`,
-                left: `${divWidth * 0.06}px`,
-              }}>
-                <div className='text-[40px] font-bold text-[#e5e5e5] text-just'>Industrial</div>
-                <div className='text-[#b1b1b1] leading-[150%] mt-3'>Explore our tailored pre-engineered building solutions for manufacturing plants, warehouses, and 
-                  distribution centres, designed for functionality, efficiency, and cost-effectiveness</div>
-            </div>
-            <div className='absolute' 
-              ref={el => itemsRef.current[1] = el} 
-              style={{
-                top: `${divHeight * 0.225}px`,
-                width: `${divWidth * 0.4}px`,
-                right: `${divWidth * 0.02}px`,
-              }}>
-                <div className='text-[40px] font-bold text-[#e5e5e5] text-just'>Institutional</div>
-                <div className='text-[#b1b1b1] leading-[150%] mt-3'>Discover our customizable pre-engineered buildings for educational institutions, 
-                healthcare facilities, government buildings, and more, ensuring safe and adaptable spaces for various institutional needs</div>
-            </div>
-            <div className='absolute' 
-              ref={el => itemsRef.current[2] = el} 
-              style={{
-                top: `${divHeight * 0.347}px`,
-                width: `${divWidth * 0.4}px`,
-                left: `${divWidth * 0.06}px`,
-              }}>
-                <div className='text-[40px] font-bold text-[#e5e5e5] text-just'>Commercial</div>
-                <div className='text-[#b1b1b1] leading-[150%] mt-3'>Experience our versatile pre-engineered structures for retail spaces, 
-                  offices, showrooms, and other commercial establishments, combining aesthetics, functionality, and quick construction timelines.</div>
-            </div>
-            <div className='absolute' 
-              ref={el => itemsRef.current[3] = el} 
-              style={{
-                top: `${divHeight * 0.453}px`,
-                width: `${divWidth * 0.35}px`,
-                right: `${divWidth * 0.015}px`,
-              }}>
-                <div className='text-[40px] font-bold text-[#e5e5e5] text-just'>Heavy Industrial</div>
-                <div className='text-[#b1b1b1] leading-[150%] mt-3'>Unlock the potential of our robust pre-engineered 
-                  solutions for heavy industrial sectors, such as power plants, refineries, and manufacturing facilities, 
-                  offering durability and specialized features</div>
-            </div>
-            <div className='absolute' 
-              ref={el => itemsRef.current[4] = el} 
-              style={{
-                top: `${divHeight * 0.64}px`,
-                width: `${divWidth * 0.3}px`,
-                left: `${divWidth * 0.06}px`,
-              }}>
-                <div className='text-[40px] font-bold text-[#e5e5e5] text-just'>Recreational</div>
-                <div className='text-[#b1b1b1] leading-[150%] mt-3'>Enhance your leisure and entertainment spaces with our pre-engineered buildings for sports complexes, 
-                recreational centres, and community halls, providing flexibility and aesthetic appeal.</div>
-            </div>
-            <div className='absolute' 
-              ref={el => itemsRef.current[5] = el} 
-              style={{
-                top: `${divHeight * 0.777}px`,
-                width: `${divWidth * 0.3}px`,
-                right: `${divWidth * 0.04}px`,
-              }}>
-                <div className='text-[40px] font-bold text-[#e5e5e5] text-just'>Agricultural</div>
-                <div className='text-[#b1b1b1] leading-[150%] mt-3'>Explore our efficient and customizable pre-engineered 
-                buildings for agricultural purposes, including barns, storage facilities, and livestock shelters, designed to optimise productivity and sustainability</div>
-            </div>
-            <div className='absolute' 
-              ref={el => itemsRef.current[6] = el} 
-              style={{
-                top: `${divHeight * 0.925}px`,
-                width: `${divWidth * 0.3}px`,
-                left: `${divWidth * 0.06}px`,
-              }}>
-                <div className='text-[40px] font-bold text-[#e5e5e5] text-just'>Energy</div>
-                <div className='text-[#b1b1b1] leading-[150%] mt-3'>
-                  Embrace renewable power with our integrated solar panel solutions, optimizing clean energy generation and sustainability.
-                </div>
-            </div> */}
             <LottieMedia
                 className={'w-full mt-[500px] mb-20'} 
                 ref={lottieRef}
@@ -222,7 +151,7 @@ const Applications = () => {
                     },
                   ],
                 }}
-                onDivRef={(div) => {
+                onDivSizeChange={(div) => {
                   console.log('divv', div.clientHeight)
                   setDivHeight(div.clientHeight)
                   setDivWidth(div.clientWidth)
