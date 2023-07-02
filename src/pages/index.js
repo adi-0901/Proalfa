@@ -7,6 +7,7 @@ import About from "../components/homePage/About"
 import Footer from "../components/Footer"
 import Seo from "../components/seo"
 import HorizontalScroll from "../components/HorizontalScroll"
+import Services from "../components/Services"
 
 const IndexPage = props => {
   return (
@@ -17,6 +18,7 @@ const IndexPage = props => {
       {/* <Projects /> */}
       <About />
       <HorizontalScroll />
+      <Services />
     </Layout>
   )
 }

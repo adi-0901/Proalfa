@@ -60,18 +60,18 @@ const MyComponent = () => {
   const scrollRef = useHorizontalScroll(isIntersecting, setIsIntersecting);
   const interRef = useRef(null)
 
-  useEffect(() => {
-    const observer = new IntersectionObserver(([entry]) => {
-      // setIsIntersecting(entry.isIntersecting);
-      console.log('intersecting!!',  )
-      if(window.scrollY) {
-        document.body.style.overflow = 'hidden';
-        setIsIntersecting(true)
-      }
-    });
-    observer.observe(interRef.current);
-    return () => observer.disconnect();
-  }, [interRef]);
+  // useEffect(() => {
+  //   const observer = new IntersectionObserver(([entry]) => {
+  //     // setIsIntersecting(entry.isIntersecting);
+  //     console.log('intersecting!!',  )
+  //     if(window.scrollY) {
+  //       document.body.style.overflow = 'hidden';
+  //       setIsIntersecting(true)
+  //     }
+  //   });
+  //   observer.observe(interRef.current);
+  //   return () => observer.disconnect();
+  // }, [interRef]);
 
 
   return (
