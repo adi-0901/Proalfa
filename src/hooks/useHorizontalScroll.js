@@ -8,7 +8,7 @@ function useHorizontalScroll(isIntersecting, setIsIntersecting) {
     if (el) {
       const onWheel = (e) => {
         if (e.deltaY === 0) return;
-        console.log({isIntersecting})
+        // console.log({isIntersecting})
         if(!isIntersecting) return
         const scrollLeft = el.scrollLeft;
         const maxScrollLeft = el.scrollWidth - el.clientWidth;

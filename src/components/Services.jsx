@@ -5,6 +5,7 @@ import ProductionImage from '../assets/svg/services/production.svg'
 import ErectionImage from '../assets/svg/services/erection.svg'
 import LottieMedia from './lottie/LottieMedia'
 import PaperPlane from '../assets/lottie/paper_plane.json'
+import PaperPlane2 from '../assets/lottie/paperplane_2.json'
 
 const Services = () => {
 
@@ -29,7 +30,7 @@ const Services = () => {
     <div className='my-4 relative'>
         <LottieMedia
             className={'w-full absolute top-0'} 
-            animationData={PaperPlane}
+            animationData={PaperPlane2}
             ref={lottieRef}
             interactivity={{
                 mode: 'scroll',
@@ -47,7 +48,6 @@ const Services = () => {
                 // setDivWidth(div.clientWidth)
             }}
         />
-        Hello
         <div className='stack '>
             {services.map( (service, index) => (
                 <div className='flex justify-center items-center'>

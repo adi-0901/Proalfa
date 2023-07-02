@@ -73,6 +73,19 @@ const MyComponent = () => {
   //   return () => observer.disconnect();
   // }, [interRef]);
 
+  // useEffect(() => {
+  //   const { top: divTop, height: divHeight} = scrollRef.current.getBoundingClientRect()
+
+  //   console.log(divTop, 'eee', scrollRef.current.getBoundingClientRect())
+  //   document.addEventListener("scroll", (e) => {
+  //     const windowY = window.scrollY
+  //     if((windowY > divTop) && (windowY < (divTop + divHeight) ) ){
+  //       console.log('inside')
+  //       window.scrollTo(0, divTop)
+  //     }
+  //   })
+  // }, [scrollRef])
+
 
   return (
     <div className='relative'>
