@@ -14,16 +14,32 @@ const Services = () => {
 
     const services = [
         {
-            img: SurveyingImage
+            img: SurveyingImage,
+            title: 'Surveying',
+            description: `Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor 
+                incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco 
+                laboris nisi ut aliquip ex ea commodo consequat.`
         },
         {
-            img: CivilWorkImage
+            img: CivilWorkImage,
+            title: 'Civil work',
+            description: `Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor 
+                incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco 
+                laboris nisi ut aliquip ex ea commodo consequat.`
         },
         {
-            img: ProductionImage
+            img: ProductionImage,
+            title: 'Production',
+            description: `Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor 
+                incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco 
+                laboris nisi ut aliquip ex ea commodo consequat.`
         },
         {
-            img: ErectionImage
+            img: ErectionImage,
+            title: 'Erection',
+            description: `Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor 
+                incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco 
+                laboris nisi ut aliquip ex ea commodo consequat.`
         },
     ]
 
@@ -173,9 +189,17 @@ const Services = () => {
                         />
                     </div>}
                     <div className='flex-1 flex justify-center items-center'>{ (index % 2 === 0) && (
-                        <div></div>
+                        <div>
+                            <p className='text-[32px] font-normal uppercase mb-4'>{service.title}</p>
+                            <p className='font-normal '>{service.description}</p>
+                        </div>
                     )}</div>
-                    <div className='flex-1 flex justify-center items-center' >{ (index % 2 === 1) && 'Hello'}</div>
+                    <div className='flex-1 flex justify-center items-center' >{ (index % 2 === 1) && (
+                        <div>
+                            <p className='text-[32px] font-normal uppercase mb-4'>{service.title}</p>
+                            <p className='font-normal '>{service.description}</p>
+                        </div>
+                    )}</div>
                     { (index % 2 === 1) && <div className='flex-1 flex justify-center items-center relative'>
                         <img src={service.img} alt='' />
                         <div ref={el => overlayRef.current[index] = el} className='absolute top-0 left-0 w-full h-full bg-[#191919]  z-10'
