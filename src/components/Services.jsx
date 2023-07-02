@@ -35,37 +35,59 @@ const Services = () => {
         // const el = scrollRef.current
 
         const planeOne = document.querySelectorAll('[clip-path="url(#__lottie_element_2)"]')[0]
+        const planeTwo = document.querySelectorAll('[clip-path="url(#__lottie_element_14)"]')[0]
+        const planeThree = document.querySelectorAll('[clip-path="url(#__lottie_element_26)"]')[0]
+        
+
         const overlays = overlayRef.current
         const overlayLeft = overlays.map(o => o.getBoundingClientRect().left)
+        const overlayRight = overlays.map(o => (o.getBoundingClientRect().left + o.getBoundingClientRect().width))
+
         // temp1.getBoundingClientRect().left 
+
     
         document.addEventListener("wheel", (e) => {   
             const planeOneLeft = planeOne.getBoundingClientRect().left
-            console.log('planeOne',overlays[0],  overlayLeft, planeOneLeft) 
-            if((planeOneLeft - overlayLeft[0] ) > 0) overlays[0].style.marginLeft = `${planeOneLeft - overlayLeft[0]}px`
-            if((planeOneLeft - overlayLeft[1] ) > 0) overlays[1].style.marginLeft = `${planeOneLeft - overlayLeft[1]}px`
+            const planeTwoLeft = planeTwo.getBoundingClientRect().left
+            const planeThreeLeft = planeThree.getBoundingClientRect().left
 
- 
-        //   const scrollLeft = el.scrollLeft;
-        //   const maxScrollLeft = el.scrollWidth - el.clientWidth;
-    
-        //   const scrollTopOffset = scrollRef.current.getBoundingClientRect().top
-    
-        //   console.log('eeee', e.deltaY, scrollLeft, maxScrollLeft)
-    
-        //   if(((scrollLeft >= (maxScrollLeft - 30)) && e.deltaY >= 1) || ((scrollLeft === 0) && e.deltaY < 1)) {
-        //     setIsIntersecting(false)
-        //     document.body.style.overflow = 'auto';
-        //   }else if((scrollTopOffset <= 0) && e.deltaY >= 1){
-        //     console.log('inside', scrollLeft, maxScrollLeft, e.deltaY)
-        //     window.scrollTo(0, divTop)
-        //     setIsIntersecting(true)
-        //     document.body.style.overflow = 'hidden';
-        //   }else if(e.deltaY < 1 && (scrollTopOffset > 0)){
-        //     window.scrollTo(0, divTop)
-        //     document.body.style.overflow = 'hidden';
-        //     setIsIntersecting(true)
-        //   }
+            if(e.deltaY > 0){
+                planeOne.classList.remove("plane-up");
+                planeTwo.classList.remove("plane-up");
+                planeThree.classList.remove("plane-up");
+            }else{
+                planeOne.classList.add("plane-up");
+                planeTwo.classList.add("plane-up");
+                planeThree.classList.add("plane-up");
+            }
+
+
+            console.log('deltaY', e.deltaY )
+            
+            // planeOne.style.transform = 'scale(-1,1)'
+            console.log(planeOne, 'planeOne')
+
+            console.log('planeThree', planeThree, overlays[3])
+            if((planeOneLeft - overlayLeft[0] ) > 0) {
+                console.log('crossing 0')
+                overlays[0].style.background = 'linear-gradient(to right,  rgba(25, 25, 25, 0), rgb(25, 25, 25) 30%)'
+                overlays[0].style.marginLeft = `${planeOneLeft - overlayLeft[0]}px`
+            }
+            if((planeOneLeft - overlayLeft[1] ) > 0) {
+                console.log('crossing 1')
+                overlays[1].style.background = 'linear-gradient(to right,  rgba(25, 25, 25, 0), rgb(25, 25, 25) 30%)'
+                overlays[1].style.marginLeft = `${planeOneLeft - overlayLeft[1]}px`
+            }
+            if(((planeTwoLeft + 100) - overlayRight[2] ) < 0) {
+                console.log('crossing 2')
+                overlays[2].style.background = 'linear-gradient(to left,  rgba(25, 25, 25, 0), rgb(25, 25, 25) 30%)'
+                overlays[2].style.marginLeft = `${(planeTwoLeft + 100) - overlayRight[2]}px`
+            }
+            if((planeThreeLeft - overlayLeft[3]) > 0) {
+                console.log('crossing 3')
+                overlays[3].style.background = 'linear-gradient(to right,  rgba(25, 25, 25, 0), rgb(25, 25, 25) 30%)'
+                overlays[3].style.marginLeft = `${planeThreeLeft - overlayLeft[3]}px`
+            }
         })
       }, [lottieRef])
 
@@ -73,7 +95,7 @@ const Services = () => {
 
 
   return (
-    <div className='my-4 relative'>
+    <div className='my-4 relative mb-[200px]'>
         <LottieMedia
             className={'w-full absolute top-[-200px z-50'} 
             animationData={PaperPlane2_1}
@@ -95,7 +117,7 @@ const Services = () => {
             }}
         />
          <LottieMedia
-            className={'w-full absolute top-[500px]'} 
+            className={'w-full absolute top-[500px] z-50'} 
             style={{
                 transform: 'scale(-1,1)'
             }}
@@ -105,7 +127,7 @@ const Services = () => {
                 mode: 'scroll',
                 actions: [
                 {
-                    visibility: [0.1, 0.8],
+                    visibility: [0.3, 1],
                     type: "seek",
                     frames: [0,144],
                 },
@@ -118,14 +140,14 @@ const Services = () => {
             }}
         />
         <LottieMedia
-            className={'w-full absolute top-[800px]'} 
+            className={'w-full absolute top-[1000px] z-50'}
             animationData={PaperPlane2_3}
             ref={lottieRef}
             interactivity={{
                 mode: 'scroll',
                 actions: [
                 {
-                    visibility: [0, 0.93],
+                    visibility: [0.35, 0.93],
                     type: "seek",
                     frames: [0,144],
                 },
@@ -137,14 +159,16 @@ const Services = () => {
                 // setDivWidth(div.clientWidth)
             }}
         />
-        <div className='stack '>
+        <div className='stack'>
             {services.map( (service, index) => (
                 <div className='flex justify-center items-center'>
                     { (index % 2 === 0) && <div className='flex-1 flex justify-center items-start relative overflow-hidden'>
                         <img src={service.img} alt='' />
-                        <div ref={el => overlayRef.current[index] = el} className='absolute top-0 left-0 w-full h-full bg-[#191919] z-10'
+                        <div ref={el => overlayRef.current[index] = el} className='absolute top-0 left-0 w-full h-full z-10'
                             style={{
-                                marginLeft: '0px'
+                                marginLeft: '0px',
+                                transition: '0.1s all ease-in-out',
+                                background: '#191919'
                             }}
                         />
                     </div>}
@@ -156,7 +180,9 @@ const Services = () => {
                         <img src={service.img} alt='' />
                         <div ref={el => overlayRef.current[index] = el} className='absolute top-0 left-0 w-full h-full bg-[#191919]  z-10'
                             style={{
-                                marginLeft: '0px'
+                                marginLeft: '0px',
+                                transition: '0.1s all ease-in-out',
+                                background: '#191919'
                             }}
                         />
                     </div>}

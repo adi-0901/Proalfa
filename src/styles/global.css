@@ -4,7 +4,7 @@
 
 
 .stack {
-    --gap: -50px;
+    --gap: 50px;
     display: flex;
     flex-direction: column; 
     /* flex-wrap: wrap; */
@@ -26,4 +26,8 @@
 .horizontal-scroll {
     -ms-overflow-style: none;  /* IE and Edge */
     scrollbar-width: none;  /* Firefox */
+}
+
+.plane-up path {
+    transform: scale(-1,1);
 }
