@@ -6,7 +6,7 @@ import Lottie from 'lottie-react';
 const LottieMedia = forwardRef(
   function LottieMedia({ externalRef=true, autoplay=true, loop=false, className, 
     animationData, interactivity=undefined, onMouseOver, animateOnHover, 
-    width, height, onClick, onLoadedImages, onDivSizeChange},ref)  {
+    width, height, onClick, onLoadedImages, onDivSizeChange, style},ref)  {
 
   const internalRef = useRef()
 
@@ -43,7 +43,7 @@ const LottieMedia = forwardRef(
   }, [divRef])
 
   return (
-    <div className={className} onMouseEnter={handleMouseOver} onClick={onClick} ref={divRef}>
+    <div className={className} onMouseEnter={handleMouseOver} onClick={onClick} ref={divRef} style={style}>
         <Lottie 
           lottieRef={externalRef ? ref : internalRef}
           animationData={animationData} 
