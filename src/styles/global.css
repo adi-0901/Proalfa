@@ -16,3 +16,14 @@
     margin-bottom: var(--gap);
     margin-left: var(--gap);
 }
+
+
+.horizontal-scroll::-webkit-scrollbar {
+    display: none;
+}
+  
+  /* Hide scrollbar for IE, Edge and Firefox */
+.horizontal-scroll {
+    -ms-overflow-style: none;  /* IE and Edge */
+    scrollbar-width: none;  /* Firefox */
+}

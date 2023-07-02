@@ -85,14 +85,19 @@ const MyComponent = () => {
 
       const scrollTopOffset = scrollRef.current.getBoundingClientRect().top
 
-      if(((scrollLeft >= maxScrollLeft) && e.deltaY >= 1) || ((scrollLeft === 0) && e.deltaY < 1)) {
+      console.log('eeee', e.deltaY, scrollLeft, maxScrollLeft)
+
+      if(((scrollLeft >= (maxScrollLeft - 30)) && e.deltaY >= 1) || ((scrollLeft === 0) && e.deltaY < 1)) {
         setIsIntersecting(false)
+        document.body.style.overflow = 'auto';
       }else if((scrollTopOffset <= 0) && e.deltaY >= 1){
         console.log('inside', scrollLeft, maxScrollLeft, e.deltaY)
         window.scrollTo(0, divTop)
         setIsIntersecting(true)
+        document.body.style.overflow = 'hidden';
       }else if(e.deltaY < 1 && (scrollTopOffset > 0)){
         window.scrollTo(0, divTop)
+        document.body.style.overflow = 'hidden';
         setIsIntersecting(true)
       }
     })
@@ -105,7 +110,7 @@ const MyComponent = () => {
       {/* <div className='absolute top-0'>isIntersecting: {isIntersecting ? 'true': 'false'}</div> */}
 
       <div
-        className='w-auto mb-[100px] overflow-x-auto whitespace-nowrap h-[100vh] relative'
+        className='w-auto mb-[100px] overflow-x-auto whitespace-nowrap h-[100vh] relative horizontal-scroll'
         ref={scrollRef}
       >
         {/* Content for testing */}
