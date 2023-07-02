@@ -60,12 +60,14 @@ const MyComponent = () => {
   const scrollRef = useHorizontalScroll(isIntersecting, setIsIntersecting);
   const interRef = useRef(null)
 
+  console.log('isIntersecting: ', isIntersecting  )
+
+
   // useEffect(() => {
   //   const observer = new IntersectionObserver(([entry]) => {
   //     // setIsIntersecting(entry.isIntersecting);
-  //     console.log('intersecting!!',  )
   //     if(window.scrollY) {
-  //       document.body.style.overflow = 'hidden';
+  //       // document.body.style.overflow = 'hidden';
   //       setIsIntersecting(true)
   //     }
   //   });
@@ -73,18 +75,28 @@ const MyComponent = () => {
   //   return () => observer.disconnect();
   // }, [interRef]);
 
-  // useEffect(() => {
-  //   const { top: divTop, height: divHeight} = scrollRef.current.getBoundingClientRect()
+  useEffect(() => {
+    const divTop = scrollRef.current.getBoundingClientRect().top
+    const el = scrollRef.current
 
-  //   console.log(divTop, 'eee', scrollRef.current.getBoundingClientRect())
-  //   document.addEventListener("scroll", (e) => {
-  //     const windowY = window.scrollY
-  //     if((windowY > divTop) && (windowY < (divTop + divHeight) ) ){
-  //       console.log('inside')
-  //       window.scrollTo(0, divTop)
-  //     }
-  //   })
-  // }, [scrollRef])
+    document.addEventListener("wheel", (e) => {      
+      const scrollLeft = el.scrollLeft;
+      const maxScrollLeft = el.scrollWidth - el.clientWidth;
+
+      const scrollTopOffset = scrollRef.current.getBoundingClientRect().top
+
+      if(((scrollLeft >= maxScrollLeft) && e.deltaY >= 1) || ((scrollLeft === 0) && e.deltaY < 1)) {
+        setIsIntersecting(false)
+      }else if((scrollTopOffset <= 0) && e.deltaY >= 1){
+        console.log('inside', scrollLeft, maxScrollLeft, e.deltaY)
+        window.scrollTo(0, divTop)
+        setIsIntersecting(true)
+      }else if(e.deltaY < 1 && (scrollTopOffset > 0)){
+        window.scrollTo(0, divTop)
+        setIsIntersecting(true)
+      }
+    })
+  }, [scrollRef])
 
 
   return (
