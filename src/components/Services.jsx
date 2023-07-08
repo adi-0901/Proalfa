@@ -86,22 +86,22 @@ const Services = () => {
             console.log('planeThree', planeThree, overlays[3])
             if((planeOneLeft - overlayLeft[0] ) > 0) {
                 console.log('crossing 0')
-                overlays[0].style.background = 'linear-gradient(to right,  rgba(25, 25, 25, 0), rgb(25, 25, 25) 30%)'
+                overlays[0].style.background = 'linear-gradient(to right,  rgba(25, 25, 25, 0), rgb(25, 25, 25) 20%)'
                 overlays[0].style.marginLeft = `${planeOneLeft - overlayLeft[0]}px`
             }
             if((planeOneLeft - overlayLeft[1] ) > 0) {
                 console.log('crossing 1')
-                overlays[1].style.background = 'linear-gradient(to right,  rgba(25, 25, 25, 0), rgb(25, 25, 25) 30%)'
+                overlays[1].style.background = 'linear-gradient(to right,  rgba(25, 25, 25, 0), rgb(25, 25, 25) 20%)'
                 overlays[1].style.marginLeft = `${planeOneLeft - overlayLeft[1]}px`
             }
             if(((planeTwoLeft + 100) - overlayRight[2] ) < 0) {
                 console.log('crossing 2')
-                overlays[2].style.background = 'linear-gradient(to left,  rgba(25, 25, 25, 0), rgb(25, 25, 25) 30%)'
+                overlays[2].style.background = 'linear-gradient(to left,  rgba(25, 25, 25, 0), rgb(25, 25, 25) 20%)'
                 overlays[2].style.marginLeft = `${(planeTwoLeft + 100) - overlayRight[2]}px`
             }
             if((planeThreeLeft - overlayLeft[3]) > 0) {
                 console.log('crossing 3')
-                overlays[3].style.background = 'linear-gradient(to right,  rgba(25, 25, 25, 0), rgb(25, 25, 25) 30%)'
+                overlays[3].style.background = 'linear-gradient(to right,  rgba(25, 25, 25, 0), rgb(25, 25, 25) 20%)'
                 overlays[3].style.marginLeft = `${planeThreeLeft - overlayLeft[3]}px`
             }
         })

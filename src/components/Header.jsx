@@ -4,6 +4,8 @@ import {
   useGlobalDispatchContext,
   useGlobalStateContext,
 } from "../context/globalContext"
+import ProalfaLogo from '../assets/svg/logo.svg'
+
 
 // styled components
 import { HeaderNav, Logo, Menu, JumpToProjects } from "../styles/headerStyles"
@@ -66,7 +68,13 @@ const Header = () => {
               onMouseEnter={() => setCursor("pointer")}
               onMouseLeave={setCursor}
             >
-              Proalfa Dynamic
+              <div className="flex items-center justify-center gap-x-4 leading-[100%]">
+                <img className="h-[55px]" src={ProalfaLogo} alt="" />
+                <div>
+                  <p>Proalfa</p>
+                  <p>Dynamic</p>
+                </div>
+              </div>  
             </Link>
           </Logo>
           {/* <Menu onClick={onMenuClick} isHomePage={isHomePage}> */}
