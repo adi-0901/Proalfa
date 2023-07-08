@@ -69,10 +69,10 @@ const Header = () => {
               onMouseLeave={setCursor}
             >
               <div className="flex items-center justify-center gap-x-4 leading-[100%]">
-                <img className="h-[55px]" src={ProalfaLogo} alt="" />
+                <img className="h-[40px]" src={ProalfaLogo} alt="" />
                 <div>
-                  <p>Proalfa</p>
-                  <p>Dynamic</p>
+                  <p className="text-[28px] leading-[100%] border-spacing-[0.6px]">Proalfa <div className="inline font-normal">Dynamic</div></p>
+                  <p></p>
                 </div>
               </div>  
             </Link>

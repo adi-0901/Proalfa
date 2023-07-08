@@ -56,6 +56,18 @@ const MyComponent = () => {
     "Fast Track Construction",
   ]
 
+  const advantagesPoints = [
+    "Lightweight, easy and economical to construct and eco-Friendly",
+    "Excellent quality & quality control, unique aesthetic appeal",
+    "Extensive choice of layouts",
+    "Superior flexibility in design & fabrication",
+    "Economical construction",
+    "Immense strength, durability and resilience",
+    "Easily transportable and modular",
+    "Fire resistant and earthquake resistant",
+    "Speedy construction and implementation"
+  ]
+
   const [isIntersecting, setIsIntersecting] = useState(false)
   const scrollRef = useHorizontalScroll(isIntersecting, setIsIntersecting);
   const interRef = useRef(null)
@@ -75,32 +87,38 @@ const MyComponent = () => {
   //   return () => observer.disconnect();
   // }, [interRef]);
 
+  const onWheel = (e,divTop,el) => {      
+    const scrollLeft = el.scrollLeft;
+    const maxScrollLeft = el.scrollWidth - el.clientWidth;
+
+    const scrollTopOffset = scrollRef.current.getBoundingClientRect().top
+
+    console.log('eeee', e.deltaY, scrollLeft, maxScrollLeft)
+
+    if(((scrollLeft >= (maxScrollLeft - 30)) && e.deltaY >= 1) || ((scrollLeft === 0) && e.deltaY < 1)) {
+      setIsIntersecting(false)
+      document.body.style.overflow = 'auto';
+    }else if((scrollTopOffset <= 0) && e.deltaY >= 1){
+      console.log('inside', scrollLeft, maxScrollLeft, e.deltaY)
+      window.scrollTo(0, divTop)
+      setIsIntersecting(true)
+      document.body.style.overflow = 'hidden';
+    }else if(e.deltaY < 1 && (scrollTopOffset > 0)){
+      window.scrollTo(0, divTop)
+      document.body.style.overflow = 'hidden';
+      setIsIntersecting(true)
+    }
+  }
+
   useEffect(() => {
-    const divTop = scrollRef.current.getBoundingClientRect().top
+    if(!scrollRef.current) return
+    const divTop = scrollRef?.current?.getBoundingClientRect()?.top
     const el = scrollRef.current
 
-    document.addEventListener("wheel", (e) => {      
-      const scrollLeft = el.scrollLeft;
-      const maxScrollLeft = el.scrollWidth - el.clientWidth;
+    document.addEventListener("wheel", (e) => onWheel(e,divTop,el))
 
-      const scrollTopOffset = scrollRef.current.getBoundingClientRect().top
+    return () => document.removeEventListener("wheel", onWheel)
 
-      console.log('eeee', e.deltaY, scrollLeft, maxScrollLeft)
-
-      if(((scrollLeft >= (maxScrollLeft - 30)) && e.deltaY >= 1) || ((scrollLeft === 0) && e.deltaY < 1)) {
-        setIsIntersecting(false)
-        document.body.style.overflow = 'auto';
-      }else if((scrollTopOffset <= 0) && e.deltaY >= 1){
-        console.log('inside', scrollLeft, maxScrollLeft, e.deltaY)
-        window.scrollTo(0, divTop)
-        setIsIntersecting(true)
-        document.body.style.overflow = 'hidden';
-      }else if(e.deltaY < 1 && (scrollTopOffset > 0)){
-        window.scrollTo(0, divTop)
-        document.body.style.overflow = 'hidden';
-        setIsIntersecting(true)
-      }
-    })
   }, [scrollRef])
 
 
@@ -129,7 +147,7 @@ const MyComponent = () => {
                     {rangeAndScopePoints.map(point => (
                       <div className='flex items-center gap-x-4' key={point}>
                         <img src={RangeAndScopeBullet} alt="" />
-                        <p className='text-base font-normal text-[#AAAAAA] text-ellipsis whitespace-[initial]'>{point}</p>
+                        <p className='text-base font-normal text-[#AAAAAA] text-ellipsis whitespace-break-spaces'>{point}</p>
                       </div>
                     ))}
                   </div>
@@ -143,10 +161,10 @@ const MyComponent = () => {
                 <div>
                   <p className='mb-[26px] text-[36px] font-normal'>Range and Scope</p>
                   <div className='flex flex-col gap-y-6  w-max-[450px] w-[450px] overflow-hidden'>
-                    {rangeAndScopePoints.map(point => (
+                    {advantagesPoints.map(point => (
                       <div className='flex items-center gap-x-4' key={point}>
                         <img src={AdvantagesBullet} alt="" />
-                        <p className='text-base font-normal text-[#AAAAAA] text-ellipsis whitespace-[initial]'>{point}</p>
+                        <p className='text-base font-normal text-[#AAAAAA] text-ellipsis whitespace-break-spaces'>{point}</p>
                       </div>
                     ))}
                   </div>
