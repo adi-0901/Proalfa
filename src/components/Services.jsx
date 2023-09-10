@@ -4,7 +4,6 @@ import CivilWorkImage from '../assets/svg/services/civilwork.svg'
 import ProductionImage from '../assets/svg/services/production.svg'
 import ErectionImage from '../assets/svg/services/erection.svg'
 import LottieMedia from './lottie/LottieMedia'
-import PaperPlane from '../assets/lottie/paper_plane.json'
 import PaperPlane2_1 from '../assets/lottie/paperplane_2.1.json'
 import PaperPlane2_2 from '../assets/lottie/paperplane_2.2.json'
 import PaperPlane2_3 from '../assets/lottie/paperplane_2.3.json'
@@ -115,6 +114,7 @@ const Services = () => {
          attachPlanes()
 
          overlays = overlayRef.current
+         if(!overlays) return
          overlayLeft = overlays.map(o => o.getBoundingClientRect().left)
          overlayRight = overlays.map(o => (o.getBoundingClientRect().left + o.getBoundingClientRect().width))
 
@@ -137,7 +137,7 @@ const Services = () => {
   return (
     <div className='my-4 relative mb-[200px]'>
         <LottieMedia
-            className={'w-full absolute top-[-200px z-50'} 
+            className={'w-full absolute top-[-200px] z-50'} 
             animationData={PaperPlane2_1}
             ref={lottieRef}
             interactivity={{
@@ -199,9 +199,13 @@ const Services = () => {
                 // setDivWidth(div.clientWidth)
             }}
         />
-        <div className='stack'>
+        <div className='stack relative py-20'>
+            <div className='absolute w-screen top-0 h-full left-0 bg-transparent'>
+                <div className='grid-lines h-full'/>
+            </div>
+            <div className='text-center text-[4rem] uppercase font-bold pb-20'>OUR SERVICES</div>
             {services.map( (service, index) => (
-                <div className='flex justify-center items-center'>
+                <div className='flex justify-center items-center' key={index}>
                     { (index % 2 === 0) && <div className='flex-1 flex justify-center items-start relative overflow-hidden'>
                         <img src={service.img} alt='' />
                         <div ref={el => overlayRef.current[index] = el} className='absolute top-0 left-0 w-full h-full z-10'

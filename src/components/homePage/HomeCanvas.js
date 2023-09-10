@@ -141,8 +141,8 @@ const HomeCanvas = () => {
           initial="initial"
           animate="animate"
         >
-          <Headline variants={headlineAnimate}>BUILT STRONG</Headline>
-          <Headline variants={headlineAnimate}>TO BUILD STRONGEST</Headline>
+          <Headline variants={headlineAnimate} className="lg:w-auto w-screen break-w lg:text-[5rem] text-[3rem] lg:leading-[0.76] leading-[0.85]">BUILT STRONG</Headline>
+          <Headline variants={headlineAnimate} className="lg:w-auto w-screen break-w lg:text-[5rem] text-[3rem] lg:leading-[0.76] leading-[0.85]">TO BUILD STRONGEST</Headline>
         </BannerTitle>
       </Banner>
     </div>

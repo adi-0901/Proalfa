@@ -90,15 +90,14 @@ const Header = () => {
             </button> */}
           {/* </Menu> */}
           <div style={{
-            display: 'flex',
             columnGap: '30px',
             fontSize: '12px'
-          }}>
+          }} className="hidden lg:flex">
             <Link to='/about-us'
               onMouseEnter={() => setCursor("pointer")}
               onMouseLeave={setCursor}
             >
-              <p2 className="nav-item">About Us</p2>
+              <p className="nav-item">About Us</p>
             </Link>
             <Link to='/applications'
               onMouseEnter={() => setCursor("pointer")}

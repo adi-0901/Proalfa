@@ -23,7 +23,7 @@ export const GlobalStyle = createGlobalStyle`
     overscroll-behavior: none;
     overflow-x : hidden;
   }
-
+  
 
   p,li{
     font-size: 1.1.rem;
