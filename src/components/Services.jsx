@@ -137,7 +137,7 @@ const Services = () => {
   return (
     <div className='my-4 relative mb-[200px]'>
         <LottieMedia
-            className={'w-full absolute top-[-200px] z-50'} 
+            className={'w-full absolute top-[100px] z-50'} 
             animationData={PaperPlane2_1}
             ref={lottieRef}
             interactivity={{
@@ -199,11 +199,18 @@ const Services = () => {
                 // setDivWidth(div.clientWidth)
             }}
         />
-        <div className='stack relative py-20'>
+
+        <div className='relative'>
+            <div className='text-center text-[4rem] uppercase font-bold py-12'>OUR SERVICES</div>
             <div className='absolute w-screen top-0 h-full left-0 bg-transparent'>
                 <div className='grid-lines h-full'/>
             </div>
-            <div className='text-center text-[4rem] uppercase font-bold pb-20'>OUR SERVICES</div>
+        </div>
+
+        <div className='stack relative'>
+            <div className='absolute w-screen top-0 h-full left-0 bg-transparent'>
+                <div className='grid-lines h-full'/>
+            </div>
             {services.map( (service, index) => (
                 <div className='flex justify-center items-center' key={index}>
                     { (index % 2 === 0) && <div className='flex-1 flex justify-center items-start relative overflow-hidden'>
