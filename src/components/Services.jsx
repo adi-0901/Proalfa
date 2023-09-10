@@ -45,66 +45,90 @@ const Services = () => {
 
     const lottieRef = useRef(null)
 
+    let planeOne,planeTwo,planeThree, overlayLeft,overlayRight,overlays
+
+    const onWheel = (e) => {  
+        if(window.location.pathname !== '/') {
+            document.removeEventListener('wheel', onWheel);
+            return
+        }
+        if(!planeOne || !planeTwo || !planeThree) attachPlanes()
+        
+     
+
+        const planeOneLeft = planeOne.getBoundingClientRect().left
+        const planeTwoLeft = planeTwo.getBoundingClientRect().left
+        const planeThreeLeft = planeThree.getBoundingClientRect().left
+
+        if(e.deltaY > 0){
+            planeOne.classList.remove("plane-up");
+            planeTwo.classList.remove("plane-up");
+            planeThree.classList.remove("plane-up");
+        }else{
+            planeOne.classList.add("plane-up");
+            planeTwo.classList.add("plane-up");
+            planeThree.classList.add("plane-up");
+        }
+
+
+        console.log('deltaY', e.deltaY )
+        
+        // planeOne.style.transform = 'scale(-1,1)'
+        console.log(planeOne, 'planeOne')
+        console.log('services: overlays', overlays, overlayRef)
+
+        console.log('planeThree', planeThree, overlays[3])
+        if((planeOneLeft - overlayLeft[0] ) > 0) {
+            console.log('crossing 0')
+            overlays[0].style.background = 'linear-gradient(to right,  rgba(25, 25, 25, 0), rgb(25, 25, 25) 20%)'
+            overlays[0].style.marginLeft = `${planeOneLeft - overlayLeft[0]}px`
+        }
+        if((planeOneLeft - overlayLeft[1] ) > 0) {
+            console.log('crossing 1')
+            overlays[1].style.background = 'linear-gradient(to right,  rgba(25, 25, 25, 0), rgb(25, 25, 25) 20%)'
+            overlays[1].style.marginLeft = `${planeOneLeft - overlayLeft[1]}px`
+        }
+        if(((planeTwoLeft + 100) - overlayRight[2] ) < 0) {
+            console.log('crossing 2')
+            overlays[2].style.background = 'linear-gradient(to left,  rgba(25, 25, 25, 0), rgb(25, 25, 25) 20%)'
+            overlays[2].style.marginLeft = `${(planeTwoLeft + 100) - overlayRight[2]}px`
+        }
+        if((planeThreeLeft - overlayLeft[3]) > 0) {
+            console.log('crossing 3')
+            overlays[3].style.background = 'linear-gradient(to right,  rgba(25, 25, 25, 0), rgb(25, 25, 25) 20%)'
+            overlays[3].style.marginLeft = `${planeThreeLeft - overlayLeft[3]}px`
+        }
+    }
+
+    const attachPlanes = () => {
+        console.log('services: plane ', document.querySelectorAll('g[clip-path^=url]'))
+        planeOne = document.querySelectorAll('g[clip-path^=url]')[0]
+        planeTwo = document.querySelectorAll('g[clip-path^=url]')[1]
+        planeThree = document.querySelectorAll('g[clip-path^=url]')[2]
+    }
+
 
     useEffect(() => {
+        console.log('services: useEffect ', window.location.pathname)
         // const divTop = scrollRef.current.getBoundingClientRect().top
         // const el = scrollRef.current
+         attachPlanes()
 
-        const planeOne = document.querySelectorAll('[clip-path="url(#__lottie_element_2)"]')[0]
-        const planeTwo = document.querySelectorAll('[clip-path="url(#__lottie_element_14)"]')[0]
-        const planeThree = document.querySelectorAll('[clip-path="url(#__lottie_element_26)"]')[0]
-        
-
-        const overlays = overlayRef.current
-        const overlayLeft = overlays.map(o => o.getBoundingClientRect().left)
-        const overlayRight = overlays.map(o => (o.getBoundingClientRect().left + o.getBoundingClientRect().width))
+         overlays = overlayRef.current
+         overlayLeft = overlays.map(o => o.getBoundingClientRect().left)
+         overlayRight = overlays.map(o => (o.getBoundingClientRect().left + o.getBoundingClientRect().width))
 
         // temp1.getBoundingClientRect().left 
 
     
-        document.addEventListener("wheel", (e) => {   
-            const planeOneLeft = planeOne.getBoundingClientRect().left
-            const planeTwoLeft = planeTwo.getBoundingClientRect().left
-            const planeThreeLeft = planeThree.getBoundingClientRect().left
+        document.addEventListener("wheel", onWheel)
 
-            if(e.deltaY > 0){
-                planeOne.classList.remove("plane-up");
-                planeTwo.classList.remove("plane-up");
-                planeThree.classList.remove("plane-up");
-            }else{
-                planeOne.classList.add("plane-up");
-                planeTwo.classList.add("plane-up");
-                planeThree.classList.add("plane-up");
-            }
+        return(() => {
+        console.log('services: kill ', window.location.pathname)
 
-
-            console.log('deltaY', e.deltaY )
-            
-            // planeOne.style.transform = 'scale(-1,1)'
-            console.log(planeOne, 'planeOne')
-
-            console.log('planeThree', planeThree, overlays[3])
-            if((planeOneLeft - overlayLeft[0] ) > 0) {
-                console.log('crossing 0')
-                overlays[0].style.background = 'linear-gradient(to right,  rgba(25, 25, 25, 0), rgb(25, 25, 25) 20%)'
-                overlays[0].style.marginLeft = `${planeOneLeft - overlayLeft[0]}px`
-            }
-            if((planeOneLeft - overlayLeft[1] ) > 0) {
-                console.log('crossing 1')
-                overlays[1].style.background = 'linear-gradient(to right,  rgba(25, 25, 25, 0), rgb(25, 25, 25) 20%)'
-                overlays[1].style.marginLeft = `${planeOneLeft - overlayLeft[1]}px`
-            }
-            if(((planeTwoLeft + 100) - overlayRight[2] ) < 0) {
-                console.log('crossing 2')
-                overlays[2].style.background = 'linear-gradient(to left,  rgba(25, 25, 25, 0), rgb(25, 25, 25) 20%)'
-                overlays[2].style.marginLeft = `${(planeTwoLeft + 100) - overlayRight[2]}px`
-            }
-            if((planeThreeLeft - overlayLeft[3]) > 0) {
-                console.log('crossing 3')
-                overlays[3].style.background = 'linear-gradient(to right,  rgba(25, 25, 25, 0), rgb(25, 25, 25) 20%)'
-                overlays[3].style.marginLeft = `${planeThreeLeft - overlayLeft[3]}px`
-            }
+        document.removeEventListener('wheel', onWheel);
         })
+        
       }, [lottieRef])
 
       const overlayRef = useRef([]);

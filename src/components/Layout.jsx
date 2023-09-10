@@ -25,7 +25,7 @@ import { ToastContainer } from "react-toastify"
 // const randomPrimaryColor = pastelColors[Math.round(Math.random() * pastelColors.length)]
 
 const universalTheme = {
-  red: "#6D4AEA",
+  red: "crimson",
 }
 
 const darkTheme = {

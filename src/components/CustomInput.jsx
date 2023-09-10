@@ -5,7 +5,9 @@ import React from 'react'
 const CustomInput = ({
   label, placeholder, value, className,
   type, autoComplete, suffix, name,
-  formikHook: formik, error, errorText, showError, onChange, onPressEnter, maxLength
+  formikHook: formik, error, errorText, 
+  showError, onChange, onPressEnter, maxLength,
+  onFocusChange
 }) => {
   if (formik && name) {
     showError = showError || (formik.touched[name] && !!formik.errors[name])
@@ -37,6 +39,8 @@ const CustomInput = ({
                     autoComplete={autoComplete}
                     onPressEnter={onPressEnter}
                     maxLength={maxLength}
+                    onFocus={() => (typeof onFocusChange === 'function') && onFocusChange(true)}
+                    onBlur={() => (typeof onFocusChange === 'function') && onFocusChange(false)}
                 />
             </ConfigProvider>
             <div>

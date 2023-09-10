@@ -88,10 +88,13 @@ const MyComponent = () => {
   // }, [interRef]);
 
   const onWheel = (e,divTop,el) => {      
+    console.log('scrollRef?.current', scrollRef?.current)
+    if(!scrollRef?.current) return
+    
     const scrollLeft = el.scrollLeft;
     const maxScrollLeft = el.scrollWidth - el.clientWidth;
 
-    const scrollTopOffset = scrollRef.current.getBoundingClientRect().top
+    const scrollTopOffset = scrollRef?.current?.getBoundingClientRect()?.top
 
     console.log('eeee', e.deltaY, scrollLeft, maxScrollLeft)
 
@@ -159,7 +162,7 @@ const MyComponent = () => {
               <div className='border border-[#373737] rounded-[20px] h-full w-full  px-[100px] flex items-center justify-center'>
                 <img className='max-w-[initial] mr-[150px]' alt="" src={Advantages}  />
                 <div>
-                  <p className='mb-[26px] text-[36px] font-normal'>Range and Scope</p>
+                  <p className='mb-[26px] text-[36px] font-normal'>Advantages of PEB</p>
                   <div className='flex flex-col gap-y-6  w-max-[450px] w-[450px] overflow-hidden'>
                     {advantagesPoints.map(point => (
                       <div className='flex items-center gap-x-4' key={point}>

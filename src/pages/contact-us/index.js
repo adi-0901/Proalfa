@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 import Layout from '../../components/Layout'
 import { useFormik } from 'formik';
 import * as Yup from 'yup'
@@ -14,7 +14,7 @@ import LottieMedia from '../../components/lottie/LottieMedia';
 
 import ContactUsPlane from '../../assets/lottie/contact_us_plane.json'
 import ContactUsBubble from '../../assets/lottie/contact_us_bubble.json'
-
+import ContactUsAnimation from '../../assets/lottie/contact-us.json'
 
 const ContactUs = () => {
 
@@ -88,6 +88,29 @@ const ContactUs = () => {
 
 
 
+  const lottieRef = useRef(null)
+
+  const [bubbleEl, setBubbleEl] = useState(null)
+
+  useEffect(() => {
+    if(lottieRef.current) {
+      const bubble = document.querySelectorAll('[fill="rgb(2,255,179)"]')[0].parentElement.parentElement
+      setBubbleEl(bubble)
+
+      bubble.style.transition = '0.5s opacity ease-in-out'
+      bubble.style.opacity = 0
+      bubble.style.marginBottom = '30px'
+    }
+  }, [lottieRef])
+
+  const toggleShowBubble = (show) => {
+    console.log(bubbleEl)
+    if(bubbleEl) bubbleEl.style.opacity = show ? 1 : 0
+  }
+
+
+
+
   return (
     <Layout>
       <div className='h-screen mb-24 flex items-center justify-center w-full mx-20 '
@@ -105,15 +128,8 @@ const ContactUs = () => {
             
             <div className='absolute top-0 left-0'>
               <LottieMedia
-                animationData={ContactUsPlane}
-                loop
-                autoplay
-
-              />
-            </div>
-            <div className='absolute top-0 left-0'>
-              <LottieMedia
-                animationData={ContactUsBubble}
+                ref={lottieRef}
+                animationData={ContactUsAnimation}
                 loop
                 autoplay
               />
@@ -128,6 +144,7 @@ const ContactUs = () => {
               placeholder={'Your name'}
               formikHook={formik}
               className={' '}
+              onFocusChange={toggleShowBubble}
               {...formik.getFieldProps('name')}
             />
             <CustomInput
@@ -137,6 +154,7 @@ const ContactUs = () => {
               formikHook={formik}
               type={'email'}
               className={' '}
+              onFocusChange={toggleShowBubble}
               {...formik.getFieldProps('email')}
             />
             <CustomInput
@@ -146,6 +164,7 @@ const ContactUs = () => {
               formikHook={formik}
               maxLength={10}
               className={' '}
+              onFocusChange={toggleShowBubble}
               {...formik.getFieldProps('phone')}
             />
             <CustomInput
@@ -154,6 +173,7 @@ const ContactUs = () => {
               placeholder={'How can we help you?'}
               formikHook={formik}
               className={' '}
+              onFocusChange={toggleShowBubble}
               {...formik.getFieldProps('notes')}
             />
 
