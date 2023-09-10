@@ -157,7 +157,7 @@ const Services = () => {
             }}
         />
          <LottieMedia
-            className={'w-full absolute top-[500px] z-50'} 
+            className={'w-full absolute top-[600px] z-50'} 
             style={{
                 transform: 'scale(-1,1)'
             }}
@@ -180,7 +180,7 @@ const Services = () => {
             }}
         />
         <LottieMedia
-            className={'w-full absolute top-[1000px] z-50'}
+            className={'w-full absolute top-[1100px] z-50'}
             animationData={PaperPlane2_3}
             ref={lottieRef}
             interactivity={{
