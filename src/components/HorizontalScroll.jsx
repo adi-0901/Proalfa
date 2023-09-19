@@ -87,7 +87,7 @@ const MyComponent = () => {
   //   return () => observer.disconnect();
   // }, [interRef]);
 
-  const onWheel = (e,divTop,el) => {      
+  const onWheel = (e,el) => {      
     console.log('scrollRef?.current', scrollRef?.current)
     if(!scrollRef?.current) return
     
@@ -96,8 +96,6 @@ const MyComponent = () => {
 
     const scrollTopOffset = scrollRef?.current?.getBoundingClientRect()?.top
 
-    console.log('eeee', e.deltaY, scrollLeft, maxScrollLeft)
-
     if(((scrollLeft >= (maxScrollLeft - 30)) && e.deltaY >= 1) || ((scrollLeft === 0) && e.deltaY < 1)) {
       setIsIntersecting(false)
       document.body.style.overflowY = 'auto';
@@ -105,11 +103,11 @@ const MyComponent = () => {
 
     }else if((scrollTopOffset <= 0) && e.deltaY >= 1){
       console.log('inside', scrollLeft, maxScrollLeft, e.deltaY)
-      window.scrollTo(0, divTop)
+      window.scrollTo(0, window.scrollY + el.getBoundingClientRect().top)
       setIsIntersecting(true)
       document.body.style.overflow = 'hidden';
     }else if(e.deltaY < 1 && (scrollTopOffset > 0)){
-      window.scrollTo(0, divTop)
+      window.scrollTo(0, window.scrollY + el.getBoundingClientRect().top)
       document.body.style.overflow = 'hidden';
       setIsIntersecting(true)
     }
@@ -117,41 +115,54 @@ const MyComponent = () => {
 
   useEffect(() => {
     if(!scrollRef.current) return
-    const divTop = scrollRef?.current?.getBoundingClientRect()?.top
     const el = scrollRef.current
 
-    document.addEventListener("wheel", (e) => onWheel(e,divTop,el))
+    document.addEventListener("wheel", (e) => onWheel(e,el))
 
     return () => document.removeEventListener("wheel", onWheel)
 
   }, [scrollRef])
 
+  const whyChooseList = [
+    {
+      image: RangeAndScope,
+      title: 'Range and Scope',
+      list: rangeAndScopePoints,
+      listBulletImage: RangeAndScopeBullet,
+    },
+    {
+      image: Advantages,
+      title: 'Advantages of PEB',
+      list: advantagesPoints,
+      listBulletImage: AdvantagesBullet,
+
+    }
+  ]
+
 
   return (
     <div className='relative'>
       <div className='absolute bottom-0' ref={interRef}></div>
-      {/* <div className='absolute top-0'>isIntersecting: {isIntersecting ? 'true': 'false'}</div> */}
-
       <div
         className='w-auto mb-[100px] overflow-x-auto whitespace-nowrap h-[100vh] relative horizontal-scroll'
         ref={scrollRef}
       >
-        {/* Content for testing */}
-        <div className='mx-20 flex items-center h-full w-full'>
-            <div className='text-[72px] mr-[150px]'>
+        <div className='md:mx-20 mx-5 flex items-center h-full w-full'>
+            <div className='md:text-[72px] text-[40px] mr-[150px]'>
               <p>Why go for</p>
               <p>pre-engineered</p>
               <p>solutions</p>
             </div>
-            <div className='h-full py-10 mr-6'>
-              <div className='border border-[#373737] rounded-[20px] h-full w-full  px-[100px] flex items-center justify-center'>
-                <img className='max-w-[initial] mr-[150px]' alt="" src={RangeAndScope}  />
+
+            {whyChooseList.map(({image,title, list, listBulletImage}) => <div key={title} className='h-full py-10 mr-6'>
+              <div className='border border-[#373737] rounded-[20px] h-full w-full  px-[100px] flex items-center justify-center overflow-hidden'>
+                <img className='max-w-[initial] mr-[150px]' alt="" src={image}  />
                 <div>
-                  <p className='mb-[26px] text-[36px] font-normal'>Range and Scope</p>
-                  <div className='flex flex-col gap-y-6  w-max-[450px] w-[450px] overflow-hidden'>
-                    {rangeAndScopePoints.map(point => (
+                  <p className='mb-[26px] text-[36px] font-normal'>{title}</p>
+                  <div className='flex flex-col gap-y-6  md:w-max-[450px] md:w-[450px] w-[90vw] overflow-hidden'>
+                    {list.map(point => (
                       <div className='flex items-center gap-x-4' key={point}>
-                        <img src={RangeAndScopeBullet} alt="" />
+                        <img src={listBulletImage} alt="" />
                         <p className='text-base font-normal text-[#AAAAAA] text-ellipsis whitespace-break-spaces'>{point}</p>
                       </div>
                     ))}
@@ -159,23 +170,7 @@ const MyComponent = () => {
                   
                 </div>
               </div>
-            </div>
-            <div className='h-full py-10  mr-6'>
-              <div className='border border-[#373737] rounded-[20px] h-full w-full  px-[100px] flex items-center justify-center'>
-                <img className='max-w-[initial] mr-[150px]' alt="" src={Advantages}  />
-                <div>
-                  <p className='mb-[26px] text-[36px] font-normal'>Advantages of PEB</p>
-                  <div className='flex flex-col gap-y-6  w-max-[450px] w-[450px] overflow-hidden'>
-                    {advantagesPoints.map(point => (
-                      <div className='flex items-center gap-x-4' key={point}>
-                        <img src={AdvantagesBullet} alt="" />
-                        <p className='text-base font-normal text-[#AAAAAA] text-ellipsis whitespace-break-spaces'>{point}</p>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            </div>
+            </div>)}
             <div className='w-[1px] h-full text-transparent'>.</div>
         </div>
       </div>

@@ -15,30 +15,22 @@ const Services = () => {
         {
             img: SurveyingImage,
             title: 'Surveying',
-            description: `Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor 
-                incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco 
-                laboris nisi ut aliquip ex ea commodo consequat.`
+            description: `Surveying is the critical first step in pre-engineered building projects. Our team assesses the construction site, gathering precise measurements and data to understand the terrain, soil conditions, and any potential obstacles. This information helps in designing and planning the structure effectively, ensuring it meets both functional and safety requirements.`
         },
         {
             img: CivilWorkImage,
             title: 'Civil work',
-            description: `Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor 
-                incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco 
-                laboris nisi ut aliquip ex ea commodo consequat.`
+            description: `Civil work involves the foundation and infrastructure preparation necessary to support the pre-engineered building. This service encompasses tasks such as excavation, grading, and foundation construction. Ensuring a solid and level base is essential for the stability and longevity of the building.`
         },
         {
             img: ProductionImage,
             title: 'Production',
-            description: `Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor 
-                incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco 
-                laboris nisi ut aliquip ex ea commodo consequat.`
+            description: `The production phase is where we manufacture the components and materials needed for the pre-engineered building. This includes fabricating steel frames, roof and wall panels, and any other customized elements. Quality control and precision are vital during this stage to ensure that all components fit together seamlessly during erection.`
         },
         {
             img: ErectionImage,
             title: 'Erection',
-            description: `Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor 
-                incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco 
-                laboris nisi ut aliquip ex ea commodo consequat.`
+            description: ` Erection is the final step where our team assembles the pre-engineered building on-site. This involves lifting and securing the pre-fabricated components, aligning them correctly, and ensuring structural integrity. Efficient and safe erection practices are crucial to delivering a functional and durable building to our clients.`
         },
     ]
 
@@ -136,72 +128,60 @@ const Services = () => {
 
   return (
     <div className='my-4 relative mb-[200px]'>
-        <LottieMedia
-            className={'w-full absolute top-[100px] z-50'} 
-            animationData={PaperPlane2_1}
-            ref={lottieRef}
-            interactivity={{
-                mode: 'scroll',
-                actions: [
-                {
-                    visibility: [0, 0.93],
-                    type: "seek",
-                    frames: [0,144],
-                },
-                ],
-            }}
-            onDivSizeChange={(div) => {
-                console.log('divv', div.clientHeight)
-                // setDivHeight(div.clientHeight)
-                // setDivWidth(div.clientWidth)
-            }}
-        />
-         <LottieMedia
-            className={'w-full absolute top-[600px] z-50'} 
-            style={{
-                transform: 'scale(-1,1)'
-            }}
-            animationData={PaperPlane2_2}
-            ref={lottieRef}
-            interactivity={{
-                mode: 'scroll',
-                actions: [
-                {
-                    visibility: [0.3, 1],
-                    type: "seek",
-                    frames: [0,144],
-                },
-                ],
-            }}
-            onDivSizeChange={(div) => {
-                console.log('divv', div.clientHeight)
-                // setDivHeight(div.clientHeight)
-                // setDivWidth(div.clientWidth)
-            }}
-        />
-        <LottieMedia
-            className={'w-full absolute top-[1100px] z-50'}
-            animationData={PaperPlane2_3}
-            ref={lottieRef}
-            interactivity={{
-                mode: 'scroll',
-                actions: [
-                {
-                    visibility: [0.35, 0.93],
-                    type: "seek",
-                    frames: [0,144],
-                },
-                ],
-            }}
-            onDivSizeChange={(div) => {
-                console.log('divv', div.clientHeight)
-                // setDivHeight(div.clientHeight)
-                // setDivWidth(div.clientWidth)
-            }}
-        />
+        <div className='md:block hidden'>
+            <LottieMedia
+                className={'w-full absolute top-[100px] z-50'} 
+                animationData={PaperPlane2_1}
+                ref={lottieRef}
+                interactivity={{
+                    mode: 'scroll',
+                    actions: [
+                    {
+                        visibility: [0, 0.93],
+                        type: "seek",
+                        frames: [0,144],
+                    },
+                    ],
+                }}
+            />
+            <LottieMedia
+                className={'w-full absolute top-[600px] z-50'} 
+                style={{
+                    transform: 'scale(-1,1)'
+                }}
+                animationData={PaperPlane2_2}
+                ref={lottieRef}
+                interactivity={{
+                    mode: 'scroll',
+                    actions: [
+                    {
+                        visibility: [0.3, 1],
+                        type: "seek",
+                        frames: [0,144],
+                    },
+                    ],
+                }}
+            />
+            <LottieMedia
+                className={'w-full absolute top-[1100px] z-50'}
+                animationData={PaperPlane2_3}
+                ref={lottieRef}
+                interactivity={{
+                    mode: 'scroll',
+                    actions: [
+                    {
+                        visibility: [0.35, 0.93],
+                        type: "seek",
+                        frames: [0,144],
+                    },
+                    ],
+                }}
+
+            />
+        </div>
 
         <div className='relative'>
-            <div className='text-center text-[4rem] uppercase font-bold py-12'>OUR SERVICES</div>
+            <div className='text-center md:text-[4rem] text-[2.5rem] uppercase font-bold py-12 md:mx-0 mx-5'>OUR SERVICES</div>
             <div className='absolute w-screen top-0 h-full left-0 bg-transparent'>
                 <div className='grid-lines h-full'/>
             </div>
@@ -212,30 +192,30 @@ const Services = () => {
                 <div className='grid-lines h-full'/>
             </div>
             {services.map( (service, index) => (
-                <div className='flex justify-center items-center' key={index}>
-                    { (index % 2 === 0) && <div className='flex-1 flex justify-center items-start relative overflow-hidden'>
+                <div className='flex justify-center items-center md:flex-row flex-col' key={index}>
+                    <div className={`flex-1 flex justify-center items-start relative overflow-hidden md:mx-0 md:ml-10 mx-10 ${index % 2 === 0 ? 'md:block':'md:hidden block'}`}>
                         <img src={service.img} alt='' />
-                        <div ref={el => overlayRef.current[index] = el} className='absolute top-0 left-0 w-full h-full z-10'
+                        <div ref={el => overlayRef.current[index] = el} className='absolute md:block hidden top-0 left-0 w-full h-full z-10'
                             style={{
                                 marginLeft: '0px',
                                 transition: '0.1s all ease-in-out',
                                 background: '#191919'
                             }}
                         />
-                    </div>}
-                    <div className='flex-1 flex justify-center items-center'>{ (index % 2 === 0) && (
+                    </div>
+
+
+                    {(index % 2 === 1) ? <div className='flex-1 flex justify-center items-center' ></div> : ''}
+                    <div className='flex-1 flex justify-center items-center md:mx-0 mx-6 text-center md:text-start'>
                         <div>
-                            <p className='text-[32px] font-normal uppercase mb-4'>{service.title}</p>
+                            <p className='text-[32px] font-normal uppercase mb-4 md:text-start text-center'>{service.title}</p>
                             <p className='font-normal '>{service.description}</p>
                         </div>
-                    )}</div>
-                    <div className='flex-1 flex justify-center items-center' >{ (index % 2 === 1) && (
-                        <div>
-                            <p className='text-[32px] font-normal uppercase mb-4'>{service.title}</p>
-                            <p className='font-normal '>{service.description}</p>
-                        </div>
-                    )}</div>
-                    { (index % 2 === 1) && <div className='flex-1 flex justify-center items-center relative'>
+                    </div>
+                    {(index % 2 === 0) ? <div className='flex-1 flex justify-center items-center' ></div> : ''}
+
+
+                    { (index % 2 === 1) && <div className='flex-1 md:flex justify-center items-center relative hidden'>
                         <img src={service.img} alt='' />
                         <div ref={el => overlayRef.current[index] = el} className='absolute top-0 left-0 w-full h-full bg-[#191919]  z-10'
                             style={{
