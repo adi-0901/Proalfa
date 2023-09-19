@@ -100,7 +100,9 @@ const MyComponent = () => {
 
     if(((scrollLeft >= (maxScrollLeft - 30)) && e.deltaY >= 1) || ((scrollLeft === 0) && e.deltaY < 1)) {
       setIsIntersecting(false)
-      document.body.style.overflow = 'auto';
+      document.body.style.overflowY = 'auto';
+      document.body.style.overflowX = 'hidden';
+
     }else if((scrollTopOffset <= 0) && e.deltaY >= 1){
       console.log('inside', scrollLeft, maxScrollLeft, e.deltaY)
       window.scrollTo(0, divTop)

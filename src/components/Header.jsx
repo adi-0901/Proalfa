@@ -8,7 +8,7 @@ import ProalfaLogo from '../assets/svg/logo.svg'
 
 
 // styled components
-import { HeaderNav, Logo, Menu, JumpToProjects } from "../styles/headerStyles"
+import { HeaderNav, Logo, } from "../styles/headerStyles"
 import { Container, Flex } from "../styles/globalStyles"
 
 const Header = () => {
@@ -71,7 +71,7 @@ const Header = () => {
               <div className="flex items-center justify-center gap-x-4 leading-[100%]">
                 <img className="h-[40px]" src={ProalfaLogo} alt="" />
                 <div>
-                  <p className="text-[28px] leading-[100%] border-spacing-[0.6px]">Proalfa <div className="inline font-normal">Dynamic</div></p>
+                  <div className="text-[28px] leading-[100%] border-spacing-[0.6px]">Proalfa <div className="inline font-normal">Dynamic</div></div>
                   <p></p>
                 </div>
               </div>  

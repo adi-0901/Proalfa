@@ -40,7 +40,7 @@ const AnimatedText = ({text, className}) => {
   return (
     <div className={className}>
         <div className='flex'>
-            <p ref={elementRef}>
+            <div ref={elementRef}>
                 {/* {text.split('').map((letter, letterIndex) => letter === ' ' ? <span>&nbsp;</span> : (<div data-index={letterIndex} key={`${letterIndex}`} className='relative inline-block will-change-[opacity]'
                     style={{
                         opacity: opacity >= (Math.floor(((letterIndex - 0) * 100) / (text.length - 0)) / 100) ? 1 : 0.2,
@@ -62,7 +62,7 @@ const AnimatedText = ({text, className}) => {
                         &nbsp;
                     </div>))
                 }
-            </p>
+            </div>
         </div>
     </div>
   )
