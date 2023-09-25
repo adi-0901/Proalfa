@@ -4,7 +4,7 @@ function useHorizontalScroll(isIntersecting, setIsIntersecting, active = true) {
   const elRef = React.useRef();
   // eslint-disable-next-line consistent-return
   React.useEffect(() => {
-    if(!active || window.innerWidth < 768) return
+    if(!active || (typeof window === 'object' && window.innerWidth < 768)) return
     const el = elRef.current;
     if (el) {
       const onWheel = (e) => {
