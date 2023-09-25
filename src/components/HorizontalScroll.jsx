@@ -89,13 +89,12 @@ const MyComponent = () => {
     }
   ]
 
-
   return (
     <div className='relative'>
-      <div className='absolute bottom-0' ref={(typeof window === 'object' && window?.innerWidth > 768) ? interRef : undefined}></div>
+      <div className='absolute bottom-0' ref={interRef}></div>
       <div
         className='w-auto md:mb-[100px] overflow-x-auto whitespace-nowrap md:h-screen relative horizontal-scroll'
-        ref={(typeof window === 'object' && window?.innerWidth > 768) ? scrollRef : undefined }
+        ref={scrollRef}
       >
         <div className='md:mx-20 flex items-center h-full w-full md:flex-row flex-col md:gap-0 gap-20'>
             <div className='md:text-[72px] text-[40px] md:mr-[150px] text-center'>
