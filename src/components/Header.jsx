@@ -11,6 +11,7 @@ import ProalfaLogo from '../assets/svg/logo.svg'
 import { HeaderNav, Logo, Menu, } from "../styles/headerStyles"
 import { Container, Flex } from "../styles/globalStyles"
 import MobileSidebar from "./MobileSidebar"
+import { menuList } from "../constants"
 
 const Header = () => {
   const dispatch = useGlobalDispatchContext()
@@ -37,7 +38,7 @@ const Header = () => {
   }
 
   useEffect(() => {
-      document.body.style.overflow = !isHomePage ? 'hidden' : 'auto'
+      document.body.style.overflowY = !isHomePage ? 'hidden' : 'auto'
       if(!isHomePage) {
         document.body.scrollTop = document.documentElement.scrollTop = 0; 
       }
@@ -77,8 +78,12 @@ const Header = () => {
                   onMouseEnter={() => setCursor("melt")}
                   onMouseLeave={setCursor}
                 >
-                  <span></span>
-                  <span></span>
+                  <span style={{
+                    background: !isHomePage ?  'crimson' : undefined
+                  }}/>
+                  <span style={{
+                    background: !isHomePage ?  'crimson' : undefined
+                  }}/>
                 </div>
               </button>
           </Menu>
@@ -90,30 +95,17 @@ const Header = () => {
             columnGap: '30px',
             fontSize: '12px'
           }} className="hidden md:flex">
-            <Link to='/about-us'
-              onMouseEnter={() => setCursor("pointer")}
-              onMouseLeave={setCursor}
-            >
-              <p className="nav-item">About Us</p>
-            </Link>
-            <Link to='/applications'
-              onMouseEnter={() => setCursor("pointer")}
-              onMouseLeave={setCursor}
-            >
-              <p className="nav-item">Applications</p>
-            </Link>
-            <Link to='/projects'
-              onMouseEnter={() => setCursor("pointer")}
-              onMouseLeave={setCursor}
-            >
-              <p className="nav-item">Projects</p>
-            </Link>
-            <Link to='/contact-us'
-              onMouseEnter={() => setCursor("pointer")}
-              onMouseLeave={setCursor}
-            >
-              <p className="nav-item">Contact Us</p>
-            </Link>
+            {menuList.map(({redirect, name}) => 
+              <Link key={name} to={redirect}
+                onMouseEnter={() => setCursor("pointer")}
+                onMouseLeave={setCursor}
+                style={{
+                  color: window.location.pathname === redirect ? 'crimson' : undefined
+                }}
+              >
+                <p className="nav-item">{name}</p>
+              </Link> 
+            )}
           </div>
 
         </Flex>

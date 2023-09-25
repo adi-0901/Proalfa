@@ -42,7 +42,7 @@ export const Menu = styled.div`
 
     .hamburger:hover > span {
       transition: all 0.3s ease-in-out;
-      background: ${props =>
+      background: ${props => 
         props.theme.current.red};
     }
   }

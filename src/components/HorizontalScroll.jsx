@@ -37,10 +37,7 @@ const MyComponent = () => {
   const scrollRef = useHorizontalScroll(isIntersecting, setIsIntersecting);
   const interRef = useRef(null)
 
-  console.log('isIntersecting: ', isIntersecting  )
-
   const onWheel = (e,el) => {      
-    console.log('scrollRef?.current', scrollRef?.current)
     if(!scrollRef?.current) return
     
     const scrollLeft = el.scrollLeft;
@@ -54,7 +51,6 @@ const MyComponent = () => {
       document.body.style.overflowX = 'hidden';
 
     }else if((scrollTopOffset <= 0) && e.deltaY >= 1){
-      console.log('inside', scrollLeft, maxScrollLeft, e.deltaY)
       window.scrollTo(0, window.scrollY + el.getBoundingClientRect().top)
       setIsIntersecting(true)
       document.body.style.overflow = 'hidden';

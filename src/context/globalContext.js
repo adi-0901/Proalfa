@@ -44,8 +44,6 @@ const globalReducer = (state, action) => {
 const GlobalProvider = ({ children }) => {
   const [state, dispatch] = useReducer(globalReducer, initialState)
 
-  console.log("state", state)
-
   return (
     <GlobalStateContext.Provider value={state}>
       <GlobalDispatchContext.Provider value={dispatch}>

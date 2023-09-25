@@ -52,7 +52,6 @@ const Layout = ({ children }) => {
     }
   `)
   const { currentTheme } = useGlobalStateContext()
-  console.log(currentTheme)
 
   return (
     <ThemeProvider

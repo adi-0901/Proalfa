@@ -113,16 +113,16 @@ const ContactUs = () => {
 
   return (
     <Layout>
-      <div className='h-screen mb-24 flex items-center justify-center w-full mx-20 '
+      <div className='md:h-screen md:mb-24 flex items-center justify-center w-full md:mx-20 flex-col md:flex-row'
         style={{
           paddingTop: '45px',
         }}
       >
 
-        <div className='flex-1 flex flex-col ml-10 justify-center '>
-        <div className=' '>
-            <div className='text-6xl leading-[130%]'>Hello there!</div>
-            <div className='text-6xl mb-2'>Let’s break the ice.</div>
+        <div className='flex-1 flex flex-col md:ml-10 justify-center md:mt-0 mt-14 items-center'>
+        <div className='md:w-[undefined] w-[80vw]'>
+            <div className='text-5xl leading-[130%]'>Hello there!</div>
+            <div className='text-5xl mb-2'>Let’s break the ice.</div>
           </div>
           <div className='w-96 h-96 relative flex items-center justify-center'>
             
@@ -136,8 +136,8 @@ const ContactUs = () => {
             </div>
           </div>
         </div>
-        <div className='flex-1 flex items-center  ml-10'>
-          <div className='w-[70%] flex flex-col  gap-10 '>
+        <div className='flex-1 flex items-center  md:ml-10 mb-10'>
+          <div className='md:w-[70%] flex flex-col  gap-10 '>
             <CustomInput
               name={'name'}
               autoComplete={'off'}
@@ -188,11 +188,7 @@ const ContactUs = () => {
               { submitInProgress && <LoadingOutlined />}
               <div className='text-center '>Submit</div>
             </div>
-
-
           </div>
-          
-
         </div>
       </div>
 
