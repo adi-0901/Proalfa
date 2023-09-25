@@ -62,7 +62,7 @@ const MyComponent = () => {
   }
 
   useEffect(() => {
-    if(!scrollRef.current || window.innerWidth < 768) return
+    if(!scrollRef.current || window?.innerWidth < 768) return
     const el = scrollRef.current
 
     document.addEventListener("wheel", (e) => onWheel(e,el))
