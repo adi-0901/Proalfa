@@ -100,7 +100,7 @@ const Header = () => {
                 onMouseEnter={() => setCursor("pointer")}
                 onMouseLeave={setCursor}
                 style={{
-                  color: window?.location?.pathname === redirect ? 'crimson' : undefined
+                  color: (typeof window === 'object' && window?.location?.pathname === redirect) ? 'crimson' : undefined
                 }}
               >
                 <p className="nav-item">{name}</p>
