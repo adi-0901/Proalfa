@@ -8,8 +8,9 @@ import ProalfaLogo from '../assets/svg/logo.svg'
 
 
 // styled components
-import { HeaderNav, Logo, } from "../styles/headerStyles"
+import { HeaderNav, Logo, Menu, } from "../styles/headerStyles"
 import { Container, Flex } from "../styles/globalStyles"
+import MobileSidebar from "./MobileSidebar"
 
 const Header = () => {
   const dispatch = useGlobalDispatchContext()
@@ -35,34 +36,23 @@ const Header = () => {
     dispatch({ type: "IS_HOME_PAGE", value: !isHomePage })
   }
 
+  useEffect(() => {
+      document.body.style.overflow = !isHomePage ? 'hidden' : 'auto'
+      if(!isHomePage) {
+        document.body.scrollTop = document.documentElement.scrollTop = 0; 
+      }
+  }, [isHomePage])
+
   return (
     <HeaderNav
       initial={{ y: -72, opacity: 0 }}
       animate={{ y: 0, opacity: 1 }}
       transition={{ duration: 1, ease: [0.6, 0.05, -0.01, 0.9] }}
     >
+
       <Container>
         <Flex spaceBetween noHeight>
           <Logo isHomePage={isHomePage}>
-            {/* <Link
-              to="/"
-              onMouseEnter={() => setCursor("pointer")}
-              onMouseLeave={setCursor}
-            >
-              ICEB
-            </Link>
-            <span
-              onClick={toggleTheme}
-              onMouseEnter={() => setCursor("hovered")}
-              onMouseLeave={setCursor}
-            ></span>
-            <Link
-              to="/"
-              onMouseEnter={() => setCursor("pointer")}
-              onMouseLeave={setCursor}
-            >
-              X
-            </Link> */}
             <Link
               to="/"
               onMouseEnter={() => setCursor("pointer")}
@@ -70,29 +60,36 @@ const Header = () => {
             >
               <div className="flex items-center justify-center gap-x-4 leading-[100%]">
                 <img className="h-[40px]" src={ProalfaLogo} alt="" />
-                <div>
-                  <div className="text-[28px] leading-[100%] border-spacing-[0.6px]">Proalfa <div className="inline font-normal">Dynamic</div></div>
-                  <p></p>
+                <div className="flex justify-between">
+                  <div className="text-[28px] leading-[100%] border-spacing-[0.6px]">Proalfa <div className="inline font-normal">Dynamic</div>
+                </div>
                 </div>
               </div>  
             </Link>
           </Logo>
-          {/* <Menu onClick={onMenuClick} isHomePage={isHomePage}> */}
-          {/* <button>
-              <div
-                className="hamburger"
-                onMouseEnter={() => setCursor("melt")}
-                onMouseLeave={setCursor}
-              >
-                <span></span>
-                <span></span>
-              </div>
-            </button> */}
-          {/* </Menu> */}
+
+
+          <Menu onClick={onMenuClick} isHomePage={isHomePage} className="block md:hidden">
+              {!isHomePage && <MobileSidebar />}
+              <button className="!p-0">
+                <div
+                  className="hamburger"
+                  onMouseEnter={() => setCursor("melt")}
+                  onMouseLeave={setCursor}
+                >
+                  <span></span>
+                  <span></span>
+                </div>
+              </button>
+          </Menu>
+
+
+
+
           <div style={{
             columnGap: '30px',
             fontSize: '12px'
-          }} className="hidden lg:flex">
+          }} className="hidden md:flex">
             <Link to='/about-us'
               onMouseEnter={() => setCursor("pointer")}
               onMouseLeave={setCursor}
@@ -111,12 +108,6 @@ const Header = () => {
             >
               <p className="nav-item">Projects</p>
             </Link>
-            {/* <Link to='/services'
-              onMouseEnter={() => setCursor("pointer")}
-              onMouseLeave={setCursor}
-            >
-              <p className="nav-item">Services</p>
-            </Link> */}
             <Link to='/contact-us'
               onMouseEnter={() => setCursor("pointer")}
               onMouseLeave={setCursor}

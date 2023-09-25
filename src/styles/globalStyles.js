@@ -6,7 +6,7 @@ export const GlobalStyle = createGlobalStyle`
   ${normalize}
   *{
     text-decoration : none;
-    cursor: none;
+    // cursor: none;
           margin: 0;
       padding: 0;
   }
@@ -71,6 +71,7 @@ export const Container = styled.div`
   position: relative;
   width: auto;
   height: 100%;
+  z-index: 9999999;
 
   @media (min-width: 1024px) {
     max-width: 960px;

@@ -3,12 +3,13 @@ import { HomeContentContainer, ContentText } from "../../styles/homeStyles"
 
 import { useInView } from "react-intersection-observer"
 import { useAnimation } from "framer-motion"
+import MobileSidebar from "../MobileSidebar"
 
 const HomeContent = () => {
   const animation = useAnimation()
   const [contentRef, isInView] = useInView({
     triggerOnce: true,
-    rootMargin: "-200px",
+    rootMargin: window?.innerWidth > 768 ? "-200px" : "-50px",
   })
 
   useEffect(() => {
@@ -38,7 +39,7 @@ const HomeContent = () => {
         exit="exit"
       >
         <p className="text-xl">
-          We're is on a mission to improve the quality of Pre-Engineered buildings in India. 
+          We're on a mission to improve the quality of Pre-Engineered buildings in India. 
           We will provide customized designs and implement them with perfect care. 
           The quality is assured at each stage of production and it is based on strict values.
         </p>

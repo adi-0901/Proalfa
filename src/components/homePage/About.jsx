@@ -20,7 +20,7 @@ const About = () => {
   const animation = useAnimation()
   const [aboutRef, isInView] = useInView({
     triggerOnce: true,
-    rootMargin: "-200px",
+    rootMargin: window?.innerWidth > 768 ? "-200px" : "-50px",
   })
 
   const dispatch = useGlobalDispatchContext()

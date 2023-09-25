@@ -1,37 +1,3 @@
-// import React, { useEffect, useRef } from 'react'
-
-// const HorizontalScroll = () => {
-
-//     const divRef = useRef(null);
-    
-
-//     useEffect(() => {
-//       const handleScroll = () => {
-//         const divTop = divRef.current.getBoundingClientRect().top;
-//         if (divTop <= 0) {
-//           // Perform your action here when the top of the div touches the top of the viewport
-//           console.log('Top of the div touched the top of the viewport');
-//         }
-//       };
-  
-//       window.addEventListener('scroll', handleScroll);
-  
-//       return () => {
-//         window.removeEventListener('scroll', handleScroll);
-//       };
-//     }, []);
-  
-    
-
-//   return (
-//     <div className="w-[2000px] overflow-x-scroll h-screen bg-[red]" ref={divRef}>
-//         Hello
-//     </div>
-//   )
-// }
-
-// export default HorizontalScroll
-
 import React, { useEffect, useRef } from 'react';
 import RangeAndScope from '../assets/svg/why_range_scope.svg'
 import RangeAndScopeBullet from '../assets/svg/openmoji_telescope.svg'
@@ -43,7 +9,6 @@ import { useState } from 'react';
 
 
 const MyComponent = () => {
-
 
   const rangeAndScopePoints = [
     "High-rise commercial Buildings",
@@ -74,19 +39,6 @@ const MyComponent = () => {
 
   console.log('isIntersecting: ', isIntersecting  )
 
-
-  // useEffect(() => {
-  //   const observer = new IntersectionObserver(([entry]) => {
-  //     // setIsIntersecting(entry.isIntersecting);
-  //     if(window.scrollY) {
-  //       // document.body.style.overflow = 'hidden';
-  //       setIsIntersecting(true)
-  //     }
-  //   });
-  //   observer.observe(interRef.current);
-  //   return () => observer.disconnect();
-  // }, [interRef]);
-
   const onWheel = (e,el) => {      
     console.log('scrollRef?.current', scrollRef?.current)
     if(!scrollRef?.current) return
@@ -114,12 +66,14 @@ const MyComponent = () => {
   }
 
   useEffect(() => {
-    if(!scrollRef.current) return
+    if(!scrollRef.current || window.innerWidth < 768) return
     const el = scrollRef.current
 
     document.addEventListener("wheel", (e) => onWheel(e,el))
 
-    return () => document.removeEventListener("wheel", onWheel)
+    return () => {
+      document.removeEventListener("wheel", onWheel)
+    }
 
   }, [scrollRef])
 
@@ -142,28 +96,28 @@ const MyComponent = () => {
 
   return (
     <div className='relative'>
-      <div className='absolute bottom-0' ref={interRef}></div>
+      <div className='absolute bottom-0' ref={window?.innerWidth > 768 ? interRef : undefined}></div>
       <div
-        className='w-auto mb-[100px] overflow-x-auto whitespace-nowrap h-[100vh] relative horizontal-scroll'
-        ref={scrollRef}
+        className='w-auto md:mb-[100px] overflow-x-auto whitespace-nowrap md:h-screen relative horizontal-scroll'
+        ref={window?.innerWidth > 768 ? scrollRef : undefined }
       >
-        <div className='md:mx-20 mx-5 flex items-center h-full w-full'>
-            <div className='md:text-[72px] text-[40px] mr-[150px]'>
+        <div className='md:mx-20 flex items-center h-full w-full md:flex-row flex-col md:gap-0 gap-20'>
+            <div className='md:text-[72px] text-[40px] md:mr-[150px] text-center'>
               <p>Why go for</p>
               <p>pre-engineered</p>
               <p>solutions</p>
             </div>
 
-            {whyChooseList.map(({image,title, list, listBulletImage}) => <div key={title} className='h-full py-10 mr-6'>
-              <div className='border border-[#373737] rounded-[20px] h-full w-full  px-[100px] flex items-center justify-center overflow-hidden'>
-                <img className='max-w-[initial] mr-[150px]' alt="" src={image}  />
+            {whyChooseList.map(({image,title, list, listBulletImage}) => <div key={title} className='md:h-full md:py-10 md:mr-6'>
+              <div className='md:border md:border-[#373737] rounded-[20px] h-full w-full md:px-[100px] px-0 flex items-center justify-center overflow-hidden md:flex-row flex-col'>
+                <img className='md:max-w-[initial] max-w-full md:mr-[150px] md:px-0 px-10' alt="" src={image}  />
                 <div>
-                  <p className='mb-[26px] text-[36px] font-normal'>{title}</p>
+                  <p className='mb-[26px] text-[36px] font-normal md:text-start text-center md:mt-0 mt-4'>{title}</p>
                   <div className='flex flex-col gap-y-6  md:w-max-[450px] md:w-[450px] w-[90vw] overflow-hidden'>
                     {list.map(point => (
                       <div className='flex items-center gap-x-4' key={point}>
                         <img src={listBulletImage} alt="" />
-                        <p className='text-base font-normal text-[#AAAAAA] text-ellipsis whitespace-break-spaces'>{point}</p>
+                        <p className='text-base font-normal text-app-text text-ellipsis whitespace-break-spaces'>{point}</p>
                       </div>
                     ))}
                   </div>
@@ -171,7 +125,6 @@ const MyComponent = () => {
                 </div>
               </div>
             </div>)}
-            <div className='w-[1px] h-full text-transparent'>.</div>
         </div>
       </div>
     </div>

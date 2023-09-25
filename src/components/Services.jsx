@@ -61,38 +61,25 @@ const Services = () => {
             planeThree.classList.add("plane-up");
         }
 
-
-        console.log('deltaY', e.deltaY )
-        
-        // planeOne.style.transform = 'scale(-1,1)'
-        console.log(planeOne, 'planeOne')
-        console.log('services: overlays', overlays, overlayRef)
-
-        console.log('planeThree', planeThree, overlays[3])
         if((planeOneLeft - overlayLeft[0] ) > 0) {
-            console.log('crossing 0')
             overlays[0].style.background = 'linear-gradient(to right,  rgba(25, 25, 25, 0), rgb(25, 25, 25) 20%)'
             overlays[0].style.marginLeft = `${planeOneLeft - overlayLeft[0]}px`
         }
         if((planeOneLeft - overlayLeft[1] ) > 0) {
-            console.log('crossing 1')
             overlays[1].style.background = 'linear-gradient(to right,  rgba(25, 25, 25, 0), rgb(25, 25, 25) 20%)'
             overlays[1].style.marginLeft = `${planeOneLeft - overlayLeft[1]}px`
         }
         if(((planeTwoLeft + 100) - overlayRight[2] ) < 0) {
-            console.log('crossing 2')
             overlays[2].style.background = 'linear-gradient(to left,  rgba(25, 25, 25, 0), rgb(25, 25, 25) 20%)'
             overlays[2].style.marginLeft = `${(planeTwoLeft + 100) - overlayRight[2]}px`
         }
         if((planeThreeLeft - overlayLeft[3]) > 0) {
-            console.log('crossing 3')
             overlays[3].style.background = 'linear-gradient(to right,  rgba(25, 25, 25, 0), rgb(25, 25, 25) 20%)'
             overlays[3].style.marginLeft = `${planeThreeLeft - overlayLeft[3]}px`
         }
     }
 
     const attachPlanes = () => {
-        console.log('services: plane ', document.querySelectorAll('g[clip-path^=url]'))
         planeOne = document.querySelectorAll('g[clip-path^=url]')[0]
         planeTwo = document.querySelectorAll('g[clip-path^=url]')[1]
         planeThree = document.querySelectorAll('g[clip-path^=url]')[2]
@@ -100,7 +87,6 @@ const Services = () => {
 
 
     useEffect(() => {
-        console.log('services: useEffect ', window.location.pathname)
         // const divTop = scrollRef.current.getBoundingClientRect().top
         // const el = scrollRef.current
          attachPlanes()
@@ -116,7 +102,6 @@ const Services = () => {
         document.addEventListener("wheel", onWheel)
 
         return(() => {
-        console.log('services: kill ', window.location.pathname)
 
         document.removeEventListener('wheel', onWheel);
         })
@@ -209,7 +194,7 @@ const Services = () => {
                     <div className='flex-1 flex justify-center items-center md:mx-0 mx-6 text-center md:text-start'>
                         <div>
                             <p className='text-[32px] font-normal uppercase mb-4 md:text-start text-center'>{service.title}</p>
-                            <p className='font-normal '>{service.description}</p>
+                            <p className='font-normal text-app-text'>{service.description}</p>
                         </div>
                     </div>
                     {(index % 2 === 0) ? <div className='flex-1 flex justify-center items-center' ></div> : ''}

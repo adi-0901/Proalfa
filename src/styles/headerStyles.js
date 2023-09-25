@@ -43,7 +43,7 @@ export const Menu = styled.div`
     .hamburger:hover > span {
       transition: all 0.3s ease-in-out;
       background: ${props =>
-        props.isHomePage ? props.theme.current.red : props.theme.anti.color};
+        props.theme.current.red};
     }
   }
   span {
