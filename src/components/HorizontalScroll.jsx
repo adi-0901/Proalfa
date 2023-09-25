@@ -92,7 +92,7 @@ const MyComponent = () => {
 
   return (
     <div className='relative'>
-      <div className='absolute bottom-0' ref={window?.innerWidth > 768 ? interRef : undefined}></div>
+      <div className='absolute bottom-0' ref={(typeof window === 'object' && window?.innerWidth > 768) ? interRef : undefined}></div>
       <div
         className='w-auto md:mb-[100px] overflow-x-auto whitespace-nowrap md:h-screen relative horizontal-scroll'
         ref={window?.innerWidth > 768 ? scrollRef : undefined }
