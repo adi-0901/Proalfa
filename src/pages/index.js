@@ -8,8 +8,21 @@ import Footer from "../components/Footer"
 import Seo from "../components/seo"
 import HorizontalScroll from "../components/HorizontalScroll"
 import Services from "../components/Services"
+import { useEffect } from "react"
+import { useGlobalDispatchContext, useGlobalStateContext } from "../context/globalContext"
 
 const IndexPage = props => {
+
+  const dispatch = useGlobalDispatchContext()
+  const { isHomePage } = useGlobalStateContext()
+
+
+  useEffect(() => {
+    if(!isHomePage) {
+      dispatch({ type: "IS_HOME_PAGE", value: true })
+    }
+  },[])
+
   return (
     <Layout>
       <Seo title="Home" />

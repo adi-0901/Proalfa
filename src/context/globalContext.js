@@ -2,7 +2,7 @@ import React, { createContext, useReducer, useContext } from "react"
 
 //Define Conext
 const GlobalStateContext = createContext()
-const GlobalDispatchContext = createContext()
+export const GlobalDispatchContext = createContext()
 
 const cursorStyles = ["hovered", "pointer", "melt"]
 const initialState = {

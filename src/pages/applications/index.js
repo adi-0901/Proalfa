@@ -7,6 +7,7 @@ import { useState } from 'react'
 import { useFormik } from 'formik';
 import * as Yup from 'yup'
 import { useGlobalDispatchContext } from '../../context/globalContext'
+import ScrollDown from '../../components/ScrollDown'
 
 const Applications = () => {
 
@@ -119,6 +120,28 @@ const Applications = () => {
 
   return (
     <Layout>
+
+      <div className='mx-20 mt-40'>
+        <div className='flex justify-between'>
+          <p className='text-[2rem] w-full font-bold'>
+            Dive into the world of pre-engineered building solutions at Proalfa, 
+            where we excel in creating customized structures across various sectors.
+          </p>
+          <ScrollDown />
+
+        </div>
+        <p className="text-xl mt-10">
+          With a wealth of expertise across various sectors, we specialize in creating customized structures that redefine functionality, 
+          sustainability, and aesthetics. From industrial complexes to institutional spaces, commercial establishments to 
+          heavy industrial sites, recreational facilities to agricultural spaces, and innovative energy solutions, 
+          we are your partner in turning ideas into exceptional structures. 
+          Explore our comprehensive range of offerings and let us help you shape the future of construction, 
+          where precision and creativity converge to build a better tomorrow.
+        </p>  
+
+      </div>
+
+
         <div className='relative'>
             {items.map((item, index) => (
               <div className='absolute' 
@@ -138,7 +161,7 @@ const Applications = () => {
               </div>
             ))}
             <LottieMedia
-                className={'w-full mt-[500px] mb-20'} 
+                className={'w-full static mb-20'} 
                 ref={lottieRef}
                 animationData={LottieApplications}
                 interactivity={{

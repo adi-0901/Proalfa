@@ -1,6 +1,7 @@
-import React, { useEffect } from "react"
+import React, { useContext, useEffect } from "react"
 import { Link } from "gatsby"
 import {
+  GlobalDispatchContext,
   useGlobalDispatchContext,
   useGlobalStateContext,
 } from "../context/globalContext"
