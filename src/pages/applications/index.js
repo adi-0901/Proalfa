@@ -122,15 +122,15 @@ const Applications = () => {
     <Layout>
 
       <div className='mx-20 mt-40'>
-        <div className='flex justify-between'>
-          <p className='text-[2rem] w-full font-bold'>
+        <div className='flex justify-between md:flex-row flex-col md:gap-0 gap-10'>
+          <p className='md:text-[2rem] text-xl w-full font-bold'>
             Dive into the world of pre-engineered building solutions at Proalfa, 
             where we excel in creating customized structures across various sectors.
           </p>
           <ScrollDown />
 
         </div>
-        <p className="text-xl mt-10">
+        <p className="text-xl mt-10 md:block hidden">
           With a wealth of expertise across various sectors, we specialize in creating customized structures that redefine functionality, 
           sustainability, and aesthetics. From industrial complexes to institutional spaces, commercial establishments to 
           heavy industrial sites, recreational facilities to agricultural spaces, and innovative energy solutions, 
