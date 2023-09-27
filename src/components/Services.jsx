@@ -36,7 +36,11 @@ const Services = () => {
 
     const lottieRef = useRef(null)
 
-    let planeOne,planeTwo,planeThree, overlayLeft,overlayRight,overlays
+    let planeOne,planeTwo,planeThree
+
+    const overlayLeftRef = useRef([])
+    const overlayRightRef = useRef([])
+    const overlaysRef = useRef([])
 
     const onWheel = (e) => {  
         if(window.location.pathname !== '/') {
@@ -60,6 +64,10 @@ const Services = () => {
             planeTwo.classList.add("plane-up");
             planeThree.classList.add("plane-up");
         }
+
+        const overlayLeft = overlayLeftRef.current
+        const overlays = overlaysRef.current
+        const overlayRight = overlayRightRef.current
 
         if((planeOneLeft - overlayLeft[0] ) > 0) {
             overlays[0].style.background = 'linear-gradient(to right,  rgba(25, 25, 25, 0), rgb(25, 25, 25) 20%)'
@@ -91,10 +99,10 @@ const Services = () => {
         // const el = scrollRef.current
          attachPlanes()
 
-         overlays = overlayRef.current
+         const overlays = overlaysRef.current
          if(!overlays) return
-         overlayLeft = overlays.map(o => o.getBoundingClientRect().left)
-         overlayRight = overlays.map(o => (o.getBoundingClientRect().left + o.getBoundingClientRect().width))
+         overlayLeftRef.current = overlays.map(o => o.getBoundingClientRect().left)
+         overlayRightRef.current = overlays.map(o => (o.getBoundingClientRect().left + o.getBoundingClientRect().width))
 
         // temp1.getBoundingClientRect().left 
 
@@ -108,7 +116,6 @@ const Services = () => {
         
       }, [lottieRef])
 
-      const overlayRef = useRef([]);
 
 
   return (
@@ -180,7 +187,7 @@ const Services = () => {
                 <div className='flex justify-center items-center md:flex-row flex-col' key={index}>
                     <div className={`flex-1 flex justify-center items-start relative overflow-hidden md:mx-0 md:ml-10 mx-10 ${index % 2 === 0 ? 'md:block':'md:hidden block'}`}>
                         <img src={service.img} alt='' />
-                        <div ref={el => overlayRef.current[index] = el} className='absolute md:block hidden top-0 left-0 w-full h-full z-10'
+                        <div ref={el => overlaysRef.current[index] = el} className='absolute md:block hidden top-0 left-0 w-full h-full z-10'
                             style={{
                                 marginLeft: '0px',
                                 transition: '0.1s all ease-in-out',
@@ -202,7 +209,7 @@ const Services = () => {
 
                     { (index % 2 === 1) && <div className='flex-1 md:flex justify-center items-center relative hidden'>
                         <img src={service.img} alt='' />
-                        <div ref={el => overlayRef.current[index] = el} className='absolute top-0 left-0 w-full h-full bg-[#191919]  z-10'
+                        <div ref={el => overlaysRef.current[index] = el} className='absolute top-0 left-0 w-full h-full bg-[#191919]  z-10'
                             style={{
                                 marginLeft: '0px',
                                 transition: '0.1s all ease-in-out',
