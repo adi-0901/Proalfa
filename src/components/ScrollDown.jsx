@@ -5,7 +5,7 @@ const ScrollDown = () => {
     <div id="wrapper">
         <div id="wrapper-inner">
             <div id="scroll-down">
-                <span class="arrow-down">
+                <span className="arrow-down">
                 </span>
                 <span id="scroll-title">
                     Scroll down

@@ -4,71 +4,12 @@ import Layout from '../../components/Layout'
 import LottieApplications from '../../assets/lottie/proalfa_final_without_text.json'
 import LottieMedia from '../../components/lottie/LottieMedia'
 import { useState } from 'react'
-import { useFormik } from 'formik';
-import * as Yup from 'yup'
-import { useGlobalDispatchContext } from '../../context/globalContext'
 import ScrollDown from '../../components/ScrollDown'
 import Seo from "../../components/seo"
 
 const Applications = () => {
 
   const lottieRef = useRef(null)
-
-  const [maxFrames, setMaxFrames] = useState(720)
-  const [visibility, setVisibility] = useState([0,0.8])
-
-  const dispatch = useGlobalDispatchContext()
-
-  const setCursor = cursorType => {
-    dispatch({ type: "CURSOR_TYPE", value: cursorType })
-  }
-
-  const formik = useFormik({
-    initialValues: {
-      minVisibility: 0,
-      maxVisibility: 0.8,
-      maxFrames: 720,
-      notes: null
-    },
-    isInitialValid: false,
-    enableReinitialize: true,
-    validationSchema: Yup.object({
-      minVisibility: Yup.number().min(0).max(1.0)
-        .required('Please enter value in decimal')
-        .typeError('Please enter value in decimal'),
-      maxVisibility: Yup.number().min(0).max(1.5)
-        .required('Please enter value in decimal')
-        .typeError('Please enter value in decimal'),
-      maxFrames: Yup.number()
-        .required('Please enter number')
-        .typeError('Please enter number'),
-    }),
-    onSubmit: (values) => {
-      console.log(values)
-      const {maxFrames, maxVisibility, minVisibility} = values
-      setMaxFrames(maxFrames)
-      setVisibility([minVisibility, maxVisibility])
-    }
-  })
-
-    useEffect(() => {
-        console.log('lottieRef: ', lottieRef.current)
-        console.log(lottieRef.current)
-    }, [lottieRef])
-
-    const getInteractivity = () => {
-        console.log(visibility,maxFrames)
-        return {
-            mode: 'scroll',
-            actions: [
-              {
-                visibility: visibility,
-                type: "seek",
-                frames: [0,maxFrames],
-              },
-            ],
-          }
-    }
 
     const [divHeight, setDivHeight] = useState(0)
     const [divWidth, setDivWidth] = useState(0)
@@ -84,7 +25,7 @@ const Applications = () => {
     useEffect(() => {
       const observer = new IntersectionObserver(([entry])  => {
         if(entry.isIntersecting) {
-          console.log('intersecting!!', entry.target.getAttribute('index'))
+          // console.log('intersecting!!', entry.target.getAttribute('index'))
           entry.target.style.opacity = 1
         }
       }, {
@@ -177,7 +118,7 @@ const Applications = () => {
                   ],
                 }}
                 onDivSizeChange={(div) => {
-                  console.log('divv', div.clientHeight)
+                  // console.log('divv', div.clientHeight)
                   setDivHeight(div.clientHeight)
                   setDivWidth(div.clientWidth)
                 }}

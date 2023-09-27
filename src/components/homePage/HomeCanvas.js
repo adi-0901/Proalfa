@@ -17,7 +17,7 @@ const HomeCanvas = () => {
   let cvsColor =
     currentTheme === "dark" ? "rgba(0,0,0,0.9)" : "rgba(255,255,255,0.9)"
   let eraseLoop
-  let eraseCords = []
+  const eraseCords = []
   let index = 0
 
   const addBlackCanvasRect = ctx => {
@@ -110,9 +110,6 @@ const HomeCanvas = () => {
     },
   }
 
-  const onVideoLoad = () => {
-    console.log("video loaded")
-  }
 
   return (
     <div>
@@ -128,7 +125,7 @@ const HomeCanvas = () => {
         >
           <video
             ref={videoRef}
-            onLoadedData={onVideoLoad}
+            // onLoadedData={onVideoLoad}
             src={require("../../assets/video/banner.mp4").default}
             autoPlay
             loop

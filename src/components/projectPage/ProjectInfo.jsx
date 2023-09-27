@@ -13,7 +13,6 @@ const ProjectInfo = () => {
 
   useEffect(() => {
     if (isInView) {
-      console.log("project info in view!")
       animation.start("visible")
     }
   }, [isInView])

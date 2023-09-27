@@ -10,9 +10,7 @@ const ProjectVideo = ({ location, video }) => {
     require("../../assets/video/" + video.fname).default
   console.log(videoPath)
 
-  const onVideoLoad = () => {
-    console.log("video loaded")
-  }
+
   return (
     <div>
       <VideoContainer>
@@ -26,7 +24,7 @@ const ProjectVideo = ({ location, video }) => {
           exit={{ opacity: 0 }}
         >
           <video
-            onLoadedData={onVideoLoad}
+            // onLoadedData={onVideoLoad}
             src={videoPath}
             autoPlay
             loop

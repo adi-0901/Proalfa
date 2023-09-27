@@ -31,7 +31,6 @@ const About = () => {
 
   useEffect(() => {
     if (isInView) {
-      console.log("in view!")
       animation.start("visible")
     }
   }, [isInView])

@@ -36,7 +36,6 @@ const Projects = () => {
 
   useEffect(() => {
     if (isInView) {
-      console.log("in view!")
       animation.start("animate")
     }
   }, [isInView])
