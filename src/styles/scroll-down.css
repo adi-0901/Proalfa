@@ -46,17 +46,8 @@
     letter-spacing:.1em;
   }
   #scroll-down::before {
-      -webkit-animation: elasticus 1.2s cubic-bezier(1, 0, 0, 1) infinite;
-      /* Safari 4+ */
-      
-      -moz-animation: elasticus 1.2s cubic-bezier(1, 0, 0, 1) infinite;
-      /* Fx 5+ */
-      
-      -o-animation: elasticus 1.2s cubic-bezier(1, 0, 0, 1) infinite;
-      /* Opera 12+ */
-      
-      animation: elasticus 1.2s cubic-bezier(1, 0, 0, 1) infinite;
-      /* IE 10+, Fx 29+ */
+
+      animation: elasticus 2s cubic-bezier(1, 0, 0, 1) infinite;
       
       position: absolute;
       top: -3px;

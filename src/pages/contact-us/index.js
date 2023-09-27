@@ -11,6 +11,7 @@ import "react-toastify/dist/ReactToastify.css";
 import { LoadingOutlined } from '@ant-design/icons';
 import { useGlobalDispatchContext } from '../../context/globalContext';
 import LottieMedia from '../../components/lottie/LottieMedia';
+import Seo from "../../components/seo"
 
 import ContactUsPlane from '../../assets/lottie/contact_us_plane.json'
 import ContactUsBubble from '../../assets/lottie/contact_us_bubble.json'
@@ -113,6 +114,8 @@ const ContactUs = () => {
 
   return (
     <Layout>
+      <Seo title="Contact Us" />
+
       <div className='md:h-screen md:w-screen md:mb-24 flex items-center justify-center w-full md:mx-20 flex-col md:flex-row'
         style={{
           paddingTop: '45px',
@@ -121,8 +124,8 @@ const ContactUs = () => {
 
         <div className='flex-1 flex flex-col md:ml-10 justify-center md:mt-0 mt-14 items-center'>
         <div className='md:w-[unset] w-[80vw]'>
-            <div className='text-5xl leading-[130%]'>Hello there!</div>
-            <div className='text-5xl mb-2'>Let’s break the ice.</div>
+            <div className='text-[3rem] font-bold leading-[130%]'>Hello there!</div>
+            <div className='text-5xl mb-2'>Let's break the ice.</div>
           </div>
           <div className='w-96 h-96 relative flex items-center justify-center'>
             

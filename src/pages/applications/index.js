@@ -8,6 +8,7 @@ import { useFormik } from 'formik';
 import * as Yup from 'yup'
 import { useGlobalDispatchContext } from '../../context/globalContext'
 import ScrollDown from '../../components/ScrollDown'
+import Seo from "../../components/seo"
 
 const Applications = () => {
 
@@ -120,10 +121,11 @@ const Applications = () => {
 
   return (
     <Layout>
+      <Seo title="Applications" />
 
       <div className='mx-20 mt-40'>
         <div className='flex justify-between md:flex-row flex-col md:gap-0 gap-10'>
-          <p className='md:text-[2rem] text-xl w-full font-bold'>
+          <p className='md:text-[2rem] text-xl w-full font-bold leading-[40px]'>
             Dive into the world of pre-engineered building solutions at Proalfa, 
             where we excel in creating customized structures across various sectors.
           </p>
