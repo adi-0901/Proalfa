@@ -10,8 +10,8 @@ const CustomCursor = () => {
     left: -100,
   })
 
-  const scrollDeltaX = useRef(window.scrollX)
-  const scrollDeltaY = useRef(window.scrollY)
+  const scrollDeltaX = useRef(0)
+  const scrollDeltaY = useRef(0)
 
   const cursorRef = useRef(null)
 
@@ -23,9 +23,7 @@ const CustomCursor = () => {
   }
 
   const handleScroll = () => {
-    // Calculate the new mouse position considering scrolling
-    //  https://stackoverflow.com/a/6728432
-    // ChatGPT helped
+
     const deltaX =  window.scrollX - scrollDeltaX.current;
     const deltaY =  window.scrollY - scrollDeltaY.current;
 
