@@ -5,13 +5,13 @@ import {
   AboutAccordion,
   ServiceHead,
 } from "../../styles/homeStyles"
-import { serviceList } from "../../content/videoList"
 
 import { useInView } from "react-intersection-observer"
 import { useAnimation } from "framer-motion"
 import { useGlobalDispatchContext } from "../../context/globalContext"
 import { Link } from "gatsby"
 import AnimatedText from "../AnimatedText"
+import { serviceList } from "../../constants"
 
 const About = () => {
   const [shouldExpand, setShouldExpand] = useState(0)

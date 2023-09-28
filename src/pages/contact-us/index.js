@@ -3,8 +3,6 @@ import Layout from '../../components/Layout'
 import { useFormik } from 'formik';
 import * as Yup from 'yup'
 import CustomInput from '../../components/CustomInput'
-import CustomButton from '../../components/CustomButton';
-// import emailjs from 'emailjs-com';
 import emailjs from '@emailjs/browser';
 import { toast } from 'react-toastify';
 import "react-toastify/dist/ReactToastify.css";
@@ -13,8 +11,6 @@ import { useGlobalDispatchContext } from '../../context/globalContext';
 import LottieMedia from '../../components/lottie/LottieMedia';
 import Seo from "../../components/seo"
 
-import ContactUsPlane from '../../assets/lottie/contact_us_plane.json'
-import ContactUsBubble from '../../assets/lottie/contact_us_bubble.json'
 import ContactUsAnimation from '../../assets/lottie/contact-us.json'
 
 const ContactUs = () => {
