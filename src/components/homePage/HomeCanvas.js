@@ -7,7 +7,6 @@ import {
   Headline,
 } from "../../styles/homeStyles"
 import { useGlobalStateContext } from "../../context/globalContext"
-import savedCords from "../../content/eraseCords"
 
 const HomeCanvas = () => {
   const { currentTheme } = useGlobalStateContext()
@@ -18,7 +17,7 @@ const HomeCanvas = () => {
     currentTheme === "dark" ? "rgba(0,0,0,0.9)" : "rgba(255,255,255,0.9)"
   let eraseLoop
   const eraseCords = []
-  let index = 0
+  const index = 0
 
   const addBlackCanvasRect = ctx => {
     ctx.globalCompositeOperation = "source-over"
@@ -44,26 +43,6 @@ const HomeCanvas = () => {
     // eraseCords.push({x:evt.clientX, y: evt.clientY})
     // localStorage.setItem("ERASE_CORDS", eraseCords)
     // console.log(eraseCords)
-  }
-
-  const autoEraser = ctx => {
-    cvs = canvas.current
-    ctx = cvs.getContext("2d")
-    ctx.globalCompositeOperation = "destination-out"
-    ctx.lineJoin = "round"
-    ctx.lineCap = "round"
-    ctx.lineWidth = 150
-    // ctx.beginPath()
-    ctx.moveTo(savedCords[index].x, savedCords[index].y)
-    ctx.lineTo(savedCords[index + 1].x + 2, savedCords[index + 1].y + 2)
-    ctx.stroke()
-    index += 1
-    if (index + 1 >= savedCords.length) {
-      cancelAnimationFrame(eraseLoop)
-      // cvs.addEventListener('mousemove',draw)
-      return
-    }
-    eraseLoop = requestAnimationFrame(autoEraser)
   }
 
   useEffect(() => {
