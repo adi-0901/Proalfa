@@ -4,7 +4,6 @@ import {
   AboutText,
   AboutAccordion,
   ServiceHead,
-  ServiceList,
 } from "../../styles/homeStyles"
 import { serviceList } from "../../content/videoList"
 
