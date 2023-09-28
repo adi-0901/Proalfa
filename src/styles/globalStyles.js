@@ -6,7 +6,7 @@ export const GlobalStyle = createGlobalStyle`
   ${normalize}
   *{
     text-decoration : none;
-    // cursor: none;
+    cursor: none;
           margin: 0;
       padding: 0;
   }
@@ -17,8 +17,7 @@ export const GlobalStyle = createGlobalStyle`
   }
   body{
     font-family: 'Open Sans','Helvetica Neue', sans-serif;
-    background : ${props => props.theme.current.background};
-    transition: background 0.4s ease-in-out;
+    background-color : #191919;
     color: ${props => props.theme.current.color};
     overscroll-behavior: none;
     overflow-x : hidden;

@@ -56,8 +56,10 @@ const Layout = ({ children }) => {
   return (
     <ThemeProvider
       theme={{
-        current: currentTheme === "dark" ? darkTheme : lightTheme,
-        anti: currentTheme === "dark" ? lightTheme : darkTheme,
+        current: darkTheme,
+        anti: lightTheme,
+        // current: currentTheme === "dark" ? darkTheme : lightTheme,
+        // anti: currentTheme === "dark" ? lightTheme : darkTheme,
       }}
     >
       <div className="overflow-hidden">
