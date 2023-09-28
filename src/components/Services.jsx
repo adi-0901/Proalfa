@@ -99,6 +99,7 @@ const Services = () => {
     attachPlanes()
 
     const overlays = overlaysRef.current
+    // console.log({overlays})
     if (!overlays.length) return
     overlayLeftRef.current = overlays.map(o => o.getBoundingClientRect().left)
     overlayRightRef.current = overlays.map(

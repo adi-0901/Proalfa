@@ -5,7 +5,10 @@ import { useGlobalDispatchContext } from "../context/globalContext"
 const Footer = () => {
   const dispatch = useGlobalDispatchContext()
   const setCursor = cursorType => {
-    dispatch({ type: "CURSOR_TYPE", value: cursorType })
+    dispatch({
+      type: "CURSOR_TYPE",
+      value: typeof cursorType === "string" ? cursorType : null,
+    })
   }
 
   return (

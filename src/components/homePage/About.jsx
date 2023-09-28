@@ -27,15 +27,17 @@ const About = () => {
 
   const dispatch = useGlobalDispatchContext()
   const setCursor = cursorType => {
-    console.log("cursor!")
-    dispatch({ type: "CURSOR_TYPE", value: cursorType })
+    dispatch({
+      type: "CURSOR_TYPE",
+      value: typeof cursorType === "string" ? cursorType : null,
+    })
   }
 
   useEffect(() => {
     if (isInView) {
       animation.start("visible")
     }
-  }, [isInView])
+  }, [isInView, animation])
 
   const toggleExpand = id => {
     console.log(id)

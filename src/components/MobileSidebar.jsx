@@ -6,7 +6,10 @@ import { menuList } from "../constants"
 function MobileSidebar({ visible }) {
   const dispatch = useGlobalDispatchContext()
   const setCursor = cursorType => {
-    dispatch({ type: "CURSOR_TYPE", value: cursorType })
+    dispatch({
+      type: "CURSOR_TYPE",
+      value: typeof cursorType === "string" ? cursorType : null,
+    })
   }
 
   return (

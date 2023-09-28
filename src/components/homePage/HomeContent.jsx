@@ -3,7 +3,6 @@ import { HomeContentContainer, ContentText } from "../../styles/homeStyles"
 
 import { useInView } from "react-intersection-observer"
 import { useAnimation } from "framer-motion"
-import MobileSidebar from "../MobileSidebar"
 
 const HomeContent = () => {
   const animation = useAnimation()
@@ -19,7 +18,7 @@ const HomeContent = () => {
     if (isInView) {
       animation.start("visible")
     }
-  }, [isInView])
+  }, [isInView, animation])
 
   return (
     <HomeContentContainer>

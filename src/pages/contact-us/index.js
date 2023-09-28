@@ -22,7 +22,10 @@ const ContactUs = () => {
   const dispatch = useGlobalDispatchContext()
 
   const setCursor = cursorType => {
-    dispatch({ type: "CURSOR_TYPE", value: cursorType })
+    dispatch({
+      type: "CURSOR_TYPE",
+      value: typeof cursorType === "string" ? cursorType : null,
+    })
   }
 
   const formik = useFormik({
