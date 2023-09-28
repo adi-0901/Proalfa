@@ -1,4 +1,4 @@
-require('dotenv').config();
+require("dotenv").config()
 
 module.exports = {
   siteMetadata: {
@@ -22,14 +22,14 @@ module.exports = {
     `gatsby-transformer-sharp`,
     `gatsby-plugin-sharp`,
     {
-      resolve: 'gatsby-plugin-manifest',
+      resolve: "gatsby-plugin-manifest",
       options: {
-        icon: 'src/assets/images/icon-512x512.png',
+        icon: "src/assets/images/icon-512x512.png",
       },
     },
     `gatsby-plugin-gatsby-cloud`,
-    'gatsby-plugin-antd',
-    "@babel/plugin-transform-runtime"
+    "gatsby-plugin-antd",
+    "@babel/plugin-transform-runtime",
     // this (optional) plugin enables Progressive Web App + Offline functionality
     // To learn more, visit: https://gatsby.dev/offline
     // `gatsby-plugin-offline`,

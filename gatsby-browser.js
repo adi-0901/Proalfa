@@ -1,7 +1,7 @@
 import React from "react"
 import { GlobalProvider } from "./src/context/globalContext"
 import { AnimatePresence } from "framer-motion"
-import './src/styles/global.css'
+import "./src/styles/global.css"
 
 export const wrapRootElement = ({ element }) => {
   return (
@@ -17,11 +17,10 @@ export const wrapPageElement = ({ element }) => {
 }
 
 export const shouldUpdateScroll = () => {
-
   window.scrollTo({
-    top:0,
-    left:0,
-    behavior: 'smooth'
+    top: 0,
+    left: 0,
+    behavior: "smooth",
   })
   return false
 }

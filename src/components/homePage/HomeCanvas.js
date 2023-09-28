@@ -1,4 +1,4 @@
-import React, { useRef, useEffect } from "react"
+import React, { useRef } from "react"
 import {
   Banner,
   Video,
@@ -6,75 +6,10 @@ import {
   BannerTitle,
   Headline,
 } from "../../styles/homeStyles"
-import { useGlobalStateContext } from "../../context/globalContext"
 
 const HomeCanvas = () => {
-  const { currentTheme } = useGlobalStateContext()
   const canvas = useRef(null)
   const videoRef = useRef(null)
-  let cvs, ctx
-  let cvsColor =
-    currentTheme === "dark" ? "rgba(0,0,0,0.9)" : "rgba(255,255,255,0.9)"
-  let eraseLoop
-  const eraseCords = []
-  const index = 0
-
-  const addBlackCanvasRect = ctx => {
-    ctx.globalCompositeOperation = "source-over"
-    ctx.fillStyle = cvsColor
-    ctx.fillRect(0, 0, cvs.width, cvs.height)
-  }
-
-  const draw = evt => {
-    // console.log(cvs,ctx)
-    ctx.globalCompositeOperation = "destination-out"
-    ctx.lineJoin = "round"
-    ctx.lineCap = "round"
-    ctx.lineWidth = 150
-    ctx.beginPath()
-    const cords = {
-      x: evt.clientX - cvs.offsetLeft,
-      y: evt.clientY - cvs.offsetTop + document.scrollingElement.scrollTop,
-    }
-    ctx.lineTo(cords.x, cords.y)
-    ctx.moveTo(cords.x, cords.y)
-    ctx.stroke()
-
-    // eraseCords.push({x:evt.clientX, y: evt.clientY})
-    // localStorage.setItem("ERASE_CORDS", eraseCords)
-    // console.log(eraseCords)
-  }
-
-  useEffect(() => {
-    localStorage.setItem("ERASE_CORDS", eraseCords)
-    cvs = canvas.current
-    ctx = cvs.getContext("2d")
-    const video = videoRef.current
-    cvs.width = video.clientWidth
-    cvs.height = video.clientHeight + 2
-
-    // cvs.width = window.innerWidth
-    // cvs.height = window.innerHeight + 1
-
-    // addBlackCanvasRect(ctx)
-    // autoEraser(ctx)
-    // cvs.addEventListener("mousemove", draw)
-
-    return () => {
-      cvs.removeEventListener("mousemove", draw)
-      cancelAnimationFrame(eraseLoop)
-    }
-  }, [])
-
-  useEffect(() => {
-    cvsColor = currentTheme === "dark" ? "black" : "white"
-    cvs = canvas.current
-    ctx = cvs.getContext("2d")
-
-    ctx.globalCompositeOperation = "source-in"
-    ctx.fillStyle = cvsColor
-    ctx.fillRect(0, 0, cvs.width, cvs.height)
-  }, [currentTheme])
 
   const headlineParent = {
     initial: { y: 800 },
@@ -88,8 +23,6 @@ const HomeCanvas = () => {
       transition: { duration: 1, ease: [0.6, 0.05, -0.01, 0.9] },
     },
   }
-
-  console.log('hq')
 
   return (
     <div>
@@ -105,7 +38,6 @@ const HomeCanvas = () => {
         >
           <video
             ref={videoRef}
-            // onLoadedData={onVideoLoad}
             src={require("../../assets/video/sequence_hq.mp4").default}
             autoPlay
             loop
@@ -118,8 +50,18 @@ const HomeCanvas = () => {
           initial="initial"
           animate="animate"
         >
-          <Headline variants={headlineAnimate} className="lg:w-auto w-screen break-w lg:text-[5rem] text-[3rem] lg:leading-[0.76] leading-[0.85]">BUILT STRONG</Headline>
-          <Headline variants={headlineAnimate} className="lg:w-auto w-screen break-w lg:text-[5rem] text-[3rem] lg:leading-[0.76] leading-[0.85]">TO BUILD STRONGEST</Headline>
+          <Headline
+            variants={headlineAnimate}
+            className="lg:w-auto w-screen break-w lg:text-[5rem] text-[3rem] lg:leading-[0.76] leading-[0.85]"
+          >
+            BUILT STRONG
+          </Headline>
+          <Headline
+            variants={headlineAnimate}
+            className="lg:w-auto w-screen break-w lg:text-[5rem] text-[3rem] lg:leading-[0.76] leading-[0.85]"
+          >
+            TO BUILD STRONGEST
+          </Headline>
         </BannerTitle>
       </Banner>
     </div>

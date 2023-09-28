@@ -75,7 +75,7 @@ export const AboutText = styled.div`
     display: flex;
     flex-direction: column;
     justify-content: center;
-    align-items:center;
+    align-items: center;
     margin-bottom: 1.5rem;
     p {
       max-width: 40rem;
@@ -90,10 +90,9 @@ export const AboutText = styled.div`
     font-size: 1.1rem;
     font-weight: bold;
   }
-  .primary-color{
-        color: ${props => props.theme.current.red};
+  .primary-color {
+    color: ${props => props.theme.current.red};
   }
-
 `
 
 export const AboutAccordion = styled.div`

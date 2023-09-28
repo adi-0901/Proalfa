@@ -19,12 +19,15 @@ const About = () => {
   const animation = useAnimation()
   const [aboutRef, isInView] = useInView({
     triggerOnce: true,
-    rootMargin: (typeof window === 'object' && window?.innerWidth > 768) ? "-200px" : "-50px",
+    rootMargin:
+      typeof window === "object" && window?.innerWidth > 768
+        ? "-200px"
+        : "-50px",
   })
 
   const dispatch = useGlobalDispatchContext()
   const setCursor = cursorType => {
-    console.log('cursor!')
+    console.log("cursor!")
     dispatch({ type: "CURSOR_TYPE", value: cursorType })
   }
 
@@ -61,7 +64,8 @@ const About = () => {
       <AboutText>
         <div className="about-text-head">
           <p>
-          Proalfa Dynamic Pre-Engineered Building (PEB) solution are tailormade to fit the customer's needs and requirements.
+            Proalfa Dynamic Pre-Engineered Building (PEB) solution are
+            tailormade to fit the customer's needs and requirements.
           </p>
         </div>
         <div className="about-text-foot">
@@ -71,7 +75,7 @@ const About = () => {
             resistant to harsh climatic conditions and come with maintenance-free exteriors
           </p> */}
           <AnimatedText
-            className={'w-full h-full flex items-center justify-center mt-10'} 
+            className={"w-full h-full flex items-center justify-center mt-10"}
             text={`We offer complete solution from concept to implementation. This mode of construction uses standard section and connection, reducing design time significantly. PEB's are flexible enough to suit different building dimensions as they are expandable, resistant to harsh climatic conditions and come with maintenance-free exteriors`}
           />
         </div>
@@ -80,12 +84,8 @@ const About = () => {
           onMouseEnter={() => setCursor("pointer")}
           onMouseLeave={setCursor}
         >
-          <div 
-            className="about-text-foot primary-color"
-          >
-            <p style={{fontSize: '24px'}}>
-              Know More          
-            </p>
+          <div className="about-text-foot primary-color">
+            <p style={{ fontSize: "24px" }}>Know More</p>
           </div>
         </Link>
       </AboutText>
@@ -97,7 +97,7 @@ const About = () => {
             key={service.id}
             onClick={() => toggleExpand(service.id)}
           >
-            <ServiceHead >
+            <ServiceHead>
               <div className="arrow">
                 <span id="span-one"></span>
                 <span id="span-two"></span>

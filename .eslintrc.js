@@ -4,6 +4,6 @@ module.exports = {
   },
   extends: `react-app`,
   rules: {
-    'prefer-const': 'error',
+    "prefer-const": "error",
   },
-};
+}

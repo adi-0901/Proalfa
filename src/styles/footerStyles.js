@@ -4,7 +4,6 @@ export const FooterContainer = styled.div`
   display: flex;
   margin-bottom: 4rem;
   align-items: center;
-
 `
 export const FooterContent = styled.div`
   display: flex;

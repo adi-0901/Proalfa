@@ -59,9 +59,8 @@ const Layout = ({ children }) => {
         current: currentTheme === "dark" ? darkTheme : lightTheme,
         anti: currentTheme === "dark" ? lightTheme : darkTheme,
       }}
-      
     >
-      <div className='overflow-hidden'>
+      <div className="overflow-hidden">
         <GlobalStyle />
         <CustomCursor />
         <Header />

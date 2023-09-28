@@ -6,11 +6,10 @@ module.exports = {
   ],
   theme: {
     extend: {
-      colors:{
-        'app-text': '#AAAAAA'
-      }
+      colors: {
+        "app-text": "#AAAAAA",
+      },
     },
   },
   plugins: [],
 }
-

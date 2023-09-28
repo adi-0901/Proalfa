@@ -3,7 +3,6 @@ import { Cursor } from "../styles/globalStyles"
 import { useGlobalStateContext } from "../context/globalContext"
 
 const CustomCursor = () => {
-
   const { cursorType: cType, isHomePage } = useGlobalStateContext()
   const [mouseCords, setMouseCords] = useState({
     top: -100,
@@ -18,30 +17,28 @@ const CustomCursor = () => {
   const handleMouseMove = evt => {
     setMouseCords({
       left: evt.pageX,
-      top: evt.pageY
+      top: evt.pageY,
     })
   }
 
   const handleScroll = () => {
-
-    const deltaX =  window.scrollX - scrollDeltaX.current;
-    const deltaY =  window.scrollY - scrollDeltaY.current;
+    const deltaX = window.scrollX - scrollDeltaX.current
+    const deltaY = window.scrollY - scrollDeltaY.current
 
     scrollDeltaX.current = window.scrollX
     scrollDeltaY.current = window.scrollY
 
-    setMouseCords((oldCords) => ({
+    setMouseCords(oldCords => ({
       left: oldCords.left + deltaX,
-      top: oldCords.top + deltaY
+      top: oldCords.top + deltaY,
     }))
-
-  };
+  }
 
   useEffect(() => {
-    if(window.innerWidth < 768) return
+    if (window.innerWidth < 768) return
 
     document.addEventListener("mousemove", handleMouseMove)
-    document.addEventListener('scroll', handleScroll);    
+    document.addEventListener("scroll", handleScroll)
 
     return () => {
       document.removeEventListener("mousemove", handleMouseMove)
@@ -54,8 +51,8 @@ const CustomCursor = () => {
       <Cursor
         ref={cursorRef}
         style={{
-          left: mouseCords.left + 'px',
-          top: mouseCords.top + 'px'
+          left: mouseCords.left + "px",
+          top: mouseCords.top + "px",
         }}
         className={`${cType} md:block hidden`}
         isHomePage={isHomePage}
