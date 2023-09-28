@@ -37,8 +37,8 @@ const CustomCursor = () => {
   useEffect(() => {
     if (window.innerWidth < 768) return
 
-    document.addEventListener("mousemove", handleMouseMove)
-    document.addEventListener("scroll", handleScroll)
+    document.addEventListener("mousemove", handleMouseMove, {passive: true})
+    document.addEventListener("scroll", handleScroll, {passive: true})
 
     return () => {
       document.removeEventListener("mousemove", handleMouseMove)

@@ -108,7 +108,7 @@ const Services = () => {
 
     // temp1.getBoundingClientRect().left
 
-    document.addEventListener("wheel", onWheel)
+    document.addEventListener("wheel", onWheel, {passive: true})
 
     return () => {
       document.removeEventListener("wheel", onWheel)

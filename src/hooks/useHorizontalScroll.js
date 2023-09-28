@@ -23,13 +23,11 @@ function useHorizontalScroll(isIntersecting, setIsIntersecting, active = true) {
           return
         }
 
-        e.preventDefault()
-
         el.scrollTo({
           left: scrollLeft + e.deltaY,
         })
       }
-      el.addEventListener("wheel", onWheel)
+      el.addEventListener("wheel", onWheel, {passive: true})
       return () => el.removeEventListener("wheel", onWheel)
     }
   }, [isIntersecting])

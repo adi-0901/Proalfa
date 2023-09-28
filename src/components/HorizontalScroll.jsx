@@ -68,7 +68,7 @@ const MyComponent = () => {
       return
     const el = scrollRef.current
 
-    document.addEventListener("wheel", e => onWheel(e, el))
+    document.addEventListener("wheel", e => onWheel(e, el), {passive: true})
 
     return () => {
       document.removeEventListener("wheel", onWheel)
