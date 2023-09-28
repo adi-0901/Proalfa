@@ -5,25 +5,12 @@ export const FooterContainer = styled.div`
   margin-bottom: 4rem;
   align-items: center;
 
-  @media (max-width: 600px) {
-    flex-direction: column;
-    align-items: center;
-  }
 `
 export const FooterContent = styled.div`
-  flex: 6;
   display: flex;
   justify-content: space-around;
   font-size: 1.4rem;
   transition: all 0.6s ease-in-out;
-
-  @media (max-width: 600px) {
-    flex-direction: column;
-    align-items: center;
-    & > * {
-      margin: 0.5rem 0;
-    }
-  }
 
   .content-one {
     #email {

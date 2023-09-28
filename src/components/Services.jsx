@@ -100,7 +100,7 @@ const Services = () => {
          attachPlanes()
 
          const overlays = overlaysRef.current
-         if(!overlays) return
+         if(!overlays.length) return
          overlayLeftRef.current = overlays.map(o => o.getBoundingClientRect().left)
          overlayRightRef.current = overlays.map(o => (o.getBoundingClientRect().left + o.getBoundingClientRect().width))
 
@@ -110,8 +110,7 @@ const Services = () => {
         document.addEventListener("wheel", onWheel)
 
         return(() => {
-
-        document.removeEventListener('wheel', onWheel);
+            document.removeEventListener('wheel', onWheel);
         })
         
       }, [lottieRef])

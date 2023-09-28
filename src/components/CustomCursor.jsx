@@ -38,6 +38,8 @@ const CustomCursor = () => {
   };
 
   useEffect(() => {
+    if(window.innerWidth < 768) return
+
     document.addEventListener("mousemove", handleMouseMove)
     document.addEventListener('scroll', handleScroll);    
 
@@ -55,7 +57,7 @@ const CustomCursor = () => {
           left: mouseCords.left + 'px',
           top: mouseCords.top + 'px'
         }}
-        className={cType}
+        className={`${cType} md:block hidden`}
         isHomePage={isHomePage}
       />
     </div>

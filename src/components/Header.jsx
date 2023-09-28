@@ -72,7 +72,7 @@ const Header = () => {
 
 
           <Menu onClick={onMenuClick} isHomePage={isHomePage} className="block md:hidden">
-              {!isHomePage && <MobileSidebar />}
+              <MobileSidebar visible={!isHomePage} />
               <button className="!p-0">
                 <div
                   className="hamburger"

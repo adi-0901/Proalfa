@@ -37,7 +37,7 @@ const ContactUs = () => {
       phone: null,
       notes: null
     },
-    isInitialValid: false,
+    initialErrors: true,
     enableReinitialize: true,
     validationSchema: Yup.object({
       name: Yup.string()
@@ -189,7 +189,7 @@ const ContactUs = () => {
               onMouseLeave={setCursor}
             >
               { submitInProgress && <LoadingOutlined />}
-              <div className='text-center '>Submit</div>
+              <div className='text-center cursor-pointer'>Submit</div>
             </div>
           </div>
         </div>

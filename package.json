@@ -1,10 +1,9 @@
 {
-  "name": "gatsby-starter-default",
+  "name": "proalfa",
   "private": true,
-  "description": "A simple starter to get up and developing quickly with Gatsby",
+  "description": "Proalfa Dynamic Website",
   "version": "1.0.0",
-  "author": "Kyle Mathews <mathews.kyle@gmail.com>",
-  "homepage": "https://itskaustubh.github.io/creative-studio",
+  "author": "Kaustubh Bhagwat",
   "dependencies": {
     "@ant-design/colors": "^7.0.0",
     "@ant-design/icons": "^5.1.4",

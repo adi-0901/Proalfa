@@ -13,27 +13,30 @@ const Footer = () => {
 
   return (
     <FooterContainer className="relative">
-      <FooterContent >
-        <div
-          className="content-one"
-          onMouseEnter={() => setCursor("pointer")}
-          onMouseLeave={setCursor}
-        >
-          
-          <a href="mailto:proalfadynamic@gmail.com" id='email'>
-            <p id="email">proalfadynamic@gmail.com</p>
-          </a>
-          <a href="tel:+918308823148">
-            <p id="address">+91 8308823148</p>
-          </a>
-          <a href="tel:+919922997720">
-            <p id="address">+91 9922997720</p>
-          </a>  
-        </div>
-        <div className="content-two">
-          <p id="address">Off 3A, Samruddhi Enclave</p>
-          <p id="address">Near Muktangan School</p>
-          <p id="address">Parvati, Pune - 411037</p>
+      <FooterContent className="w-full">
+        <div className="flex justify-around w-full flex-wrap gap-10 mx-10">
+          <div
+            className="content-one"
+            onMouseEnter={() => setCursor("pointer")}
+            onMouseLeave={setCursor}
+          >
+            
+            <a href="mailto:proalfadynamic@gmail.com" id='email'>
+              <p id="email">proalfadynamic@gmail.com</p>
+            </a>
+            <a href="tel:+918308823148">
+              <p id="address">+91 8308823148</p>
+            </a>
+            <a href="tel:+919922997720">
+              <p id="address">+91 9922997720</p>
+            </a>  
+          </div>
+          <div className="content-two">
+            <p id="address">Off 3A, Samruddhi Enclave</p>
+            <p id="address">Near Muktangan School</p>
+            <p id="address">Parvati, Pune - 411037</p>
+          </div>
+
         </div>
         {/* <div className="content-three"
           onMouseEnter={() => setCursor("pointer")}
@@ -47,7 +50,7 @@ const Footer = () => {
           </a>  
         </div> */}
       </FooterContent>
-      <div className="w-[500px]"></div>
+      {/* <div className="w-[500px]"></div> */}
       {/* <div className="absolute top-[-250px] w-[500px] h-[500px] right-[0] scale-x-[-1]">
         <LottieMedia
           className={''} 
