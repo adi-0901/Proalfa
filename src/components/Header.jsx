@@ -1,7 +1,6 @@
-import React, { useContext, useEffect } from "react"
+import React, { useEffect } from "react"
 import { Link } from "gatsby"
 import {
-  GlobalDispatchContext,
   useGlobalDispatchContext,
   useGlobalStateContext,
 } from "../context/globalContext"
@@ -21,12 +20,12 @@ const Header = () => {
     localStorage.setItem("CURRENT_THEME", currentTheme)
   }, [currentTheme])
 
-  const toggleTheme = () => {
-    dispatch({
-      type: "TOGGLE_THEME",
-      value: currentTheme === "dark" ? "light" : "dark",
-    })
-  }
+  // const toggleTheme = () => {
+  //   dispatch({
+  //     type: "TOGGLE_THEME",
+  //     value: currentTheme === "dark" ? "light" : "dark",
+  //   })
+  // }
 
   const setCursor = cursorType => {
     dispatch({ type: "CURSOR_TYPE", value: cursorType })
