@@ -42,7 +42,7 @@ const Projects = () => {
       <Seo title="Projects" />
       <div className='my-40 md:mx-20 mx-10'>
 
-      <div className='flex flex-col gap-20 w-full'>
+      <div className='flex flex-col gap-28 w-full'>
               {projects.map(({name,details,image}, index) => (<div key={name}>
                 <div className={`flex items-center md:gap-10 gap-4 flex-col ${index % 2 === 1 ? 'md:flex-row-reverse' : 'md:flex-row'}`}>
                   <div className={`overflow-hidden md:border-[18px] border-[10px] border-white ${index % 2 === 0 ? 'rounded-tl-[50px] rounded-br-[50px]' : 'rounded-tr-[50px] rounded-bl-[50px]' } `}>
