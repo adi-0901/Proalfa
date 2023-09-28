@@ -45,10 +45,10 @@ const Projects = () => {
       <div className='flex flex-col gap-20 w-full'>
               {projects.map(({name,details,image}, index) => (<div key={name}>
                 <div className={`flex items-center md:gap-10 gap-4 flex-col ${index % 2 === 1 ? 'md:flex-row-reverse' : 'md:flex-row'}`}>
-                  <div className={`overflow-hidden border-[12px] border-white ${index % 2 === 0 ? 'rounded-tl-[50px] rounded-br-[50px]' : 'rounded-tr-[50px] rounded-bl-[50px]' } `}>
+                  <div className={`overflow-hidden md:border-[12px] border-[10px] border-white ${index % 2 === 0 ? 'rounded-tl-[50px] rounded-br-[50px]' : 'rounded-tr-[50px] rounded-bl-[50px]' } `}>
                     <img src={image} alt={name} className='md:max-w-[50vw]' />
                   </div>
-                  <div className='flex flex-col items-start'>
+                  <div className='flex flex-col items-start text-center'>
                     <div className='md:text-[2rem] text-xl w-full font-bold leading-[40px]'>{name}</div>
                     <div className='md:text-[1.5rem] text-lg w-full font-semibold leading-[40px]'>{details}</div>
                   </div>

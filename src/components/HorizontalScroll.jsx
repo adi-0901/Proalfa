@@ -106,9 +106,9 @@ const MyComponent = () => {
             {whyChooseList.map(({image,title, list, listBulletImage}) => <div key={title} className='md:h-full md:py-10 md:mr-6'>
               <div className='md:border md:border-[#373737] rounded-[20px] h-full w-full md:px-[100px] px-0 flex items-center justify-center overflow-hidden md:flex-row flex-col'>
                 <img className='md:max-w-[initial] max-w-full md:mr-[150px] md:px-0 px-10' alt="" src={image}  />
-                <div>
+                <div className='mx-10'>
                   <p className='mb-[26px] text-[36px] font-normal md:text-start text-center md:mt-0 mt-4'>{title}</p>
-                  <div className='flex flex-col gap-y-6  md:w-max-[450px] md:w-[450px] w-[90vw] overflow-hidden'>
+                  <div className='flex flex-col gap-y-6  md:w-max-[450px] md:w-[450px] overflow-hidden'>
                     {list.map(point => (
                       <div className='flex items-center gap-x-4' key={point}>
                         <img src={listBulletImage} alt="" />

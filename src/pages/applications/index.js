@@ -64,7 +64,7 @@ const Applications = () => {
     <Layout>
       <Seo title="Applications" />
 
-      <div className='mx-20 mt-40'>
+      <div className='md:mx-20 mx-10 mt-40'>
         <div className='flex justify-between md:flex-row flex-col md:gap-0 gap-10'>
           <p className='md:text-[2rem] text-xl w-full font-bold leading-[40px]'>
             Dive into the world of pre-engineered building solutions at Proalfa, 
@@ -124,9 +124,11 @@ const Applications = () => {
                 }}
             />
         </div>
-        <div className='mb-20'>
-
-        </div>
+        <p className="text-xl mt-10 md:hidden block mx-10 mb-20">
+          With a wealth of expertise across various sectors, we specialize in creating customized structures that redefine functionality, 
+          sustainability, and aesthetics. Join us in shaping the future of construction, 
+          where precision and creativity converge to build a better tomorrow.
+        </p> 
     </Layout>
    
   )

@@ -124,8 +124,8 @@ const ContactUs = () => {
 
         <div className='flex-1 flex flex-col md:ml-10 justify-center md:mt-0 mt-14 items-center'>
         <div className='md:w-[unset] w-[80vw]'>
-            <div className='text-[3rem] font-bold leading-[130%]'>Hello there!</div>
-            <div className='text-5xl mb-2'>Let's break the ice.</div>
+            <div className='md:text-[3rem] text-4xl font-bold leading-[130%]'>Hello there!</div>
+            <div className='md:text-5xl text-2xl mb-2'>Let's build a connection together.</div>
           </div>
           <div className='w-96 h-96 relative flex items-center justify-center'>
             
