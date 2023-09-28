@@ -89,6 +89,7 @@ const HomeCanvas = () => {
     },
   }
 
+  console.log('hq')
 
   return (
     <div>
@@ -105,7 +106,7 @@ const HomeCanvas = () => {
           <video
             ref={videoRef}
             // onLoadedData={onVideoLoad}
-            src={require("../../assets/video/sequence.mp4").default}
+            src={require("../../assets/video/sequence_hq.mp4").default}
             autoPlay
             loop
             muted
