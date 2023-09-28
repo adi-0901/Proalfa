@@ -1,28 +1,15 @@
-import React, { useEffect, useRef } from "react"
+import React from "react"
 import {
   FooterContainer,
   FooterContent,
-  FooterLinks,
 } from "../styles/footerStyles"
-import { YoutubeLogo, InstagramLogo } from "../assets/svg/social-icons"
 import { useGlobalDispatchContext } from "../context/globalContext"
-import TruckWarehouseAnimation from '../assets/lottie/truck-warehouse.json'
-import Lottie from "lottie-react";
-import LottieMedia from '../components/lottie/LottieMedia'
 
 const Footer = () => {
   const dispatch = useGlobalDispatchContext()
   const setCursor = cursorType => {
     dispatch({ type: "CURSOR_TYPE", value: cursorType })
   }
-
-
-  const lottieRef = useRef(null)
-
-  // useEffect(() => {
-  //   console.log('lottieRef: ', lottieRef.current)
-  //   lottieRef.current.setDirection(-1)
-  // }, [lottieRef])
 
   return (
     <FooterContainer className="relative">
