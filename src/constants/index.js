@@ -25,7 +25,6 @@ export const serviceList = [
   {
     id: 1,
     title: "Civil Work",
-    results: ["Principle Photography", "Production Management", "Crew"],
   },
   {
     id: 2,

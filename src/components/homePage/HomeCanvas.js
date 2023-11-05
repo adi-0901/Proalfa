@@ -39,6 +39,7 @@ const HomeCanvas = () => {
           <video
             ref={videoRef}
             src={require("../../assets/video/sequence_hq.mp4").default}
+            preload='auto'
             autoPlay
             loop
             muted

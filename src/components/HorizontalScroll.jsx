@@ -5,6 +5,7 @@ import Advantages from "../assets/svg/why_advantages.svg"
 import AdvantagesBullet from "../assets/svg/ph_warehouse.svg"
 import useHorizontalScroll from "../hooks/useHorizontalScroll"
 import { useState } from "react"
+import { Colored } from "../styles/globalStyles"
 
 const MyComponent = () => {
   const rangeAndScopePoints = [
@@ -114,7 +115,8 @@ const MyComponent = () => {
                 />
                 <div className="mx-10">
                   <p className="mb-[26px] text-[36px] font-normal md:text-start text-center md:mt-0 mt-4">
-                    {title}
+                    <Colored>{title}</Colored>
+                    
                   </p>
                   <div className="flex flex-col gap-y-6  md:w-max-[450px] md:w-[450px] overflow-hidden">
                     {list.map(point => (

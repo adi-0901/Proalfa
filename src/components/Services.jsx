@@ -7,6 +7,7 @@ import LottieMedia from "./lottie/LottieMedia"
 import PaperPlane2_1 from "../assets/lottie/paperplane_2.1.json"
 import PaperPlane2_2 from "../assets/lottie/paperplane_2.2.json"
 import PaperPlane2_3 from "../assets/lottie/paperplane_2.3.json"
+import { Colored } from "../styles/globalStyles"
 
 const Services = () => {
   const services = [
@@ -119,7 +120,7 @@ const Services = () => {
     <div className="my-4 relative mb-[200px]">
       <div className="md:block hidden">
         <LottieMedia
-          className={"w-full absolute top-[100px] z-50"}
+          className={"w-full absolute top-[100px] z-50 pointer-events-none"}
           animationData={PaperPlane2_1}
           ref={lottieRef}
           interactivity={{
@@ -134,7 +135,7 @@ const Services = () => {
           }}
         />
         <LottieMedia
-          className={"w-full absolute top-[600px] z-50"}
+          className={"w-full absolute top-[600px] z-50 pointer-events-none"}
           style={{
             transform: "scale(-1,1)",
           }}
@@ -152,7 +153,7 @@ const Services = () => {
           }}
         />
         <LottieMedia
-          className={"w-full absolute top-[1100px] z-50"}
+          className={"w-full absolute top-[1100px] z-50 pointer-events-none"}
           animationData={PaperPlane2_3}
           ref={lottieRef}
           interactivity={{
@@ -172,13 +173,13 @@ const Services = () => {
         <div className="text-center md:text-[4rem] text-[2.5rem] uppercase font-bold py-12 md:mx-0 mx-5">
           OUR SERVICES
         </div>
-        <div className="absolute w-screen top-0 h-full left-0 bg-transparent">
+        <div className="absolute w-screen top-0 h-full left-0 bg-transparent pointer-events-none">
           <div className="grid-lines h-full" />
         </div>
       </div>
 
       <div className="stack relative">
-        <div className="absolute w-screen top-0 h-full left-0 bg-transparent">
+        <div className="absolute w-screen top-0 h-full left-0 bg-transparent pointer-events-none">
           <div className="grid-lines h-full" />
         </div>
         {services.map((service, index) => (
@@ -211,7 +212,7 @@ const Services = () => {
             <div className="flex-1 flex justify-center items-center md:mx-0 mx-6 text-center md:text-start">
               <div>
                 <p className="text-[32px] font-normal uppercase mb-4 md:text-start text-center">
-                  {service.title}
+                  <Colored>{service.title}</Colored>
                 </p>
                 <p className="font-normal text-app-text">
                   {service.description}

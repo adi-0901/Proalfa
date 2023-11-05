@@ -1,6 +1,7 @@
 import styled, { css, createGlobalStyle } from "styled-components"
 import { normalize } from "styled-normalize"
 import { Link } from "gatsby"
+import { motion } from "framer-motion"
 
 export const GlobalStyle = createGlobalStyle`
   ${normalize}
@@ -45,6 +46,17 @@ export const GlobalStyle = createGlobalStyle`
       color: ${props => props.theme.current.red};
     }
   }
+  @keyframes slideInFromLeft {
+    0% {
+      transform: translate3d(50vh, 90vh, 0px) scale(10)
+    }
+    70%{
+      transform: translate3d(50vh, 50vh, 0px) scale(4)
+    }
+    100% {
+      transform: translate3d(0px, 0px, 0px) scale(1)
+    }
+  }
 `
 
 export const StyledLink = styled(Link)`
@@ -60,6 +72,18 @@ export const StyledLink = styled(Link)`
     text-decoration: none;
     color: ${props =>
       props.theme.current.background === "#000" ? "#fff" : "#000"};
+  }
+`
+
+export const Colored = styled.span`
+  text-decoration: none;
+  &:focus,
+  &:hover,
+  &:visited,
+  &:link,
+  &:active {
+    text-decoration: none;
+    color: crimson;
   }
 `
 
@@ -140,7 +164,7 @@ export const Cursor = styled.div`
   }
 
   &.hovered {
-    background: none;
+    background: none
     height: 30px;
     width: 30px;
     border: 2px solid ${props => props.theme.current.color};
@@ -150,4 +174,9 @@ export const Cursor = styled.div`
     width: 0;
     height: 0;
   }
+`
+
+
+export const AnimatedLogo = styled(motion.div)`
+  // animation: 3s ease-in-out 0s 1 slideInFromLeft;
 `
