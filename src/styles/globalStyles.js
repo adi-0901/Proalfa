@@ -170,6 +170,14 @@ export const Cursor = styled.div`
     border: 2px solid ${props => props.theme.current.color};
   }
 
+  &.big-hovered {
+    background: none;
+    height: 100px;
+    width: 100px;
+    background: crimson;
+    mix-blend-mode: color;
+  }
+
   &.melt {
     width: 0;
     height: 0;

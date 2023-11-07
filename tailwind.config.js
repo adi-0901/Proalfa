@@ -8,6 +8,7 @@ module.exports = {
     extend: {
       colors: {
         "app-text": "#AAAAAA",
+        crimson: 'crimson'
       },
     },
   },

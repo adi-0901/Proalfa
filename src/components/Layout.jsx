@@ -41,7 +41,7 @@ const lightTheme = {
   ...universalTheme,
 }
 
-const Layout = ({ children }) => {
+const Layout = ({ children, hideFooter }) => {
   // const data = useStaticQuery(graphql`
   //   query SiteTitleQuery {
   //     site {
@@ -67,7 +67,7 @@ const Layout = ({ children }) => {
         <CustomCursor />
         <Header />
         <main className="overflow-hidden">{children}</main>
-        <Footer />
+        {!hideFooter && <Footer />}
         <ToastContainer />
       </div>
     </ThemeProvider>
