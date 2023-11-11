@@ -11,10 +11,7 @@ import Layout from '../components/Layout';
 import Seo from '../components/seo';
 import { useGlobalDispatchContext } from '../context/globalContext';
 
-const Tile = ({title, imageSrc, isEven, onTileClick, imgClassName}) => {
-
-
-
+const Tile = ({title, imageSrc, isEven, onTileClick, imgClassName, index, selected, isLastTile}) => {
   const OFFSET_Y = useMemo(() => {
     // Calculate your constant value here
 
@@ -35,8 +32,15 @@ const Tile = ({title, imageSrc, isEven, onTileClick, imgClassName}) => {
     })
   }
 
+  const isSelected = selected === title
+
   return (
-    <div className='flex flex-col hover:scale-110 transition-all'>
+    <div className='flex flex-col justify-center items-center hover:scale-110 transition-all duration-1000 absolute ' style={{
+      left: isSelected ? '20vw' : (index * 282) + ((index + 1) * 200),
+      // right: isSelected ? 100 : -((index * 282) + ((index + 1) * 200)),
+      display: selected ? isSelected ? 'block' : 'none' : 'block',
+      paddingRight: isLastTile ? selected ? isSelected ? 0 : '200px' : 0 : 0, 
+    }}>
       <div style={{
         height: OFFSET_Y + 'px'
       }}></div>
@@ -47,19 +51,24 @@ const Tile = ({title, imageSrc, isEven, onTileClick, imgClassName}) => {
         tiltMaxAngleX={5}
         tiltMaxAngleY={5}
       >
-        <div className='min-w-[282px] min-h-[385px] relative group' 
-          onClick={onTileClick} 
+        <div className='min-w-[282px] min-h-[385px] relative group ' 
+          onClick={(e) => {
+            e.stopPropagation()
+            onTileClick(title)
+          }} 
           onMouseEnter={() => setCursor("big-hovered")}
           onMouseLeave={setCursor}
+          style={{
+            width: isSelected ? '50vw' : 'unset'
+          }}
         >
-          <img className={twMerge('object-cover object-center  w-full h-full absolute top-0 left-0', imgClassName)} alt='' src={imageSrc} />
+          <img className={twMerge('object-cover object-center  w-full h-full absolute top-0 left-0', imgClassName, isSelected ? 'object-fill' : '')} alt='' src={imageSrc} />
           <div className='absolute bottom-10 -left-10 text-[42px] text-[rgba(255,255,255,0.7)] group-hover:text-[rgba(255,255,255,1)] transition-all cursor-default uppercase '>
             {title}
           </div>
         </div>
       </Tilt>
     </div>
-    
   )
 }
 
@@ -94,33 +103,76 @@ const projects = [
   
 const ProjectsTwo = () => {
 
-  const [percentageScroll, setPercentageScroll] = useState(0)
+  const [scrollHistory, setScrollHistory] = useState({
+    percentage: 0,
+    scrollLeft: 0
+  })
+  const [lastScrollHistory, setLastScrollHistory] = useState({
+    percentage: 0,
+    scrollLeft: 0
+  })
+
+  const scrollRef = useRef(null)
+
 
   const scrollDiv = useRef(null)
+  const [selectedTile, setSelectedTile] = useState(null)
 
-  const handleTileClick = (e) => {
-    console.log('click: ',e.target)
-    e.target.scrollIntoView()
+  const handleTileClick = (tileId) => {
+    console.log('click: ',tileId)
 
+    const {percentage, scrollLeft} = scrollHistory
+    setLastScrollHistory({
+      percentage,
+      scrollLeft
+    })
+
+    setSelectedTile(tileId)
+    scrollDiv.current.scrollTo({
+      top: 0,
+      left: 0,
+      behavior: "smooth",
+    })
+  }
+
+  const handleDeselectTile = () => {
+    setSelectedTile(null)    
+    const {percentage, scrollLeft} = lastScrollHistory
+
+    setTimeout(() => {
+      setScrollHistory({
+        percentage,
+        scrollLeft
+      })  
+      scrollDiv.current.scrollTo({
+        top: 0,
+        left: scrollLeft,
+        behavior: "smooth",
+      })
+      
+    }, 100)
   }
 
   return (
     <Layout hideFooter>
     <Seo title="Projects" />
     <div className='w-screen h-screen bg-[#191919] relative z-0'>
-      <div className='absolute top-20 w-screen flex items-center justify-center text-[7.5rem] z-0'>
+      <div className='absolute top-20 w-screen flex items-center justify-center text-[5.5rem] z-0'>
         <div className='w-[80%] uppercase font-medium text-center text-[rgba(255,255,255,0.2)]'>
-          What's your next destination
+          Blending Elegance with Structural Strength
         </div>
       </div>
-      <div className='absolute h-screen w-screen left-0 top-0 flex items-center px-[100px] z-10 gap-[200px] overflow-x-auto overflow-y-hidden hide-scroll-x'
+      <div className='absolute h-screen w-screen left-0 top-0 flex items-center justify-center px-[100px] z-10 overflow-x-auto overflow-y-scroll hide-scroll-x'
         onScroll={(e)=>{
           const FULL_SCROLL_WIDTH = e.target.scrollWidth - window.innerWidth
           const CURRENT_SCROLL_LEFT = e.target.scrollLeft
           const percentage = (CURRENT_SCROLL_LEFT / FULL_SCROLL_WIDTH) * 100
-          setPercentageScroll(percentage)
-          console.log({CURRENT_SCROLL_LEFT, FULL_SCROLL_WIDTH, percentage})
+          setScrollHistory({
+            percentage,
+            scrollLeft: CURRENT_SCROLL_LEFT
+          })
         }}
+        onClick={handleDeselectTile}
         ref={scrollDiv}
       >
          {projects.map((tile, index) => (
@@ -129,20 +181,30 @@ const ProjectsTwo = () => {
             imageSrc={tile.image} 
             imgClassName={tile.className} 
             isEven={index % 2 === 0} 
+            isLastTile={projects.length === index + 1}
             onTileClick={handleTileClick}
+            index={index}
+            selected={selectedTile}
           />
          ))}
       </div>
-      <div className='absolute w-screen bottom-20 flex justify-center'>
+
+      {/* Scroll progress bar */}
+      <div className='absolute w-screen bottom-20 flex justify-center transition-all duration-1000' 
+        style={{
+          opacity: selectedTile ? 0 : 1 
+        }}
+      >
         <div className='relative'>
           <div className='w-40 h-1 rounded-l-full rounded-r-full  bg-[rgba(255,255,255,0.2)]'></div>
           <div className='absolute top-0  h-1 rounded-l-full rounded-r-full bg-white w-[20%]'
             style={{
-              width: percentageScroll + '%'
+              width: scrollHistory?.percentage + '%'
             }}>
           </div>
         </div>
       </div>
+
     </div>
     
   </Layout>
