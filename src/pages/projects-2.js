@@ -1,4 +1,4 @@
-import React, { useMemo, useRef } from 'react'
+import React, { useEffect, useMemo, useRef } from 'react'
 import { useState } from 'react';
 import Tilt from 'react-parallax-tilt';
 import ProjectAdisun from "../assets/images/projects/adisun_solar.jpg"
@@ -10,6 +10,8 @@ import { twMerge } from 'tailwind-merge';
 import Layout from '../components/Layout';
 import Seo from '../components/seo';
 import { useGlobalDispatchContext } from '../context/globalContext';
+import LottieMedia from "../components/lottie/LottieMedia"
+import CementTruck from '../assets/lottie/cement_truck.json'
 
 const Tile = ({title, imageSrc, isEven, onTileClick, imgClassName, index, selected, isLastTile}) => {
   const OFFSET_Y = useMemo(() => {
@@ -20,7 +22,7 @@ const Tile = ({title, imageSrc, isEven, onTileClick, imgClassName, index, select
 
     const result = Math.floor(Math.random() * (max - min + 1)) + min;;
     return result;
-  }, []); // An
+  }, []);
 
   const dispatch = useGlobalDispatchContext()
 
@@ -112,7 +114,10 @@ const ProjectsTwo = () => {
     scrollLeft: 0
   })
 
+  const [lottieTotalFrames, setLottieTotalFrames] = useState(0)
+
   const scrollRef = useRef(null)
+  const lottieRef = useRef(null)
 
 
   const scrollDiv = useRef(null)
@@ -133,6 +138,7 @@ const ProjectsTwo = () => {
       left: 0,
       behavior: "smooth",
     })
+    lottieRef.current.play()
   }
 
   const handleDeselectTile = () => {
@@ -149,9 +155,36 @@ const ProjectsTwo = () => {
         left: scrollLeft,
         behavior: "smooth",
       })
-      
+
     }, 100)
   }
+
+  const handleLottieFrame = (percentage) => {
+    if(lottieTotalFrames === 0) return
+    if(selectedTile) return
+
+    const lottieFrame = Math.round((percentage * lottieTotalFrames) / 100)
+    lottieRef.current.goToAndStop(lottieFrame,true)
+  }
+
+  const handleScroll = (e)=> {
+    const FULL_SCROLL_WIDTH = e.target.scrollWidth - window.innerWidth
+    const CURRENT_SCROLL_LEFT = e.target.scrollLeft
+    const percentage = (CURRENT_SCROLL_LEFT / FULL_SCROLL_WIDTH) * 100
+
+    if(isNaN(percentage)) return
+
+    setScrollHistory({
+      percentage,
+      scrollLeft: CURRENT_SCROLL_LEFT
+    })
+    handleLottieFrame(percentage)
+  }
+
+  useEffect(() => {
+    const totalFrames = lottieRef.current.getDuration(true)
+    setLottieTotalFrames(totalFrames)
+  },[lottieRef])
 
   return (
     <Layout hideFooter>
@@ -163,20 +196,13 @@ const ProjectsTwo = () => {
         </div>
       </div>
       <div className='absolute h-screen w-screen left-0 top-0 flex items-center justify-center px-[100px] z-10 overflow-x-auto overflow-y-scroll hide-scroll-x'
-        onScroll={(e)=>{
-          const FULL_SCROLL_WIDTH = e.target.scrollWidth - window.innerWidth
-          const CURRENT_SCROLL_LEFT = e.target.scrollLeft
-          const percentage = (CURRENT_SCROLL_LEFT / FULL_SCROLL_WIDTH) * 100
-          setScrollHistory({
-            percentage,
-            scrollLeft: CURRENT_SCROLL_LEFT
-          })
-        }}
+        onScroll={handleScroll}
         onClick={handleDeselectTile}
         ref={scrollDiv}
       >
          {projects.map((tile, index) => (
           <Tile 
+            key={index}
             title={tile.name}
             imageSrc={tile.image} 
             imgClassName={tile.className} 
@@ -188,6 +214,12 @@ const ProjectsTwo = () => {
           />
          ))}
       </div>
+      <LottieMedia
+        className={'cement-truck absolute bottom-[-380px] pointer-events-none'} 
+        ref={lottieRef} 
+        animationData={CementTruck}
+        autoplay={false}
+      />
 
       {/* Scroll progress bar */}
       <div className='absolute w-screen bottom-20 flex justify-center transition-all duration-1000' 
