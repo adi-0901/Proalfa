@@ -34,14 +34,14 @@ const Tile = ({title, imageSrc, isEven, onTileClick, imgClassName, index, select
     })
   }
 
-  const isSelected = selected === title
+  const isThisTileSelected = selected === title  
 
   return (
     <div className='flex flex-col justify-center items-center hover:scale-110 transition-all duration-1000 absolute ' style={{
-      left: isSelected ? '20vw' : (index * 282) + ((index + 1) * 200),
+      left: isThisTileSelected ? '20vw' : (index * 282) + ((index + 1) * 200),
       // right: isSelected ? 100 : -((index * 282) + ((index + 1) * 200)),
-      display: selected ? isSelected ? 'block' : 'none' : 'block',
-      paddingRight: isLastTile ? selected ? isSelected ? 0 : '200px' : 0 : 0, 
+      display: selected ? isThisTileSelected ? 'block' : 'none' : 'block',
+      paddingRight: isLastTile ? '200px': 0, 
     }}>
       <div style={{
         height: OFFSET_Y + 'px'
@@ -61,10 +61,10 @@ const Tile = ({title, imageSrc, isEven, onTileClick, imgClassName, index, select
           onMouseEnter={() => setCursor("big-hovered")}
           onMouseLeave={setCursor}
           style={{
-            width: isSelected ? '50vw' : 'unset'
+            width: isThisTileSelected ? '50vw' : 'unset'
           }}
         >
-          <img className={twMerge('object-cover object-center  w-full h-full absolute top-0 left-0', imgClassName, isSelected ? 'object-fill' : '')} alt='' src={imageSrc} />
+          <img className={twMerge('object-cover object-center w-full h-full absolute top-0 left-0 select-none', imgClassName, isThisTileSelected ? 'object-fill' : '')} alt='' src={imageSrc} />
           <div className='absolute bottom-10 -left-10 text-[42px] text-[rgba(255,255,255,0.7)] group-hover:text-[rgba(255,255,255,1)] transition-all cursor-default uppercase '>
             {title}
           </div>
@@ -120,7 +120,6 @@ const ProjectsTwo = () => {
   const lottieRef = useRef(null)
 
 
-  const scrollDiv = useRef(null)
   const [selectedTile, setSelectedTile] = useState(null)
 
   const handleTileClick = (tileId) => {
@@ -133,7 +132,7 @@ const ProjectsTwo = () => {
     })
 
     setSelectedTile(tileId)
-    scrollDiv.current.scrollTo({
+    scrollRef.current.scrollTo({
       top: 0,
       left: 0,
       behavior: "smooth",
@@ -150,7 +149,7 @@ const ProjectsTwo = () => {
         percentage,
         scrollLeft
       })  
-      scrollDiv.current.scrollTo({
+      scrollRef.current.scrollTo({
         top: 0,
         left: scrollLeft,
         behavior: "smooth",
@@ -181,10 +180,30 @@ const ProjectsTwo = () => {
     handleLottieFrame(percentage)
   }
 
+  const onWheel = (event, scrollElement) => {
+    if (!scrollElement) return
+    scrollElement.scrollTo(scrollElement.scrollLeft + event.deltaY, 0)
+  }
+
   useEffect(() => {
     const totalFrames = lottieRef.current.getDuration(true)
     setLottieTotalFrames(totalFrames)
   },[lottieRef])
+
+  useEffect(() => {
+    if (
+      !scrollRef.current ||
+      (typeof window === "object" && window?.innerWidth < 768)
+    )
+      return
+      
+    const scrollElement = scrollRef.current
+    document.addEventListener("wheel", event => onWheel(event, scrollElement), {passive: true})
+
+    return () => {
+      document.removeEventListener("wheel", onWheel)
+    }
+  }, [scrollRef])
 
   return (
     <Layout hideFooter>
@@ -195,10 +214,10 @@ const ProjectsTwo = () => {
           Blending Elegance with Structural Strength
         </div>
       </div>
-      <div className='absolute h-screen w-screen left-0 top-0 flex items-center justify-center px-[100px] z-10 overflow-x-auto overflow-y-scroll hide-scroll-x'
+      <div className='absolute h-screen w-screen left-0 top-0 flex items-center justify-center px-[100px] z-10 overflow-x-auto overflow-y-hidden hide-scroll-x'
         onScroll={handleScroll}
         onClick={handleDeselectTile}
-        ref={scrollDiv}
+        ref={scrollRef}
       >
          {projects.map((tile, index) => (
           <Tile 
