@@ -240,7 +240,7 @@ const ProjectsTwo = () => {
          ))}
       </div>
       <LottieMedia
-        className={'cement-truck absolute bottom-[-380px] pointer-events-none'} 
+        className={'cement-truck absolute bottom-0 pointer-events-none'} 
         ref={lottieRef} 
         animationData={CementTruck}
         autoplay={false}
