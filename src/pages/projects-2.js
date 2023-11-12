@@ -193,7 +193,7 @@ const ProjectsTwo = () => {
 
   useEffect(() => {
     const totalFrames = lottieRef.current.getDuration(true)
-    setLottieTotalFrames(totalFrames)
+    setLottieTotalFrames(totalFrames - 1)
   },[lottieRef])
 
   useEffect(() => {
@@ -240,7 +240,7 @@ const ProjectsTwo = () => {
          ))}
       </div>
       <LottieMedia
-        className={'cement-truck absolute bottom-0 pointer-events-none'} 
+        className={'cement-truck absolute bottom-0 pointer-events-none opacity-70'} 
         ref={lottieRef} 
         animationData={CementTruck}
         autoplay={false}
