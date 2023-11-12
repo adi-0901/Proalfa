@@ -22,11 +22,11 @@ const Tile = ({title, imageSrc, isEven, onTileClick, imgClassName, index, select
 
     const result = Math.floor(Math.random() * (max - min + 1)) + min;;
     return result;
-  }, []);
+  }, [isEven]);
 
   const dispatch = useGlobalDispatchContext()
+  const tiltRef = useRef()
 
-  
   const setCursor = cursorType => {
     dispatch({
       type: "CURSOR_TYPE",
@@ -36,6 +36,12 @@ const Tile = ({title, imageSrc, isEven, onTileClick, imgClassName, index, select
 
   const isThisTileSelected = selected === title  
 
+  useEffect(()=> {
+    if(!isThisTileSelected || !tiltRef) return
+    
+    tiltRef.current.setSize()
+  },[isThisTileSelected])
+
   return (
     <div className='flex flex-col justify-center items-center hover:scale-110 transition-all duration-1000 absolute ' style={{
       left: isThisTileSelected ? '20vw' : (index * 282) + ((index + 1) * 200),
@@ -43,10 +49,11 @@ const Tile = ({title, imageSrc, isEven, onTileClick, imgClassName, index, select
       display: selected ? isThisTileSelected ? 'block' : 'none' : 'block',
       paddingRight: isLastTile ? '200px': 0, 
     }}>
-      <div style={{
+      {!isThisTileSelected && <div style={{
         height: OFFSET_Y + 'px'
-      }}></div>
+      }}></div>}
       <Tilt 
+        ref={tiltRef}
         glareEnable 
         glarePosition='all'  
         glareMaxOpacity={0.2} 
@@ -123,8 +130,6 @@ const ProjectsTwo = () => {
   const [selectedTile, setSelectedTile] = useState(null)
 
   const handleTileClick = (tileId) => {
-    console.log('click: ',tileId)
-
     const {percentage, scrollLeft} = scrollHistory
     setLastScrollHistory({
       percentage,
@@ -181,8 +186,9 @@ const ProjectsTwo = () => {
   }
 
   const onWheel = (event, scrollElement) => {
-    if (!scrollElement) return
-    scrollElement.scrollTo(scrollElement.scrollLeft + event.deltaY, 0)
+    if (!scrollElement || Math.abs(event.deltaY) < Math.abs(event.deltaX)) return
+
+    scrollElement.scrollTo(scrollElement.scrollLeft + (event.deltaY * 1), 0)
   }
 
   useEffect(() => {
