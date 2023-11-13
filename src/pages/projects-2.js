@@ -11,7 +11,7 @@ import Layout from '../components/Layout';
 import Seo from '../components/seo';
 import { useGlobalDispatchContext } from '../context/globalContext';
 import LottieMedia from "../components/lottie/LottieMedia"
-import CementTruck from '../assets/lottie/cement_truck.json'
+import CementTruck from '../assets/lottie/cement_truck2.json'
 
 const Tile = ({title, imageSrc, isEven, onTileClick, imgClassName, index, selected, isLastTile}) => {
   const OFFSET_Y = useMemo(() => {
