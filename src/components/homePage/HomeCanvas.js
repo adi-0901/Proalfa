@@ -38,7 +38,7 @@ const HomeCanvas = () => {
         >
           <video
             ref={videoRef}
-            src={require("../../assets/video/new_sequence.mp4").default}
+            src={require("../../assets/video/homepage_video.mp4").default}
             preload='auto'
             autoPlay
             loop
