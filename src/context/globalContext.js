@@ -4,7 +4,7 @@ import React, { createContext, useReducer, useContext } from "react"
 const GlobalStateContext = createContext()
 export const GlobalDispatchContext = createContext()
 
-const cursorStyles = ["hovered", "pointer", "melt", "big-hovered"]
+const cursorStyles = ["hovered", "pointer", "melt", "big-hovered",'xmark']
 const initialState = {
   isHomePage: true,
   currentTheme: "dark",
