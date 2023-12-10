@@ -10,7 +10,7 @@ import {
 const HomeCanvas = () => {
   const canvas = useRef(null)
   const videoRef = useRef(null)
-  const [videoSource, setVideoSource] = useState(require('../../assets/video/homepage_video.mp4').default);
+  const [videoSource, setVideoSource] = useState(null);
 
   const headlineParent = {
     initial: { y: 800 },
@@ -32,10 +32,10 @@ const HomeCanvas = () => {
         setVideoSource(
           require('../../assets/video/homepage_video_mobile.mp4').default);
       } 
-      // else {
-      //   // Set video source for larger screens
-      //   setVideoSource('/path/to/desktop/video.mp4');
-      // }
+      else {
+        // Set video source for larger screens
+        setVideoSource(require('../../assets/video/homepage_video.mp4').default)
+      }
     };
 
     // Initial setup
