@@ -1,4 +1,4 @@
-import React, { useRef } from "react"
+import React, { useEffect, useRef, useState } from "react"
 import {
   Banner,
   Video,
@@ -10,6 +10,7 @@ import {
 const HomeCanvas = () => {
   const canvas = useRef(null)
   const videoRef = useRef(null)
+  const [videoSource, setVideoSource] = useState(require('../../assets/video/homepage_video.mp4').default);
 
   const headlineParent = {
     initial: { y: 800 },
@@ -23,6 +24,31 @@ const HomeCanvas = () => {
       transition: { duration: 1, ease: [0.6, 0.05, -0.01, 0.9] },
     },
   }
+
+  useEffect(() => {
+    const setSourceBasedOnScreenSize = () => {
+      if (window.matchMedia('(max-width: 768px)').matches) {
+        // Set video source for smaller screens
+        setVideoSource(
+          require('../../assets/video/homepage_video_mobile.mp4').default);
+      } 
+      // else {
+      //   // Set video source for larger screens
+      //   setVideoSource('/path/to/desktop/video.mp4');
+      // }
+    };
+
+    // Initial setup
+    setSourceBasedOnScreenSize();
+
+    // Listen for screen size changes
+    window.addEventListener('resize', setSourceBasedOnScreenSize);
+
+    // Clean up event listener on component unmount
+    return () => {
+      window.removeEventListener('resize', setSourceBasedOnScreenSize);
+    };
+  }, []);
 
   return (
     <div>
@@ -38,7 +64,7 @@ const HomeCanvas = () => {
         >
           <video
             ref={videoRef}
-            src={require("../../assets/video/homepage_video_2.mp4").default}
+            src={videoSource}
             preload='auto'
             autoPlay
             muted
