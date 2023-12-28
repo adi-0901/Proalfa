@@ -8,7 +8,7 @@ export const menuList = [
     name: "Applications",
   },
   {
-    redirect: "/projects",
+    redirect: "/all-projects",
     name: "Projects",
   },
   {
