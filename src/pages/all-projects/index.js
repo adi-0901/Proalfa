@@ -41,7 +41,7 @@ const Tile = ({title, imageSrc, isEven, onTileClick, imgClassName, index, select
     tiltRef.current.setSize()
   },[isThisTileSelected])
 
-  const isMobile = window.innerWidth <= 360
+  const isMobile = window?.innerWidth <= 360
 
   return (
     <div className='flex flex-col justify-center items-center hover:scale-110 transition-all duration-1000 absolute ' style={{
@@ -71,7 +71,7 @@ const Tile = ({title, imageSrc, isEven, onTileClick, imgClassName, index, select
         <div className='min-w-[282px] min-h-[385px] relative group ' 
           onClick={(e) => {
             e.stopPropagation()
-            if(window.innerWidth <= 360) return
+            if(window?.innerWidth <= 360) return
             
             onTileClick(title)
           }} 
@@ -198,7 +198,7 @@ const ProjectsTwo = () => {
   }
 
   const handleScroll = (e)=> {
-    const FULL_SCROLL_WIDTH = e.target.scrollWidth - window.innerWidth
+    const FULL_SCROLL_WIDTH = e.target.scrollWidth - window?.innerWidth
     const CURRENT_SCROLL_LEFT = e.target.scrollLeft
     const percentage = (CURRENT_SCROLL_LEFT / FULL_SCROLL_WIDTH) * 100
 
