@@ -38,7 +38,6 @@ const Tile = ({title, imageSrc, isEven, onTileClick, imgClassName, index, select
 
   useEffect(()=> {
     if(!isThisTileSelected || !tiltRef) return
-    
     tiltRef.current.setSize()
   },[isThisTileSelected])
 
