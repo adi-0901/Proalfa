@@ -4,7 +4,7 @@ import CivilWorkImage from "../assets/svg/services/civilwork.svg"
 import ProductionImage from "../assets/svg/services/production.svg"
 import ErectionImage from "../assets/svg/services/erection.svg"
 import LottieMedia from "./lottie/LottieMedia"
-import PaperPlane2_1 from "../assets/lottie/paperplane_2.1.json"
+import PaperPlane5_1 from "../assets/lottie/paperplane_5.1.json"
 import PaperPlane2_2 from "../assets/lottie/paperplane_2.2.json"
 import PaperPlane2_3 from "../assets/lottie/paperplane_2.3.json"
 import { Colored } from "../styles/globalStyles"
@@ -121,7 +121,7 @@ const Services = () => {
       <div className="md:block hidden">
         <LottieMedia
           className={"w-full absolute top-[100px] z-50 pointer-events-none"}
-          animationData={PaperPlane2_1}
+          animationData={PaperPlane5_1}
           ref={lottieRef}
           interactivity={{
             mode: "scroll",
@@ -192,7 +192,7 @@ const Services = () => {
                 index % 2 === 0 ? "md:block" : "md:hidden block"
               }`}
             >
-              <img src={service.img} alt="" />
+              <img src={service.img} className="w-[360px]" alt="" />
               <div
                 ref={el => (overlaysRef.current[index] = el)}
                 className="absolute md:block hidden top-0 left-0 w-full h-full z-10"
