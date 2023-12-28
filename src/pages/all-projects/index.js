@@ -41,7 +41,12 @@ const Tile = ({title, imageSrc, isEven, onTileClick, imgClassName, index, select
     tiltRef.current.setSize()
   },[isThisTileSelected])
 
-  const isMobile = window?.innerWidth <= 360
+  const [isMobile, setIsMobile] = useState(false)
+
+  useEffect(() => {
+    setIsMobile(window?.innerWidth <= 360)
+  }, [])
+
 
   return (
     <div className='flex flex-col justify-center items-center hover:scale-110 transition-all duration-1000 absolute ' style={{
