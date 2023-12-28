@@ -10,6 +10,9 @@ module.exports = {
         "app-text": "#AAAAAA",
         crimson: 'crimson'
       },
+      screens:{
+        'mobile': '360px'
+      }
     },
   },
   plugins: [],
