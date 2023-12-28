@@ -52,7 +52,7 @@
   ],
   "license": "0BSD",
   "scripts": {
-    "build": "NODE_OPTIONS='--openssl-legacy-provider' gatsby build",
+    "build": "gatsby build",
     "deploy": "gatsby build --prefix-path",
     "develop": "NODE_OPTIONS='--openssl-legacy-provider' gatsby develop",
     "dev": "NODE_OPTIONS='--openssl-legacy-provider' gatsby develop",
