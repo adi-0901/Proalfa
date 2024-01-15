@@ -20,20 +20,45 @@ const Footer = () => {
             onMouseEnter={() => setCursor("pointer")}
             onMouseLeave={setCursor}
           >
-            <a href="mailto:proalfadynamic@gmail.com" id="email">
-              <p id="email">proalfadynamic@gmail.com</p>
+            <p>Contact:</p>
+            <a href="mailto:info@proalfa.in" id="email">
+              <p id="email">info@proalfa.in</p>
             </a>
             <a href="tel:+918308823148">
-              <p id="address">+91 8308823148</p>
+              <p id="address">+91 9096677726</p>
             </a>
             <a href="tel:+919922997720">
               <p id="address">+91 9922997720</p>
             </a>
           </div>
           <div className="content-two">
+          <p id="address">Office Address:</p>
+          <a 
+            href="https://maps.app.goo.gl/qDhzZKbC5eSg6WfD9"
+            onMouseEnter={() => setCursor("pointer")}
+            onMouseLeave={setCursor}
+            target="_blank"
+            rel="noreferrer"
+          >
             <p id="address">Off 3A, Samruddhi Enclave</p>
             <p id="address">Near Muktangan School</p>
             <p id="address">Parvati, Pune - 411037</p>
+          </a>
+          </div>
+          
+          <div className="content-three">
+          <p id="address">Factory Address:</p>
+          <a 
+            href="https://maps.app.goo.gl/gv9UcLB4yWHgvXK46?g_st=iw"
+            target="_blank"
+            rel="noreferrer"
+            onMouseEnter={() => setCursor("pointer")}
+            onMouseLeave={setCursor}
+          >
+            <p id="address">Gat No.768 A, Plot no.1</p>
+            <p id="address">Pune Satara Road, Velu</p>
+            <p id="address">Bhor, Pune - 412205</p>
+          </a>
           </div>
         </div>
         {/* <div className="content-three"
