@@ -36,6 +36,7 @@ export const Headline = styled(motion.span)`
   display: block;
   font-weight: 900;
   word-wrap: break-word;
+  margin: 0 80px;
 `
 
 // HOME CONTENT STYLES
@@ -69,7 +70,7 @@ export const AboutContainer = styled(motion.div)`
 export const AboutText = styled.div`
   flex: 6;
   justify-content: center;
-  margin: 0 50px;
+  margin: 0 80px;
   display: flex;
   .about-text-head,
   .about-text-foot {

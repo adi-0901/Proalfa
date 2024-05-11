@@ -64,13 +64,13 @@ const About = () => {
       exit="exit"
     >
       <AboutText>
-        <div className="about-text-head border-r border-[#444] mr-3.5">
+        <div className="about-text-head border-r border-[#444] mr-4 pr-3.5">
           <p>
             Proalfa Dynamic Pre-Engineered Building (PEB) solution are
             tailormade to fit the customer's needs and requirements.
           </p>
         </div>
-        <div className="about-text-foot font-normal leading-6 text-[#ababab]">
+        <div className="about-text-foot w-[40vw] font-normal leading-6 text-[#ababab]">
           {/* <p>
             We offer complete solution from concept to implementation. This mode of construction uses standard section and connection, 
             reducing design time significantly. PEB's are flexible enough to suit different building dimensions as they are expandable, 
@@ -79,7 +79,7 @@ const About = () => {
 
           <div className="flex flex-col gap-4 items-start">
             <AnimatedText
-                className={"w-full h-full flex items-center justify-center max-w-[1000px] font-normal"}
+                className={"w-full h-full flex items-center justify-center font-normal"}
                 text={`We're on a mission to improve the quality of Pre-Engineered buildings in India. We will provide customized designs and implement them with perfect care. The quality is assured at each stage of production and it is based on strict values. We offer complete solution from concept to implementation. This mode of construction uses standard section and connection, reducing design time significantly. PEB's are flexible enough to suit different building dimensions as they are expandable, resistant to harsh climatic conditions and come with maintenance-free exteriors`}
               />
               {/* <AnimatedText
@@ -96,7 +96,7 @@ const About = () => {
               </div>
             </Link>
             </div>
-          </div>
+        </div>
       </AboutText>
       {/* <AboutAccordion>
         <div className="accordion-head">Services</div>
