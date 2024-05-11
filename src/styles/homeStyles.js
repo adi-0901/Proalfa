@@ -70,6 +70,7 @@ export const AboutText = styled.div`
   flex: 6;
   justify-content: center;
   margin: 0 50px;
+  display: flex;
   .about-text-head,
   .about-text-foot {
     display: flex;

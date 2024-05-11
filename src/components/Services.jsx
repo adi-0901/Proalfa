@@ -214,7 +214,7 @@ const Services = () => {
                 <p className="text-[32px] font-normal uppercase mb-4 md:text-start text-center">
                   <Colored>{service.title}</Colored>
                 </p>
-                <p className="font-normal text-app-text">
+                <p className="font-normal text-app-text leading-[140%] text-lg">
                   {service.description}
                 </p>
               </div>

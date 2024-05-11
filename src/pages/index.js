@@ -11,6 +11,7 @@ import {
   useGlobalDispatchContext,
   useGlobalStateContext,
 } from "../context/globalContext"
+import HomeOurClients from "../components/homePage/HomeOurClients"
 
 const IndexPage = props => {
   const dispatch = useGlobalDispatchContext()
@@ -29,6 +30,7 @@ const IndexPage = props => {
       <HomeContent />
       {/* <Projects /> */}
       <About />
+      <HomeOurClients />
       <HorizontalScroll />
       <Services />
     </Layout>

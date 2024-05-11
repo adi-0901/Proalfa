@@ -64,34 +64,41 @@ const About = () => {
       exit="exit"
     >
       <AboutText>
-        <div className="about-text-head">
+        <div className="about-text-head border-r border-[#444] mr-3.5">
           <p>
             Proalfa Dynamic Pre-Engineered Building (PEB) solution are
             tailormade to fit the customer's needs and requirements.
           </p>
         </div>
-        <div className="about-text-foot">
+        <div className="about-text-foot font-normal leading-6 text-[#ababab]">
           {/* <p>
             We offer complete solution from concept to implementation. This mode of construction uses standard section and connection, 
             reducing design time significantly. PEB's are flexible enough to suit different building dimensions as they are expandable, 
             resistant to harsh climatic conditions and come with maintenance-free exteriors
           </p> */}
-          <AnimatedText
-            className={"w-full h-full flex items-center justify-center mt-10"}
-            text={`We offer complete solution from concept to implementation. This mode of construction uses standard section and connection, reducing design time significantly. PEB's are flexible enough to suit different building dimensions as they are expandable, resistant to harsh climatic conditions and come with maintenance-free exteriors`}
-          />
-        </div>
-        <Link
-          to="/about-us"
-          onMouseEnter={() => setCursor("pointer")}
-          onMouseLeave={setCursor}
-        >
-          <div className="about-text-foot primary-color">
-            <p style={{ fontSize: "24px" }}>Know More</p>
+
+          <div className="flex flex-col gap-4 items-start">
+            <AnimatedText
+                className={"w-full h-full flex items-center justify-center max-w-[1000px] font-normal"}
+                text={`We're on a mission to improve the quality of Pre-Engineered buildings in India. We will provide customized designs and implement them with perfect care. The quality is assured at each stage of production and it is based on strict values. We offer complete solution from concept to implementation. This mode of construction uses standard section and connection, reducing design time significantly. PEB's are flexible enough to suit different building dimensions as they are expandable, resistant to harsh climatic conditions and come with maintenance-free exteriors`}
+              />
+              {/* <AnimatedText
+                className={"w-full h-full flex items-center justify-center mt-10"}
+                text={`We offer complete solution from concept to implementation. This mode of construction uses standard section and connection, reducing design time significantly. PEB's are flexible enough to suit different building dimensions as they are expandable, resistant to harsh climatic conditions and come with maintenance-free exteriors`}
+              /> */}
+            <Link
+              to="/about-us"
+              onMouseEnter={() => setCursor("pointer")}
+              onMouseLeave={setCursor}
+            >
+              <div className="mb-0 primary-color">
+                <p style={{ fontSize: "18px" }}>Know More</p>
+              </div>
+            </Link>
+            </div>
           </div>
-        </Link>
       </AboutText>
-      <AboutAccordion>
+      {/* <AboutAccordion>
         <div className="accordion-head">Services</div>
         {serviceList.map(service => (
           <div
@@ -106,16 +113,9 @@ const About = () => {
               </div>
               <p className="service-title">{service.title}</p>
             </ServiceHead>
-            {/* <ServiceList expand={shouldExpand === service.id}>
-              <ul>
-                {service.results.map(result => (
-                  <li key={result}>{result}</li>
-                ))}
-              </ul>
-            </ServiceList> */}
           </div>
         ))}
-      </AboutAccordion>
+      </AboutAccordion> */}
     </AboutContainer>
   )
 }
