@@ -3,10 +3,10 @@ export const menuList = [
     redirect: "/about-us",
     name: "About Us",
   },
-  // {
-  //   redirect: "/manufacturing",
-  //   name: "Manufacturing",
-  // },
+  {
+    redirect: "/production",
+    name: "Production",
+  },
   {
     redirect: "/applications",
     name: "Applications",

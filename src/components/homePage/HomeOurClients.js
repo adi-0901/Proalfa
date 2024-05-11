@@ -22,7 +22,7 @@ const HomeOurClients = () => {
   return (
     <div className="flex items-center justify-center flex-col mb-20 mt-4">
       <div className="text-center md:text-[2.5rem] text-[2.5rem] uppercase font-bold pb-2 md:mx-0 mx-5">
-        our clients
+        OUR CLIENTS
       </div>
       <div className="flex items-center justify-center gap-20 p-10 my-[30px] bg-[#131313] rounded-[20px] w-max border-[1px solid #242424]">
         {CLIENTS.map(({ title, image }) => (
@@ -37,7 +37,7 @@ const HomeOurClients = () => {
           </div>
         ))}
       </div>
-      <div className="w-full h-full flex items-center justify-center font-normal text-[18px] text-center">
+      <div className="w-full h-full flex items-center justify-center font-normal text-[18px] text-center leading-[150%]">
         <div className="max-w-[800px] text-center">
           Our clients, including industry leaders like Foxconn, Kia, and SCON,
           trust Proalfa Dynamic for tailored Pre-Engineered Building solutions.

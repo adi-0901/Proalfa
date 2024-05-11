@@ -11,7 +11,7 @@ import { ThemeProvider } from "styled-components"
 import Header from "./Header"
 
 // context
-import { useGlobalStateContext } from "../context/globalContext"
+// import { useGlobalStateContext } from "../context/globalContext"
 import Footer from "./Footer"
 import { ToastContainer } from "react-toastify"
 
@@ -51,7 +51,7 @@ const Layout = ({ children, hideFooter }) => {
   //     }
   //   }
   // `)
-  const { currentTheme } = useGlobalStateContext()
+  // const { currentTheme } = useGlobalStateContext()
 
   return (
     <ThemeProvider

@@ -170,7 +170,7 @@ const Services = () => {
       </div>
 
       <div className="relative">
-        <div className="text-center md:text-[4rem] text-[2.5rem] uppercase font-bold py-12 md:mx-0 mx-5">
+        <div className="text-center md:text-[2.5rem] text-[2.5rem] uppercase font-bold py-12 md:mx-0 mx-5">
           OUR SERVICES
         </div>
         <div className="absolute w-screen top-0 h-full left-0 bg-transparent pointer-events-none">
