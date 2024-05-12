@@ -1,10 +1,11 @@
 import React, { useEffect, useMemo, useRef } from "react"
 import { useState } from "react"
-import Tilt from "react-parallax-tilt"
 import RawMaterialsStep from "../../assets/images/production/raw_materials.jpeg"
 import PlasmaCuttingStep from "../../assets/images/production/plasma_cutting.jpeg"
 import Welding from "../../assets/images/production/welding.jpeg"
-import SandBlastingPainting from "../../assets/images/production/sand_blasting_painting.jpeg"
+import SandBlastingPainting from "../../assets/images/production/sandblasting_painting_ls.jpeg"
+import HBeam from "../../assets/images/production/h-beam_ls.jpeg"
+import DispatchMaterials from "../../assets/images/production/dispatch_ls.jpeg"
 
 import { twMerge } from "tailwind-merge"
 import Layout from "../../components/Layout"
@@ -119,8 +120,8 @@ const Tile = ({
             src={imageSrc}
           />
           <div className="w-full h-full lmao absolute top-0 left-0 bg-black opacity-0 group-hover:opacity-50"></div>
-          <div className="absolute bottom-10 mobile:-left-10 left-3 text-[36px] text-[rgba(255,255,255,0.9)] group-hover:text-[rgba(255,255,255,1)] transition-all cursor-default capitalize  font-semibold leading-[110%] ">
-            {title}
+          <div className="absolute bottom-10 mobile:-left-10 left-3 text-[36px] text-[rgba(255,255,255,0.9)] group-hover:text-[rgba(255,255,255,1)] transition-all cursor-default  font-semibold leading-[110%] ">
+            <div className="uppercase">{title}</div>
             <div className="text-base leading-[110%] font-normal mt-2 hidden group-hover:block">
               {description}
             </div>
@@ -143,14 +144,23 @@ const projects = [
   {
     name: "PLASMA CUTTING",
     details: "51,000 SQFT",
-    description: `Using plasma cutting technology to precisely cut steel according to specifications.`,
+    description: `We use plasma cutting technology to precisely cut steel according to specifications.`,
     image: PlasmaCuttingStep,
     className: "object-fill",
     bgColor: "rgba(150, 161, 71, 0.3)",
     bgHoverColor: "rgba(150, 161, 71, 0.10)",
   },
   {
-    name: "WELDING",
+    name: "Automatic H-BEAM",
+    details: "15,000 SQFT WITH MAZZENINE",
+    description:
+      "Pull Through Welding Automatic H Beam Machine offers precision and efficiency in H-Beam fabrication",
+    image: HBeam,
+    bgColor: "rgba(229, 182, 146, 0.5)",
+    bgHoverColor: "rgba(229, 182, 146, 0.10)",
+  },
+  {
+    name: "Manual Welding",
     details: "11,000 SQFT",
     description:
       "Assembling the cut steel components through welding to create the structural framework of the building.",
@@ -164,6 +174,15 @@ const projects = [
     description:
       "Cleaning the welded steel structure and applying a protective coating of paint to the steel structure to enhance its durability, aesthetics, and resistance to corrosion",
     image: SandBlastingPainting,
+    bgColor: "rgba(229, 182, 146, 0.5)",
+    bgHoverColor: "rgba(229, 182, 146, 0.10)",
+  },
+  {
+    name: "DISPATCH",
+    details: "15,000 SQFT WITH MAZZENINE",
+    description:
+      "The final product is then dispatched with the utomost care to our clients",
+    image: DispatchMaterials,
     bgColor: "rgba(229, 182, 146, 0.5)",
     bgHoverColor: "rgba(229, 182, 146, 0.10)",
   },
