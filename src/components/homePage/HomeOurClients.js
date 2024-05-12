@@ -24,7 +24,7 @@ const HomeOurClients = () => {
       <div className="text-center md:text-[2.5rem] text-[2.5rem] uppercase font-bold pb-2 md:mx-0 mx-5">
         OUR CLIENTS
       </div>
-      <div className="flex items-center justify-center gap-20 p-10 my-[30px] bg-[#131313] rounded-[20px] w-max border-[1px solid #242424]">
+      <div className="flex items-center flex-col lg:flex-row justify-center gap-20 p-10 my-[30px] bg-[#131313] rounded-[20px] w-max border-[1px solid #242424]">
         {CLIENTS.map(({ title, image }) => (
           <div key={title}>
             <img

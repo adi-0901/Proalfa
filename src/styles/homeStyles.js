@@ -36,7 +36,6 @@ export const Headline = styled(motion.span)`
   display: block;
   font-weight: 900;
   word-wrap: break-word;
-  margin: 0 80px;
 `
 
 // HOME CONTENT STYLES

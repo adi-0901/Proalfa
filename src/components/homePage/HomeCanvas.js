@@ -51,7 +51,7 @@ const HomeCanvas = () => {
   }, []);
 
   return (
-    <div>
+    <div className="w-screen overflow-hidden">
       <Banner exit={{ opacity: 0, transition: { duration: 0.2 } }}>
         <Video
           initial={{ opacity: 0 }}
@@ -65,7 +65,7 @@ const HomeCanvas = () => {
           <video
             ref={videoRef}
             src={videoSource}
-            preload='auto'
+            preload="auto"
             autoPlay
             muted
             loop
@@ -80,13 +80,13 @@ const HomeCanvas = () => {
         >
           <Headline
             variants={headlineAnimate}
-            className="lg:w-auto w-screen break-w lg:text-[5rem] text-[3rem] lg:leading-[0.76] leading-[0.85]"
+            className="lg:w-auto w-screen break-w lg:text-[5rem] text-[3rem] lg:leading-[0.76] leading-[0.85] lg:ml-20"
           >
             BUILT STRONG
           </Headline>
           <Headline
             variants={headlineAnimate}
-            className="lg:w-auto w-screen break-w lg:text-[5rem] text-[3rem] lg:leading-[0.76] leading-[0.85]"
+            className="lg:w-auto w-screen break-w lg:text-[5rem] text-[3rem] lg:leading-[0.76] leading-[0.85] lg:ml-20"
           >
             TO BUILD STRONGEST
           </Headline>

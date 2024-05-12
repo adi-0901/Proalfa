@@ -62,30 +62,21 @@ const About = () => {
         },
       }}
       exit="exit"
-    >
-      <AboutText>
-        <div className="about-text-head border-r border-[#444] mr-4 pr-3.5">
+    > 
+      <AboutText className="flex-col lg:flex-row ">
+        <div className="about-text-head border-[#444] mr-4 pr-3.5 border-r-transparent lg:border-r-white">
           <p>
             Proalfa Dynamic Pre-Engineered Building (PEB) solution are
             tailormade to fit the customer's needs and requirements.
           </p>
         </div>
         <div className="about-text-foot w-[40vw] font-normal leading-6 text-[#ababab]">
-          {/* <p>
-            We offer complete solution from concept to implementation. This mode of construction uses standard section and connection, 
-            reducing design time significantly. PEB's are flexible enough to suit different building dimensions as they are expandable, 
-            resistant to harsh climatic conditions and come with maintenance-free exteriors
-          </p> */}
-
           <div className="flex flex-col gap-4 items-start">
-            <AnimatedText
+              <AnimatedText
                 className={"w-full h-full flex items-center justify-center font-normal"}
                 text={`We're on a mission to improve the quality of Pre-Engineered buildings in India. We will provide customized designs and implement them with perfect care. The quality is assured at each stage of production and it is based on strict values. We offer complete solution from concept to implementation. This mode of construction uses standard section and connection, reducing design time significantly. PEB's are flexible enough to suit different building dimensions as they are expandable, resistant to harsh climatic conditions and come with maintenance-free exteriors`}
               />
-              {/* <AnimatedText
-                className={"w-full h-full flex items-center justify-center mt-10"}
-                text={`We offer complete solution from concept to implementation. This mode of construction uses standard section and connection, reducing design time significantly. PEB's are flexible enough to suit different building dimensions as they are expandable, resistant to harsh climatic conditions and come with maintenance-free exteriors`}
-              /> */}
+         
             <Link
               to="/about-us"
               onMouseEnter={() => setCursor("pointer")}
@@ -98,24 +89,6 @@ const About = () => {
             </div>
         </div>
       </AboutText>
-      {/* <AboutAccordion>
-        <div className="accordion-head">Services</div>
-        {serviceList.map(service => (
-          <div
-            className="service"
-            key={service.id}
-            onClick={() => toggleExpand(service.id)}
-          >
-            <ServiceHead>
-              <div className="arrow">
-                <span id="span-one"></span>
-                <span id="span-two"></span>
-              </div>
-              <p className="service-title">{service.title}</p>
-            </ServiceHead>
-          </div>
-        ))}
-      </AboutAccordion> */}
     </AboutContainer>
   )
 }
