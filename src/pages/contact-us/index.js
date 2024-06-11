@@ -10,6 +10,7 @@ import { LoadingOutlined } from "@ant-design/icons"
 import { useGlobalDispatchContext } from "../../context/globalContext"
 import LottieMedia from "../../components/lottie/LottieMedia"
 import Seo from "../../components/seo"
+import BookletPDF from "../../assets/documents/proalfa_booklet.pdf"
 
 import ContactUsAnimation from "../../assets/lottie/contact-us.json"
 
@@ -80,6 +81,7 @@ const ContactUs = () => {
         .then(
           response => {
             toast.success("Enquiry message sent successfully!", toastProps)
+            window.open(BookletPDF, "_blank", "noopener,noreferrer")
           },
           err => {
             toast.error(
@@ -190,14 +192,16 @@ const ContactUs = () => {
             <div
               className="font-bold flex items-center justify-center text-2xl mt-2  gap-4"
               style={{
-                color: formik.isValid ? "white" : "gray",
+                color: formik.isValid ? "crimson" : "gray",
               }}
               onClick={() => formik.handleSubmit()}
               onMouseEnter={() => formik.isValid && setCursor("pointer")}
               onMouseLeave={setCursor}
             >
               {submitInProgress && <LoadingOutlined />}
-              <div className="text-center cursor-pointer">Submit</div>
+              <div className="text-center cursor-pointer">
+                Submit and Download Brochure
+              </div>
             </div>
           </div>
         </div>
