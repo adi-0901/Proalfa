@@ -46,9 +46,9 @@ const ContactUs = () => {
         .email()
         .required("Please enter email")
         .typeError("Please enter email"),
-      phone: Yup.number()
-        .required("Please enter phone number")
-        .typeError("Please enter phone number"),
+      phone: Yup.string()
+        .matches(/^\d{10}$/, "Please enter a valid 10 digit phone number")
+        .required("Please enter your 10 digit phone number"),
       notes: Yup.string().nullable(),
     }),
     onSubmit: (values, { resetForm }) => {
@@ -192,7 +192,7 @@ const ContactUs = () => {
             <div
               className="font-bold flex items-center justify-center text-2xl mt-2  gap-4"
               style={{
-                color: formik.isValid ? "crimson" : "gray",
+                color: formik.dirty && formik.isValid ? "crimson" : "gray",
               }}
               onClick={() => formik.handleSubmit()}
               onMouseEnter={() => formik.isValid && setCursor("pointer")}
@@ -200,7 +200,7 @@ const ContactUs = () => {
             >
               {submitInProgress && <LoadingOutlined />}
               <div className="text-center cursor-pointer">
-                Submit and Download Brochure
+                Submit and Download Booklet
               </div>
             </div>
           </div>
