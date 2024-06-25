@@ -1,14 +1,9 @@
 import React from "react"
-// import FoxconnLogo from "../../assets/svg/clients/foxconn_logo.svg"
 import SCONLogo from "../../assets/svg/clients/scon_logo.svg"
 import KiaLogo from "../../assets/svg/clients/kia_logo.svg"
 
 const HomeOurClients = () => {
   const CLIENTS = [
-    // {
-    //   title: "Foxconn",
-    //   image: FoxconnLogo,
-    // },
     {
       title: "Kia",
       image: KiaLogo,
