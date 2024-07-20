@@ -113,6 +113,8 @@ const ContactUs = () => {
     }
   }, [lottieRef])
 
+  const [detailsInputFocused, setDetailsInputFocused] = useState(false)
+
   const toggleShowBubble = show => {
     console.log(bubbleEl)
     if (bubbleEl) bubbleEl.style.opacity = show ? 1 : 0
@@ -179,15 +181,28 @@ const ContactUs = () => {
               onFocusChange={toggleShowBubble}
               {...formik.getFieldProps("phone")}
             />
-            <CustomInput
-              name={"notes"}
-              autoComplete={"off"}
-              placeholder={"How can we help you?"}
-              formikHook={formik}
-              className={" "}
-              onFocusChange={toggleShowBubble}
-              {...formik.getFieldProps("notes")}
-            />
+            <div>
+              <CustomInput
+                name={"notes"}
+                autoComplete={"off"}
+                placeholder={"How can we help you?"}
+                formikHook={formik}
+                className={" "}
+                onFocusChange={show => {
+                  toggleShowBubble(show)
+                  setDetailsInputFocused(show)
+                }}
+                {...formik.getFieldProps("notes")}
+              />
+              <div
+                style={{
+                  color: detailsInputFocused ? "white" : "darkgray",
+                  transition: "0.4s color ease-in-out ",
+                }}
+              >
+                Please mention basic details like land area and purpose
+              </div>
+            </div>
 
             <div
               className="font-bold flex items-center justify-center text-2xl mt-2  gap-4"
