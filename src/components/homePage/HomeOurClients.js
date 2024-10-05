@@ -1,6 +1,9 @@
 import React from "react"
 import SCONLogo from "../../assets/svg/clients/scon_logo.svg"
 import KiaLogo from "../../assets/svg/clients/kia_logo.svg"
+import FoxconnLogo from "../../assets/svg/clients/foxconn_logo.svg"
+import TataProjectsLogo from "../../assets/svg/clients/tata_projects_logo.png"
+import RelianceRetailLogo from "../../assets/svg/clients/reliance_retail_logo.svg"
 
 const HomeOurClients = () => {
   const CLIENTS = [
@@ -9,8 +12,20 @@ const HomeOurClients = () => {
       image: KiaLogo,
     },
     {
+      title: "Foxconn",
+      image: FoxconnLogo,
+    },
+    {
       title: "SCON",
       image: SCONLogo,
+    },
+    {
+      title: "Tata Projects",
+      image: TataProjectsLogo,
+    },
+    {
+      title: "Reliance Retail",
+      image: RelianceRetailLogo,
     },
   ]
 
@@ -19,13 +34,13 @@ const HomeOurClients = () => {
       <div className="text-center md:text-[2.5rem] text-[2.5rem] uppercase font-bold pb-2 md:mx-0 mx-5">
         OUR CLIENTS
       </div>
-      <div className="flex items-center flex-col lg:flex-row justify-center gap-20 p-10 my-[30px] bg-[#131313] rounded-[20px] w-max border-[1px solid #242424]">
+      <div className="flex items-center flex-wrap justify-center gap-20 p-10 my-[30px] bg-[#131313] rounded-[20px] border-[1px solid #242424] mx-20">
         {CLIENTS.map(({ title, image }) => (
           <div key={title}>
             <img
               src={image}
               alt={title}
-              className="h-[35px]"
+              className="w-[256px] self-center"
               autoFill={true}
               title={title}
             />
