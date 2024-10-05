@@ -114,7 +114,7 @@ const Tile = ({
         >
           <img
             className={twMerge(
-              "object-cover object-center w-full h-full absolute top-0 left-0 select-none",
+              "object-cover object-center h-full absolute top-0 left-0 select-none",
               imgClassName,
               isThisTileSelected ? "object-fill" : "",
             )}
