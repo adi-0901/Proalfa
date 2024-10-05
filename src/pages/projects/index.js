@@ -6,23 +6,36 @@ import ProjectBhairavnathFeeds from "../../assets/images/projects/bhairavnath_fe
 import ProjectGatiBattery from "../../assets/images/projects/gati_battery.jpg"
 import ProjectKuldeepGreens from "../../assets/images/projects/kuldeep_greens.jpg"
 import ProjectYashAgro from "../../assets/images/projects/yash_agro.jpg"
-import { twMerge } from 'tailwind-merge';
-import Layout from '../../components/Layout';
-import Seo from '../../components/seo';
-import { useGlobalDispatchContext } from '../../context/globalContext';
+import ProjectRelianceRetail from "../../assets/images/projects/reliance_retail.jpg"
+import ProjectFoxconn from "../../assets/images/projects/foxconn.jpg"
+import { twMerge } from "tailwind-merge"
+import Layout from "../../components/Layout"
+import Seo from "../../components/seo"
+import { useGlobalDispatchContext } from "../../context/globalContext"
 import LottieMedia from "../../components/lottie/LottieMedia"
-import CementTruck from '../../assets/lottie/cement_truck2.json'
+import CementTruck from "../../assets/lottie/cement_truck2.json"
 
-const Tile = ({title, imageSrc, isEven, onTileClick, imgClassName, index, selected, isLastTile, onTileHoverChange}) => {
+const Tile = ({
+  title,
+  details,
+  imageSrc,
+  isEven,
+  onTileClick,
+  imgClassName,
+  index,
+  selected,
+  isLastTile,
+  onTileHoverChange,
+}) => {
   const OFFSET_Y = useMemo(() => {
     // Calculate your constant value here
 
-    const min = isEven ? 0 : -160;
-    const max = isEven ? 160 : 0;
+    const min = isEven ? 0 : -160
+    const max = isEven ? 160 : 0
 
-    const result = Math.floor(Math.random() * (max - min + 1)) + min;;
-    return result;
-  }, [isEven]);
+    const result = Math.floor(Math.random() * (max - min + 1)) + min
+    return result
+  }, [isEven])
 
   const dispatch = useGlobalDispatchContext()
   const tiltRef = useRef()
@@ -34,12 +47,12 @@ const Tile = ({title, imageSrc, isEven, onTileClick, imgClassName, index, select
     })
   }
 
-  const isThisTileSelected = selected === title  
+  const isThisTileSelected = selected === title
 
-  useEffect(()=> {
-    if(!isThisTileSelected || !tiltRef) return
+  useEffect(() => {
+    if (!isThisTileSelected || !tiltRef) return
     tiltRef.current.setSize()
-  },[isThisTileSelected])
+  }, [isThisTileSelected])
 
   const [isMobile, setIsMobile] = useState(false)
 
@@ -47,52 +60,71 @@ const Tile = ({title, imageSrc, isEven, onTileClick, imgClassName, index, select
     setIsMobile(window?.innerWidth <= 360)
   }, [])
 
-
   return (
-    <div className='flex flex-col justify-center items-center hover:scale-110 transition-all duration-1000 absolute ' style={{
-      left: isThisTileSelected ? '20vw' : (index * 282) + ((index + 1) * (isMobile ? 50 : 200)),
-      // right: isSelected ? 100 : -((index * 282) + ((index + 1) * 200)),
-      display: selected ? isThisTileSelected ? 'block' : 'none' : 'block',
-      paddingRight: isMobile ? '50px' : isLastTile ? '200px': 0, 
-    }}
-    onMouseEnter={() => {
-      onTileHoverChange(true, title)
-    }}
-    onMouseLeave={() => {
-      onTileHoverChange(false, title)
-    }}
+    <div
+      className="flex flex-col justify-center items-center hover:scale-110 transition-all duration-1000 absolute "
+      style={{
+        left: isThisTileSelected
+          ? "20vw"
+          : index * 282 + (index + 1) * (isMobile ? 50 : 200),
+        // right: isSelected ? 100 : -((index * 282) + ((index + 1) * 200)),
+        display: selected ? (isThisTileSelected ? "block" : "none") : "block",
+        paddingRight: isMobile ? "50px" : isLastTile ? "200px" : 0,
+      }}
+      onMouseEnter={() => {
+        onTileHoverChange(true, title)
+      }}
+      onMouseLeave={() => {
+        onTileHoverChange(false, title)
+      }}
     >
-      {(!isThisTileSelected && !isMobile) && <div style={{
-        height: OFFSET_Y + 'px'
-      }}></div>}
-      <Tilt 
+      {!isThisTileSelected && !isMobile && (
+        <div
+          style={{
+            height: OFFSET_Y + "px",
+          }}
+        ></div>
+      )}
+      <Tilt
         ref={tiltRef}
-        glareEnable 
-        glarePosition='all'  
-        glareMaxOpacity={0.2} 
+        glareEnable
+        glarePosition="all"
+        glareMaxOpacity={0.2}
         tiltMaxAngleX={5}
         tiltMaxAngleY={5}
       >
-        <div className='min-w-[282px] min-h-[385px] relative group ' 
-          onClick={(e) => {
+        <div
+          className="min-w-[282px] min-h-[385px] relative group "
+          onClick={e => {
             e.stopPropagation()
-            if(window?.innerWidth <= 360) return
-            
+            if (window?.innerWidth <= 360) return
+
             onTileClick(title)
-          }} 
+          }}
           onMouseEnter={() => setCursor("big-hovered")}
           onMouseLeave={() => {
-            if(selected){
+            if (selected) {
               setCursor("xmark")
             }
           }}
           style={{
-            width: isThisTileSelected ? '50vw' : 'unset'
+            width: isThisTileSelected ? "50vw" : "unset",
           }}
         >
-          <img className={twMerge('object-cover object-center w-full h-full absolute top-0 left-0 select-none', imgClassName, isThisTileSelected ? 'object-fill' : '')} alt='' src={imageSrc} />
-          <div className='absolute bottom-10 mobile:-left-10 left-3 text-[36px] text-[rgba(255,255,255,0.9)] group-hover:text-[rgba(255,255,255,1)] transition-all cursor-default capitalize  font-semibold '>
+          <img
+            className={twMerge(
+              "object-cover object-center w-full h-full absolute top-0 left-0 select-none",
+              imgClassName,
+              isThisTileSelected ? "object-fill" : "",
+            )}
+            alt=""
+            src={imageSrc}
+          />
+          <div className="absolute bottom-10 mobile:-left-10 left-3 text-[36px] text-[rgba(255,255,255,0.9)] group-hover:text-[rgba(255,255,255,1)] transition-all cursor-default capitalize  font-semibold ">
             {title}
+            <div className={isThisTileSelected ? "" : "text-[16px]"}>
+              {details}
+            </div>
           </div>
         </div>
       </Tilt>
@@ -102,53 +134,72 @@ const Tile = ({title, imageSrc, isEven, onTileClick, imgClassName, index, select
 
 const projects = [
   {
+    name: "RELIANCE RETAIL BANGALORE",
+    details: "4 LAKH SQFT",
+    image: ProjectRelianceRetail,
+    bgColor: "rgba(106, 155, 241, 0.5)",
+    bgHoverColor: "rgba(106, 155, 241, 0.10)",
+  },
+  {
+    name: "FOXCONN BANGALORE",
+    details: "300 ACRES (PEB SCOPE)",
+    image: ProjectFoxconn,
+    bgColor: "rgba(106, 155, 241, 0.5)",
+    bgHoverColor: "rgba(106, 155, 241, 0.10)",
+  },
+  {
+    name: "TATA PROJECTS",
+    details: "4 METRO STATIONS FOR PUNE METRO LINE III",
+    image: ProjectFoxconn,
+    bgColor: "rgba(106, 155, 241, 0.5)",
+    bgHoverColor: "rgba(106, 155, 241, 0.10)",
+  },
+  {
     name: "ADISUN SOLAR",
-    details: "12000 SQFT",
+    details: "12,000 SQFT",
     image: ProjectAdisun,
-    bgColor: 'rgba(147, 69, 56, 0.5)',
-    bgHoverColor: 'rgba(147, 69, 56, 0.1)',
+    bgColor: "rgba(147, 69, 56, 0.5)",
+    bgHoverColor: "rgba(147, 69, 56, 0.1)",
   },
   {
     name: "BHAIRAVNATH FEEDS",
     details: "51,000 SQFT",
     image: ProjectBhairavnathFeeds,
-    className: 'object-fill',
-    bgColor: 'rgba(150, 161, 71, 0.3)',
-    bgHoverColor: 'rgba(150, 161, 71, 0.10)',
+    className: "object-fill",
+    bgColor: "rgba(150, 161, 71, 0.3)",
+    bgHoverColor: "rgba(150, 161, 71, 0.10)",
   },
   {
     name: "YASH AGRO",
     details: "11,000 SQFT",
     image: ProjectYashAgro,
-    bgColor: 'rgba(155, 179, 225, 0.5)',
-    bgHoverColor: 'rgba(155, 179, 225, 0.10)',
+    bgColor: "rgba(155, 179, 225, 0.5)",
+    bgHoverColor: "rgba(155, 179, 225, 0.10)",
   },
   {
     name: "KULDEEP GREENS RECYCLES",
     details: "15,000 SQFT WITH MAZZENINE",
     image: ProjectKuldeepGreens,
-    bgColor: 'rgba(229, 182, 146, 0.5)',
-    bgHoverColor: 'rgba(229, 182, 146, 0.10)',
-    
+    bgColor: "rgba(229, 182, 146, 0.5)",
+    bgHoverColor: "rgba(229, 182, 146, 0.10)",
   },
   {
     name: "GATI BATTERY",
     details: "14,200 SQFT",
     image: ProjectGatiBattery,
-    bgColor: 'rgba(106, 155, 241, 0.5)',
-    bgHoverColor: 'rgba(106, 155, 241, 0.10)',
+    bgColor: "rgba(106, 155, 241, 0.5)",
+    bgHoverColor: "rgba(106, 155, 241, 0.10)",
   },
 ]
-  
-const ProjectsTwo = () => {
 
+const ProjectsTwo = () => {
   const [scrollHistory, setScrollHistory] = useState({
     percentage: 0,
-    scrollLeft: 0
+    scrollLeft: 0,
   })
   const [lastScrollHistory, setLastScrollHistory] = useState({
     percentage: 0,
-    scrollLeft: 0
+    scrollLeft: 0,
   })
 
   const [lottieTotalFrames, setLottieTotalFrames] = useState(0)
@@ -156,15 +207,14 @@ const ProjectsTwo = () => {
   const scrollRef = useRef(null)
   const lottieRef = useRef(null)
 
-
   const [selectedTile, setSelectedTile] = useState(null)
   const [hoveredTile, setHoveredTile] = useState(null)
 
-  const handleTileClick = (tileId) => {
-    const {percentage, scrollLeft} = scrollHistory
+  const handleTileClick = tileId => {
+    const { percentage, scrollLeft } = scrollHistory
     setLastScrollHistory({
       percentage,
-      scrollLeft
+      scrollLeft,
     })
 
     setSelectedTile(tileId)
@@ -177,55 +227,55 @@ const ProjectsTwo = () => {
   }
 
   const handleDeselectTile = () => {
-    setSelectedTile(null)    
-    const {percentage, scrollLeft} = lastScrollHistory
+    setSelectedTile(null)
+    const { percentage, scrollLeft } = lastScrollHistory
 
     setTimeout(() => {
       setScrollHistory({
         percentage,
-        scrollLeft
-      })  
+        scrollLeft,
+      })
       scrollRef.current.scrollTo({
         top: 0,
         left: scrollLeft,
         behavior: "smooth",
       })
-
     }, 100)
   }
 
-  const handleLottieFrame = (percentage) => {
-    if(lottieTotalFrames === 0) return
-    if(selectedTile) return
+  const handleLottieFrame = percentage => {
+    if (lottieTotalFrames === 0) return
+    if (selectedTile) return
 
     const lottieFrame = Math.round((percentage * lottieTotalFrames) / 100)
-    lottieRef.current.goToAndStop(lottieFrame,true)
+    lottieRef.current.goToAndStop(lottieFrame, true)
   }
 
-  const handleScroll = (e)=> {
+  const handleScroll = e => {
     const FULL_SCROLL_WIDTH = e.target.scrollWidth - window?.innerWidth
     const CURRENT_SCROLL_LEFT = e.target.scrollLeft
     const percentage = (CURRENT_SCROLL_LEFT / FULL_SCROLL_WIDTH) * 100
 
-    if(isNaN(percentage)) return
+    if (isNaN(percentage)) return
 
     setScrollHistory({
       percentage,
-      scrollLeft: CURRENT_SCROLL_LEFT
+      scrollLeft: CURRENT_SCROLL_LEFT,
     })
     handleLottieFrame(percentage)
   }
 
   const onWheel = (event, scrollElement) => {
-    if (!scrollElement || Math.abs(event.deltaY) < Math.abs(event.deltaX)) return
+    if (!scrollElement || Math.abs(event.deltaY) < Math.abs(event.deltaX))
+      return
 
-    scrollElement.scrollTo(scrollElement.scrollLeft + (event.deltaY * 1), 0)
+    scrollElement.scrollTo(scrollElement.scrollLeft + event.deltaY * 1, 0)
   }
 
   useEffect(() => {
     const totalFrames = lottieRef.current.getDuration(true)
     setLottieTotalFrames(totalFrames - 1)
-  },[lottieRef])
+  }, [lottieRef])
 
   useEffect(() => {
     if (
@@ -233,9 +283,11 @@ const ProjectsTwo = () => {
       (typeof window === "object" && window?.innerWidth < 768)
     )
       return
-      
+
     const scrollElement = scrollRef.current
-    document.addEventListener("wheel", event => onWheel(event, scrollElement), {passive: true})
+    document.addEventListener("wheel", event => onWheel(event, scrollElement), {
+      passive: true,
+    })
 
     return () => {
       document.removeEventListener("wheel", onWheel)
@@ -243,13 +295,13 @@ const ProjectsTwo = () => {
   }, [scrollRef])
 
   const getBgColor = () => {
-    
-    if(selectedTile){
+    if (selectedTile) {
       return projects?.find?.(project => project.name === selectedTile)?.bgColor
-    }else if(hoveredTile){
-      return projects?.find?.(project => project.name === hoveredTile)?.bgHoverColor
-    }else{
-      return 'rgba(25, 25, 25, 1)'
+    } else if (hoveredTile) {
+      return projects?.find?.(project => project.name === hoveredTile)
+        ?.bgHoverColor
+    } else {
+      return "rgba(25, 25, 25, 1)"
     }
   }
 
@@ -262,61 +314,68 @@ const ProjectsTwo = () => {
     })
   }
 
-
   return (
     <Layout hideFooter>
-    <Seo title="Projects" />
-    <div className='w-screen h-screen relative z-0 transition-all duration-1000' style={{
-      background: getBgColor()  
-    }}
-    onMouseEnter={(e) => {
-      console.log(e.target, e.target.id)
-      if(selectedTile && e.target.id === 'tile-parent'){
-        if(selectedTile){
-          setCursor("xmark")
-        }
-      }
-    }}
-    >
-      <div className='absolute top-20 w-screen flex items-center justify-center text-[5.5rem] z-0' id='project-parent'>
-        <div className='w-[80%] uppercase font-medium text-center text-[rgba(255,255,255,0.05)]'>
-          Blending Elegance with Structural Strength
-        </div>
-      </div>
-      <div id='tile-parent' className='absolute h-screen w-screen left-0 top-0 flex items-center justify-center px-[100px] z-10 overflow-x-auto overflow-y-hidden hide-scroll-x'
-
-
-        onScroll={handleScroll}
-        onClick={handleDeselectTile}
-        ref={scrollRef}
+      <Seo title="Projects" />
+      <div
+        className="w-screen h-screen relative z-0 transition-all duration-1000"
+        style={{
+          background: getBgColor(),
+        }}
+        onMouseEnter={e => {
+          console.log(e.target, e.target.id)
+          if (selectedTile && e.target.id === "tile-parent") {
+            if (selectedTile) {
+              setCursor("xmark")
+            }
+          }
+        }}
       >
-         {projects.map((tile, index) => (
-          <Tile 
-            key={index}
-            title={tile.name}
-            imageSrc={tile.image} 
-            imgClassName={tile.className} 
-            isEven={index % 2 === 0} 
-            isLastTile={projects.length === index + 1}
-            onTileClick={handleTileClick}
-            index={index}
-            selected={selectedTile}
-            bgColor={tile.bgColor}
-            onTileHoverChange={(hovered,title) => {
-              setHoveredTile(hovered ? title : null)
-            }}
-          />
-         ))}
-      </div>
-      <LottieMedia
-        className={'cement-truck absolute bottom-0 pointer-events-none opacity-70'} 
-        ref={lottieRef} 
-        animationData={CementTruck}
-        autoplay={false}
-      />
+        <div
+          className="absolute top-20 w-screen flex items-center justify-center text-[5.5rem] z-0"
+          id="project-parent"
+        >
+          <div className="w-[80%] uppercase font-medium text-center text-[rgba(255,255,255,0.05)]">
+            Blending Elegance with Structural Strength
+          </div>
+        </div>
+        <div
+          id="tile-parent"
+          className="absolute h-screen w-screen left-0 top-0 flex items-center justify-center px-[100px] z-10 overflow-x-auto overflow-y-hidden hide-scroll-x"
+          onScroll={handleScroll}
+          onClick={handleDeselectTile}
+          ref={scrollRef}
+        >
+          {projects.map((tile, index) => (
+            <Tile
+              key={index}
+              title={tile.name}
+              imageSrc={tile.image}
+              details={tile.details}
+              imgClassName={tile.className}
+              isEven={index % 2 === 0}
+              isLastTile={projects.length === index + 1}
+              onTileClick={handleTileClick}
+              index={index}
+              selected={selectedTile}
+              bgColor={tile.bgColor}
+              onTileHoverChange={(hovered, title) => {
+                setHoveredTile(hovered ? title : null)
+              }}
+            />
+          ))}
+        </div>
+        <LottieMedia
+          className={
+            "cement-truck absolute bottom-0 pointer-events-none opacity-70"
+          }
+          ref={lottieRef}
+          animationData={CementTruck}
+          autoplay={false}
+        />
 
-      {/* Scroll progress bar */}
-      {/* <div className='absolute w-screen bottom-20 flex justify-center transition-all duration-1000' 
+        {/* Scroll progress bar */}
+        {/* <div className='absolute w-screen bottom-20 flex justify-center transition-all duration-1000' 
         style={{
           opacity: selectedTile ? 0 : 1 
         }}
@@ -330,10 +389,8 @@ const ProjectsTwo = () => {
           </div>
         </div>
       </div> */}
-
-    </div>
-    
-  </Layout>
+      </div>
+    </Layout>
   )
 }
 
