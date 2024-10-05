@@ -8,6 +8,7 @@ import ProjectKuldeepGreens from "../../assets/images/projects/kuldeep_greens.jp
 import ProjectYashAgro from "../../assets/images/projects/yash_agro.jpg"
 import ProjectRelianceRetail from "../../assets/images/projects/reliance_retail.jpg"
 import ProjectFoxconn from "../../assets/images/projects/foxconn.jpg"
+import ProjectTataProjects from "../../assets/images/projects/tata_projects.jpg"
 import { twMerge } from "tailwind-merge"
 import Layout from "../../components/Layout"
 import Seo from "../../components/seo"
@@ -150,7 +151,7 @@ const projects = [
   {
     name: "TATA PROJECTS",
     details: "4 METRO STATIONS FOR PUNE METRO LINE III",
-    image: ProjectFoxconn,
+    image: ProjectTataProjects,
     bgColor: "rgba(155, 179, 225, 0.5)",
     bgHoverColor: "rgba(155, 179, 225, 0.10)",
   },
