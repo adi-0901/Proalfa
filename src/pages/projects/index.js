@@ -134,15 +134,15 @@ const Tile = ({
 
 const projects = [
   {
-    name: "RELIANCE RETAIL BANGALORE",
-    details: "4 LAKH SQFT",
+    name: "RELIANCE RETAIL",
+    details: "BANGALORE - 4 LAKH SQFT",
     image: ProjectRelianceRetail,
     bgColor: "rgba(150, 161, 71, 0.3)",
     bgHoverColor: "rgba(150, 161, 71, 0.10)",
   },
   {
-    name: "FOXCONN BANGALORE",
-    details: "300 ACRES (PEB SCOPE)",
+    name: "FOXCONN",
+    details: "BANGALORE - 300 ACRES (PEB SCOPE)",
     image: ProjectFoxconn,
     bgColor: "rgba(155, 179, 225, 0.5)",
     bgHoverColor: "rgba(155, 179, 225, 0.10)",
