@@ -4,6 +4,7 @@ import KiaLogo from "../../assets/svg/clients/kia_logo.svg"
 import FoxconnLogo from "../../assets/svg/clients/foxconn_logo.svg"
 import TataProjectsLogo from "../../assets/svg/clients/tata_projects_logo.png"
 import RelianceRetailLogo from "../../assets/svg/clients/reliance_retail_logo.svg"
+import JCBLogo from "../../assets/svg/clients/jcb_logo.svg"
 
 const HomeOurClients = () => {
   const CLIENTS = [
@@ -27,6 +28,10 @@ const HomeOurClients = () => {
       title: "Reliance Retail",
       image: RelianceRetailLogo,
     },
+    {
+      title: "JCB",
+      image: JCBLogo,
+    },
   ]
 
   return (
@@ -40,7 +45,7 @@ const HomeOurClients = () => {
             <img
               src={image}
               alt={title}
-              className="w-[256px] self-center"
+              className="w-[256px]"
               autoFill={true}
               title={title}
             />
