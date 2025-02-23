@@ -7,6 +7,7 @@
         font-size: 109.8px;
         font-variation-settings: 'opsz' 14, 'wght' 600, 'GRAD' 0, 'wdth' 100, 'slnt' 0, 'XOPQ' 96, 'YOPQ' 79, 'XTRA' 468, 'YTUC' 712, 'YTLC' 514, 'YTAS' 750, 'YTDE' -203, 'YTFI' 738;
         font-weight: 600;
+        line-height: 100%;
       }
 
       .cls-2 {

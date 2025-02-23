@@ -46,7 +46,7 @@ const HomeOurClients = () => {
               src={image}
               alt={title}
               className="w-[256px]"
-              autoFill={true}
+              // autoFill={true}
               title={title}
             />
           </div>
