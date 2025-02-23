@@ -4,7 +4,7 @@ import {
   useGlobalDispatchContext,
   useGlobalStateContext,
 } from "../context/globalContext"
-import ProalfaLogo from "../assets/svg/logo.svg"
+import ProalfaLogo from "../assets/svg/logo_white.svg"
 
 // styled components
 import { HeaderNav, Logo, Menu } from "../styles/headerStyles"
@@ -63,12 +63,12 @@ const Header = () => {
                 onMouseLeave={setCursor}
               >
                 <div className="flex items-center justify-center gap-x-4 leading-[100%]">
-                  <img className="h-[40px]" src={ProalfaLogo} alt="" />
-                  <div className="flex justify-between">
+                  <img className="h-[60px]" src={ProalfaLogo} alt="" />
+                  {/* <div className="flex justify-between">
                     <div className="text-[28px] leading-[100%] border-spacing-[0.6px]">
                       Proalfa <div className="inline font-normal">Dynamic</div>
                     </div>
-                  </div>
+                  </div> */}
                 </div>
               </Link>
             </Logo>

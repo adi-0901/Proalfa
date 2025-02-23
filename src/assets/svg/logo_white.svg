@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg id="Layer_2" data-name="Layer 2" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 818.550 252.33">
+  <defs>
+    <style>
+      .cls-1, .cls-2 {
+        fill: #fff;
+      }
+
+      .cls-2 {
+        font-family: "Open Sans", "Helvetica Neue", sans-serif;
+        font-size: 109.8px;
+        font-variation-settings: 'opsz' 14, 'wght' 600, 'GRAD' 0, 'wdth' 100, 'slnt' 0, 'XOPQ' 96, 'YOPQ' 79, 'XTRA' 468, 'YTUC' 712, 'YTLC' 514, 'YTAS' 750, 'YTDE' -203, 'YTFI' 738;
+        font-weight: 600;
+      }
+
+      .cls-3 {
+        letter-spacing: 0em;
+      }
+    </style>
+  </defs>
+  <g id="Layer_1-2" data-name="Layer 1">
+    <g>
+      <g>
+        <polygon class="cls-1" points="315.31 0 315.31 63.16 251.62 126.33 251.62 63.69 62.65 63.69 125.81 0 315.31 0"/>
+        <path class="cls-1" d="M251.62,127.37v63.16l-63.03,61.8-.66-62.32s-174.14,1.01-187.93,0h0l61.08-62.64h190.54Z"/>
+      </g>
+      <g>
+        <text class="cls-2" transform="translate(364.16 99.54)"><tspan x="0" y="0">P</tspan><tspan class="cls-3" x="67.4" y="0">r</tspan><tspan x="105.41" y="0">oalfa</tspan></text>
+        <text class="cls-2" transform="translate(364.16 220.11)"><tspan x="0" y="0">Dynamic</tspan></text>
+      </g>
+    </g>
+  </g>
+</svg>
