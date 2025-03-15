@@ -2,11 +2,11 @@ import React, { useEffect, useRef, useState } from "react"
 import Layout from "../../components/Layout"
 import { useFormik } from "formik"
 import * as Yup from "yup"
-import CustomInput from "../../components/CustomInput"
+// import CustomInput from "../../components/CustomInput"
 import emailjs from "@emailjs/browser"
 import { toast } from "react-toastify"
 import "react-toastify/dist/ReactToastify.css"
-import { LoadingOutlined } from "@ant-design/icons"
+// import { LoadingOutlined } from "@ant-design/icons"
 import { useGlobalDispatchContext } from "../../context/globalContext"
 import LottieMedia from "../../components/lottie/LottieMedia"
 import Seo from "../../components/seo"
@@ -99,47 +99,47 @@ const ContactUs = () => {
 
   const lottieRef = useRef(null)
 
-  const [bubbleEl, setBubbleEl] = useState(null)
+  // const [bubbleEl, setBubbleEl] = useState(null)
 
-  useEffect(() => {
-    if (lottieRef.current) {
-      const bubble = document.querySelectorAll('[fill="rgb(2,255,179)"]')[0]
-        .parentElement.parentElement
-      setBubbleEl(bubble)
+  // useEffect(() => {
+  //   if (lottieRef.current) {
+  //     const bubble = document.querySelectorAll('[fill="rgb(2,255,179)"]')[0]
+  //       .parentElement.parentElement
+  //     setBubbleEl(bubble)
 
-      bubble.style.transition = "0.5s opacity ease-in-out"
-      bubble.style.opacity = 0
-      bubble.style.marginBottom = "30px"
-    }
-  }, [lottieRef])
+  //     bubble.style.transition = "0.5s opacity ease-in-out"
+  //     bubble.style.opacity = 0
+  //     bubble.style.marginBottom = "30px"
+  //   }
+  // }, [lottieRef])
 
-  const [detailsInputFocused, setDetailsInputFocused] = useState(false)
+  // const [detailsInputFocused, setDetailsInputFocused] = useState(false)
 
-  const toggleShowBubble = show => {
-    console.log(bubbleEl)
-    if (bubbleEl) bubbleEl.style.opacity = show ? 1 : 0
-  }
+  // const toggleShowBubble = show => {
+  //   console.log(bubbleEl)
+  //   if (bubbleEl) bubbleEl.style.opacity = show ? 1 : 0
+  // }
 
   return (
     <Layout>
       <Seo title="Contact Us" />
 
       <div
-        className="md:h-screen md:w-screen md:mb-24 flex items-center justify-center w-full md:mx-20 flex-col md:flex-row"
+        className="mt-20 md:w-screen flex items-center justify-center w-full flex-col md:flex-row"
         style={{
           paddingTop: "45px",
         }}
       >
-        <div className="flex-1 flex flex-col md:ml-10 justify-center md:mt-0 mt-14 items-center">
+        <div className="flex-1 flex flex-col justify-center md:mt-0 mt-14 items-center">
           <div className="md:w-[unset] w-[80vw]">
-            <div className="md:text-[3rem] text-4xl font-bold leading-[130%]">
+            <div className="md:text-[2.2rem] text-4xl font-bold leading-[130%]">
               Hello there!
             </div>
-            <div className="md:text-5xl text-2xl mb-2">
+            <div className="md:text-3xl text-2xl mb-2">
               Let's build a connection together.
             </div>
           </div>
-          <div className="w-96 h-96 relative flex items-center justify-center">
+          <div className="w-72 h-72 relative flex items-center justify-center">
             <div className="absolute top-0 left-0">
               <LottieMedia
                 ref={lottieRef}
@@ -150,7 +150,7 @@ const ContactUs = () => {
             </div>
           </div>
         </div>
-        <div className="flex-1 flex items-center  md:ml-10 mb-10">
+        {/* <div className="flex-1 flex items-center  md:ml-10 mb-10">
           <div className="md:w-[70%] flex flex-col  gap-10 ">
             <CustomInput
               name={"name"}
@@ -219,7 +219,20 @@ const ContactUs = () => {
               </div>
             </div>
           </div>
-        </div>
+        </div> */}
+      </div>
+
+      <div className="mb-20">
+        <iframe
+          title="Contact form"
+          src="https://docs.google.com/forms/d/e/1FAIpQLSc_FYydsGgorHjNT6uwgHp2pWaJqXjs5a6De7Fe6H0DnGfuBA/viewform?embedded=true"
+          frameborder="0"
+          marginheight="0"
+          marginwidth="0"
+          className="w-full md:h-[3010px] h-[3010px]"
+        >
+          Loading…
+        </iframe>
       </div>
     </Layout>
   )
