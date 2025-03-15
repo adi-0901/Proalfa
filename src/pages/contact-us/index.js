@@ -229,7 +229,7 @@ const ContactUs = () => {
           frameborder="0"
           marginheight="0"
           marginwidth="0"
-          className="w-full md:h-[6900px] h-[95vh]"
+          className="w-full md:h-[95vh] h-[95vh]"
         >
           Loading…
         </iframe>
