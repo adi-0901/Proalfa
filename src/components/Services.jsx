@@ -14,22 +14,22 @@ const Services = () => {
     {
       img: SurveyingImage,
       title: "Surveying",
-      description: `Surveying is the critical first step in pre-engineered building projects. Our team assesses the construction site, gathering precise measurements and data to understand the terrain, soil conditions, and any potential obstacles. This information helps in designing and planning the structure effectively, ensuring it meets both functional and safety requirements.`,
+      description: `Surveying is the foundation of every industrial infrastructure project. We capture site conditions, levels, and constraints so engineering, civil works, and logistics stay aligned from day one—reducing rework and protecting schedule.`,
     },
     {
       img: CivilWorkImage,
       title: "Civil work",
-      description: `Civil work involves the foundation and infrastructure preparation necessary to support the pre-engineered building. This service encompasses tasks such as excavation, grading, and foundation construction. Ensuring a solid and level base is essential for the stability and longevity of the building.`,
+      description: `We deliver the civil and RCC scope that industrial facilities depend on—foundations, paving, drainage, utilities, and supporting infrastructure—coordinated with structure and MEP interfaces for a single accountable path to handover.`,
     },
     {
       img: ProductionImage,
-      title: "Production",
-      description: `The production phase is where we manufacture the components and materials needed for the pre-engineered building. This includes fabricating steel frames, roof and wall panels, and any other customized elements. Quality control and precision are vital during this stage to ensure that all components fit together seamlessly during erection.`,
+      title: "Fabrication",
+      description: `In-house engineering and shop fabrication for PEB and structural packages give us control over quality, tolerances, and delivery sequencing—so site erection stays predictable on large-span and heavy industrial projects.`,
     },
     {
       img: ErectionImage,
       title: "Erection",
-      description: ` Erection is the final step where our team assembles the pre-engineered building on-site. This involves lifting and securing the pre-fabricated components, aligning them correctly, and ensuring structural integrity. Efficient and safe erection practices are crucial to delivering a functional and durable building to our clients.`,
+      description: `Safe, sequenced erection with our own lifting and plant resources ties fabrication to commissioning. We manage critical lifts, alignment, and quality holds so the asset is ready for operations—not just structurally complete.`,
     },
   ]
 
@@ -171,7 +171,7 @@ const Services = () => {
 
       <div className="relative">
         <div className="text-center md:text-[2.5rem] text-[2.5rem] uppercase font-bold py-12 md:mx-0 mx-5">
-          OUR SERVICES
+          How We Deliver
         </div>
         <div className="absolute w-screen top-0 h-full left-0 bg-transparent pointer-events-none">
           <div className="grid-lines h-full" />

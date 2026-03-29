@@ -49,82 +49,74 @@ const Applications = () => {
       width: divWidth * 0.4,
       left: divWidth * 0.06,
       title: "Industrial",
-      description: `Explore our tailored pre-engineered building solutions for manufacturing plants, warehouses, and 
-                  distribution centres, designed for functionality, efficiency, and cost-effectiveness`,
+      description: `Manufacturing plants, warehouses, and distribution centres—delivered with industrial infrastructure discipline: cranes, heavy loads, logistics flow, and growth-ready layouts.`,
     },
     {
       top: divHeight * 0.2,
       width: divWidth * 0.4,
       right: divWidth * 0.02,
       title: `Institutional`,
-      description: `Discover our customizable pre-engineered buildings for educational institutions, 
-                healthcare facilities, government buildings, and more, ensuring safe and adaptable spaces for various institutional needs`,
+      description: `Institutional envelopes and support buildings—safe, code-conscious, and coordinated with civil and services for schools, healthcare, and public facilities.`,
     },
     {
       top: divHeight * 0.347,
       width: divWidth * 0.4,
       left: divWidth * 0.06,
       title: `Commercial`,
-      description: `Experience our versatile pre-engineered structures for retail spaces, 
-                  offices, showrooms, and other commercial establishments, combining aesthetics, functionality, and quick construction timelines`,
+      description: `Retail, offices, and showrooms where speed-to-asset matters—long-span, efficient envelopes with finish flexibility and dependable delivery.`,
     },
     {
       top: divHeight * 0.453,
       width: divWidth * 0.35,
       right: divWidth * 0.015,
       title: `Heavy Industrial`,
-      description: `Unlock the potential of our robust pre-engineered 
-                  solutions for heavy industrial sectors, such as power plants, refineries, and manufacturing facilities, 
-                  offering durability and specialized features`,
+      description: `Heavy industrial environments—high-load frames, crane integration, vibration-aware design, and execution discipline for demanding process industries.`,
     },
     {
       top: divHeight * 0.64,
       width: divWidth * 0.3,
       left: divWidth * 0.06,
       title: `Recreational`,
-      description: `Enhance your leisure and entertainment spaces with our pre-engineered buildings for sports complexes, 
-                recreational centres, and community halls, providing flexibility and aesthetic appeal`,
+      description: `Sports, recreation, and community halls—clear spans and durable envelopes tuned for public use and long maintenance cycles.`,
     },
     {
       top: divHeight * 0.777,
       width: divWidth * 0.3,
       right: divWidth * 0.04,
       title: `Agricultural`,
-      description: `Explore our efficient and customizable pre-engineered 
-                buildings for agricultural purposes, including barns, storage facilities, and livestock shelters, designed to optimise productivity and sustainability`,
+      description: `Agricultural storage and shelter buildings—practical spans, environmental control readiness, and fast delivery for rural schedules.`,
     },
     {
       top: divHeight * 0.925,
       width: divWidth * 0.3,
       left: divWidth * 0.06,
       title: `Energy`,
-      description: `Embrace renewable power with our integrated solar panel solutions, optimizing clean energy generation and sustainability`,
+      description: `Renewable-ready industrial assets—rooftop solar integration and sustainable infrastructure options aligned with operating cost and ESG goals.`,
     },
   ]
 
   return (
     <Layout>
-      <Seo title="Applications" />
+      <Seo
+        title="Applications"
+        description="Industrial infrastructure and PEB applications across industrial, institutional, commercial, heavy industrial, and energy sectors."
+      />
 
       <div className="md:mx-20 mx-10 mt-40">
         <div className="flex justify-between md:flex-row flex-col md:gap-0 gap-10">
           <p className="md:text-[2rem] text-xl w-full font-bold leading-[40px]">
-            Dive into the world of pre-engineered building solutions at Proalfa,
-            where we excel in creating customized structures across various
-            sectors.
+            Explore where Proalfa Dynamic applies integrated industrial
+            infrastructure—in PEB, civil, logistics, and energy-adjacent
+            buildouts across sectors.
           </p>
           <ScrollDown />
         </div>
         <p className="text-xl mt-10 md:block hidden">
-          With a wealth of expertise across various sectors, we specialize in
-          creating customized structures that redefine functionality,
-          sustainability, and aesthetics. From industrial complexes to
-          institutional spaces, commercial establishments to heavy industrial
-          sites, recreational facilities to agricultural spaces, and innovative
-          energy solutions, we are your partner in turning ideas into
-          exceptional structures. Explore our comprehensive range of offerings
-          and let us help you shape the future of construction, where precision
-          and creativity converge to build a better tomorrow.
+          From manufacturing and warehousing campuses to institutional and
+          commercial envelopes—and specialized heavy industrial and energy-ready
+          facilities—we align structure, civil, and execution so projects move
+          faster with fewer interface risks. Our application experience supports
+          turnkey EPC thinking at every scale we pursue.
         </p>
       </div>
 
@@ -174,11 +166,8 @@ const Applications = () => {
         />
       </div>
       <p className="text-xl mt-10 md:hidden block mx-10 mb-20">
-        With a wealth of expertise across various sectors, we specialize in
-        creating customized structures that redefine functionality,
-        sustainability, and aesthetics. Join us in shaping the future of
-        construction, where precision and creativity converge to build a better
-        tomorrow.
+        Integrated industrial infrastructure across sectors—structure, civil,
+        and delivery models that reduce risk from concept to handover.
       </p>
     </Layout>
   )

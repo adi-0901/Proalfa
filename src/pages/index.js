@@ -25,7 +25,10 @@ const IndexPage = props => {
 
   return (
     <Layout>
-      <Seo title="Home" />
+      <Seo
+        title="Home"
+        description="Proalfa Dynamic—turnkey industrial infrastructure and integrated EPC. Large-scale facilities from foundation to operations-ready assets."
+      />
       <HomeCanvas />
       <HomeContent />
       {/* <Projects /> */}

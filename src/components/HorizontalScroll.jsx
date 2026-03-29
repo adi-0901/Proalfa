@@ -9,26 +9,25 @@ import { Colored } from "../styles/globalStyles"
 
 const MyComponent = () => {
   const rangeAndScopePoints = [
-    "High-rise commercial Buildings",
-    "Large Span Buildings, warehouses, factories, School, Hostel, Auditoriums, Stadiums, Supermarkets, Shopping Malls.",
-    "Buildings with Complex design",
-    "Residential Buildings-Multi/single stories",
-    "Energy Efficient construction",
-    "Buildings at Seismic Zone, Hilly Regions, Remote Localities",
-    "Construction of Light weight Buildings",
-    "Fast Track Construction",
+    "Large-span manufacturing, warehousing, and logistics campuses",
+    "Turnkey EPC—design, procurement, construction, and handover",
+    "Industrial parks and multi-unit developments with shared infrastructure",
+    "PEB, civil & RCC, utilities, and coordinated services interfaces",
+    "Heavy-load and crane-integrated structures for process industries",
+    "Seismic, remote, and constrained sites with disciplined engineering",
+    "Energy-efficient envelopes and solar-ready industrial roofs",
+    "Fast-track programs where schedule certainty is non-negotiable",
   ]
 
   const advantagesPoints = [
-    "Lightweight, easy and economical to construct and eco-Friendly",
-    "Excellent quality & quality control, unique aesthetic appeal",
-    "Extensive choice of layouts",
-    "Superior flexibility in design & fabrication",
-    "Economical construction",
-    "Immense strength, durability and resilience",
-    "Easily transportable and modular",
-    "Fire resistant and earthquake resistant",
-    "Speedy construction and implementation",
+    "Single-point accountability across structure, civil, and key packages",
+    "Factory-controlled fabrication plus controlled site erection",
+    "Better cost predictability with fewer owner-managed interfaces",
+    "Quality, safety, and compliance systems applied end-to-end",
+    "Layout flexibility for expansion, densification, and automation",
+    "Strength, durability, and resilience for industrial duty cycles",
+    "Modular, transportable steel packages where they create value",
+    "Fire and seismic design aligned to code and insurer expectations",
   ]
 
   const [isIntersecting, setIsIntersecting] = useState(false)
@@ -85,7 +84,7 @@ const MyComponent = () => {
     },
     {
       image: Advantages,
-      title: "Advantages of PEB",
+      title: "Delivery advantages",
       list: advantagesPoints,
       listBulletImage: AdvantagesBullet,
     },
@@ -100,9 +99,9 @@ const MyComponent = () => {
       >
         <div className="md:mx-20 flex items-center h-full w-full md:flex-row flex-col md:gap-0 gap-20">
           <div className="md:text-[72px] text-[40px] md:mr-[150px] text-center">
-            <p>Why go for</p>
-            <p>pre-engineered</p>
-            <p>solutions</p>
+            <p>Why build with</p>
+            <p>integrated</p>
+            <p>industrial expertise</p>
           </div>
 
           {whyChooseList.map(({ image, title, list, listBulletImage }) => (

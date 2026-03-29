@@ -1,21 +1,12 @@
-import React, { useState, useEffect } from "react"
-import {
-  AboutContainer,
-  AboutText,
-  AboutAccordion,
-  ServiceHead,
-} from "../../styles/homeStyles"
+import React, { useEffect } from "react"
+import { AboutContainer, AboutText } from "../../styles/homeStyles"
 
 import { useInView } from "react-intersection-observer"
 import { useAnimation } from "framer-motion"
 import { useGlobalDispatchContext } from "../../context/globalContext"
 import { Link } from "gatsby"
 import AnimatedText from "../AnimatedText"
-import { serviceList } from "../../constants"
-
 const About = () => {
-  const [shouldExpand, setShouldExpand] = useState(0)
-
   const animation = useAnimation()
   const [aboutRef, isInView] = useInView({
     triggerOnce: true,
@@ -39,11 +30,6 @@ const About = () => {
     }
   }, [isInView, animation])
 
-  const toggleExpand = id => {
-    console.log(id)
-    setShouldExpand(shouldExpand === id ? -1 : id)
-  }
-
   return (
     <AboutContainer
       ref={aboutRef}
@@ -66,15 +52,16 @@ const About = () => {
       <AboutText className="flex-col lg:flex-row ">
         <div className="about-text-head border-[#444] mr-4 pr-3.5 border-r-transparent lg:border-r-white">
           <p>
-            Proalfa Dynamic Pre-Engineered Building (PEB) solution are
-            tailormade to fit the customer's needs and requirements.
+            Proalfa Dynamic is an end-to-end turnkey industrial infrastructure
+            developer—delivering integrated EPC from concept to
+            commissioning.
           </p>
         </div>
         <div className="about-text-foot w-[40vw] font-normal leading-6 text-[#ababab]">
           <div className="flex flex-col gap-4 items-start">
               <AnimatedText
                 className={"w-full h-full flex items-center justify-center font-normal"}
-                text={`We're on a mission to improve the quality of Pre-Engineered buildings in India. We will provide customized designs and implement them with perfect care. The quality is assured at each stage of production and it is based on strict values. We offer complete solution from concept to implementation. This mode of construction uses standard section and connection, reducing design time significantly. PEB's are flexible enough to suit different building dimensions as they are expandable, resistant to harsh climatic conditions and come with maintenance-free exteriors`}
+                text={`We design, engineer, and build large-scale industrial facilities—PEB, civil and RCC, utilities, warehousing, and sustainable systems—under single-point accountability. Our focus is speed, quality, and lifecycle value for manufacturing, logistics, energy, and heavy industrial clients across India.`}
               />
          
             <Link

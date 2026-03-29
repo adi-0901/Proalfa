@@ -3,7 +3,7 @@ require("dotenv").config()
 module.exports = {
   siteMetadata: {
     title: `Proalfa Dynamic`,
-    description: `Proalfa Dynamic Pre-Engineered Building (PEB) solution are tailormade to fit the customer's needs and requirements. We offer complete solution from concept to implementation.`,
+    description: `Proalfa Dynamic is an end-to-end turnkey industrial infrastructure developer. We design, engineer, and deliver large-scale industrial facilities—from foundation and structure to operations-ready assets—with integrated EPC capabilities.`,
     author: `@gatsbyjs`,
     siteUrl: `https://gatsbystarterdefaultsource.gatsbyjs.io/`,
   },

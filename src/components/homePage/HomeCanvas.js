@@ -90,6 +90,12 @@ const HomeCanvas = () => {
           >
             TO BUILD STRONGEST
           </Headline>
+          <Headline
+            variants={headlineAnimate}
+            className="lg:w-auto w-screen lg:text-[1.15rem] text-[0.95rem] font-normal normal-case lg:ml-20 mt-2 lg:mt-4 max-w-xl text-white/90"
+          >
+            End-to-end turnkey industrial infrastructure developer
+          </Headline>
         </BannerTitle>
       </Banner>
     </div>

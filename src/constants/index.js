@@ -4,16 +4,16 @@ export const menuList = [
     name: "About Us",
   },
   {
-    redirect: "/production",
-    name: "Production",
+    redirect: "/capabilities",
+    name: "Capabilities",
   },
   {
     redirect: "/applications",
     name: "Applications",
   },
   {
-    redirect: "/projects",
-    name: "Projects",
+    redirect: "/industrial-solutions",
+    name: "Industrial Solutions",
   },
   {
     redirect: "/contact-us",
@@ -32,7 +32,7 @@ export const serviceList = [
   },
   {
     id: 2,
-    title: "Production",
+    title: "Fabrication",
   },
   {
     id: 3,
