@@ -3,9 +3,17 @@ require("dotenv").config()
 module.exports = {
   siteMetadata: {
     title: `Proalfa Dynamic`,
-    description: `Proalfa Dynamic is an end-to-end turnkey industrial infrastructure developer. We design, engineer, and deliver large-scale industrial facilities—from foundation and structure to operations-ready assets—with integrated EPC capabilities.`,
-    author: `@gatsbyjs`,
-    siteUrl: `https://gatsbystarterdefaultsource.gatsbyjs.io/`,
+    description: `Proalfa Dynamic is an end-to-end turnkey industrial infrastructure developer based in Pune, India. We design, engineer, and deliver large-scale industrial facilities—from foundation and structure to operations-ready assets—with integrated EPC capabilities.`,
+    author: `Proalfa Dynamic`,
+    siteUrl: `https://www.proalfa.in`,
+    location: {
+      city: `Pune`,
+      state: `Maharashtra`,
+      country: `India`,
+      countryCode: `IN`,
+      latitude: `18.5204`,
+      longitude: `73.8567`,
+    },
   },
   // pathPrefix: "/creative-studio",
   plugins: [

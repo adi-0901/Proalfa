@@ -122,7 +122,11 @@ const ContactUs = () => {
 
   return (
     <Layout>
-      <Seo title="Contact Us" />
+      <Seo
+        title="Contact Us"
+        description="Get in touch with Proalfa Dynamic—industrial infrastructure and EPC contractor based in Pune, Maharashtra. Reach out for your industrial facility project anywhere in India."
+        keywords="warehouse construction company in Pune, warehouse builder in Pune, warehouse contractor Pune, warehouse construction near me Pune, godown construction Pune, godown contractor Pune, factory construction company Pune, industrial shed builder Pune, MIDC construction contractor Pune, warehouse for rent in Pune, warehouse on rent Pune, rent a warehouse Pune, industrial shed for rent Pune, godown for rent Pune, warehouse rental Pune, warehouse lease Pune, industrial space for rent Pune, storage space for rent Pune, ready warehouse for rent Pune, ready shed for rent Pune, factory shed for rent Pune, ready to use warehouse Pune, warehouse construction Chakan, warehouse construction Talegaon, warehouse construction Ranjangaon, warehouse builder Pimpri Chinchwad, industrial construction Hinjewadi, warehouse construction Indapur, industrial shed Baramati, how to build a warehouse in Pune, warehouse construction cost per sq ft Pune, industrial shed construction cost per sq ft, how much does it cost to build a factory in Pune, best warehouse construction company in Pune, warehouse construction vs renting which is better, steel shed vs RCC shed which is better, turnkey warehouse project cost India"
+      />
 
       <div
         className="mt-20 md:w-screen flex items-center justify-center w-full flex-col md:flex-row"

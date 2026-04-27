@@ -7,7 +7,8 @@ const AboutUs = () => {
     <Layout>
       <Seo
         title="About Us"
-        description="Proalfa Dynamic—industrial infrastructure development and turnkey EPC. Our story, mission, and vision."
+        description="Based in Pune, Maharashtra—Proalfa Dynamic is an industrial infrastructure developer delivering turnkey EPC projects across India. Our story, mission, and vision."
+        keywords="industrial construction company Maharashtra, turnkey industrial project contractor Pune, best warehouse construction company in Pune, industrial contractor Pune, EPC contractor Maharashtra, factory construction company Pune, industrial building contractor Pune, warehouse builder Pune, MIDC construction contractor Pune, industrial project management Pune"
       />
 
       <div className="about-us my-40 md:mx-32 mx-10 flex flex-col gap-10">
