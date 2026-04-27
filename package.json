@@ -72,5 +72,8 @@
   },
   "eslintConfig": {
     "extends": "react-app"
+  },
+  "engines": {
+    "node": "24.x"
   }
 }

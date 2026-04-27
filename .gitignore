@@ -70,3 +70,5 @@ yarn-error.log
 
 # Folders
 .ignore
+.vercel
+.env*.local
