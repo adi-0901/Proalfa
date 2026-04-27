@@ -59,7 +59,8 @@ const IndustrialSolutionsPage = () => (
   <Layout>
     <Seo
       title="Industrial Solutions"
-      description="Industrial infrastructure solutions across manufacturing, warehousing, heavy engineering, industrial parks, and sustainable buildouts—with flexible delivery models."
+      description="Industrial infrastructure solutions in Pune and across India—manufacturing plants, warehousing, heavy engineering, industrial parks, and sustainable buildouts with flexible EPC delivery models."
+      keywords="industrial shed builder Pune, industrial shed construction Pune, industrial shed contractor Pune, industrial shed construction cost Pune, factory construction company Pune, factory building contractor Pune, factory shed construction Pune, factory builder Pune, manufacturing plant construction Pune, industrial building construction Pune, steel shed construction Pune, steel building contractor Pune, metal shed builder Pune, industrial construction company Maharashtra, turnkey factory construction Pune, design build warehouse Pune, design build factory Pune, industrial civil contractor Pune, MIDC shed construction, MIDC construction contractor Pune, industrial project management Pune, warehouse construction Chakan, industrial shed builder Chakan, factory construction Chakan MIDC, warehouse construction Ranjangaon, industrial shed Ranjangaon, warehouse builder Pimpri Chinchwad, industrial construction Hinjewadi, industrial shed Baramati"
     />
     <div className="my-28 max-w-6xl mx-auto px-6 md:px-12 flex flex-col gap-16 md:gap-20 text-[#e8e8e8]">
       <header className="space-y-6">

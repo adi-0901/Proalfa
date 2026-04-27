@@ -99,7 +99,8 @@ const Applications = () => {
     <Layout>
       <Seo
         title="Applications"
-        description="Industrial infrastructure and PEB applications across industrial, institutional, commercial, heavy industrial, and energy sectors."
+        description="PEB and industrial infrastructure applications from Pune—serving industrial, institutional, commercial, heavy industrial, and energy sectors across Maharashtra and India."
+        keywords="prefabricated warehouse Pune, prefab shed construction Pune, prefab factory construction Pune, steel structure factory Pune, steel frame warehouse Pune, industrial shed construction Pune, factory shed construction Pune, steel shed construction Pune, cold storage warehouse construction Pune, storage shed construction Pune, large godown construction Pune, industrial building construction Pune, heavy engineering construction Pune, warehouse construction Indapur, factory construction Pune district"
       />
 
       <div className="md:mx-20 mx-10 mt-40">

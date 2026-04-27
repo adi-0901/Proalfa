@@ -73,7 +73,8 @@ const CapabilitiesPage = () => (
   <Layout>
     <Seo
       title="Capabilities"
-      description="Integrated capabilities for industrial infrastructure delivery—PEB, civil & RCC, turnkey EPC, warehousing, fleet, and sustainable systems."
+      description="Pune-based industrial infrastructure capabilities—PEB fabrication, civil & RCC, turnkey EPC, warehousing, owned fleet, and sustainable systems delivered across Maharashtra and India."
+      keywords="steel structure warehouse Pune, steel structure factory Pune, prefabricated warehouse Pune, prefab shed construction Pune, prefab factory construction Pune, steel building construction Pune, structural steel contractor Pune, steel frame warehouse Pune, turnkey industrial project contractor Pune, end to end industrial construction Pune, complete industrial project contractor Pune, civil works contractor Pune, industrial civil contractor Pune, design build warehouse Pune, design build factory Pune, industrial project management Pune, warehouse construction cost Pune, industrial shed construction cost Pune"
     />
     <div className="my-28 max-w-6xl mx-auto px-6 md:px-12 flex flex-col gap-16 md:gap-24 text-[#e8e8e8]">
       <header className="space-y-4">
