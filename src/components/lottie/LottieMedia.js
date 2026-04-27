@@ -1,5 +1,4 @@
-import React, { forwardRef, useEffect, useRef } from "react"
-import Lottie from "lottie-react"
+import React, { forwardRef, useEffect, useRef, useState } from "react"
 
 // const MyInput = forwardRef(function MyInput(props, ref) {
 
@@ -23,6 +22,22 @@ const LottieMedia = forwardRef(function LottieMedia(
   ref,
 ) {
   const internalRef = useRef()
+  const [LottieComponent, setLottieComponent] = useState(null)
+
+  // Load lottie only in the browser so Gatsby SSR does not evaluate lottie-web.
+  useEffect(() => {
+    if (typeof window === "undefined") return undefined
+
+    let mounted = true
+
+    import("lottie-react").then(module => {
+      if (mounted) setLottieComponent(() => module.default)
+    })
+
+    return () => {
+      mounted = false
+    }
+  }, [])
 
   const handleMouseOver = () => {
     if (typeof onMouseOver === "function") onMouseOver()
@@ -37,6 +52,8 @@ const LottieMedia = forwardRef(function LottieMedia(
 
   // Start observing the element when the component is mounted
   useEffect(() => {
+    if (typeof ResizeObserver === "undefined") return undefined
+
     const element = divRef?.current
 
     if (!element) return
@@ -61,18 +78,20 @@ const LottieMedia = forwardRef(function LottieMedia(
       ref={divRef}
       style={style}
     >
-      <Lottie
-        lottieRef={externalRef ? ref : internalRef}
-        animationData={animationData}
-        autoplay={autoplay}
-        loop={loop}
-        interactivity={interactivity}
-        width={width}
-        height={height}
-        onLoadedImages={() =>
-          typeof onLoadedImages === "function" && onLoadedImages()
-        }
-      />
+      {LottieComponent ? (
+        <LottieComponent
+          lottieRef={externalRef ? ref : internalRef}
+          animationData={animationData}
+          autoplay={autoplay}
+          loop={loop}
+          interactivity={interactivity}
+          width={width}
+          height={height}
+          onLoadedImages={() =>
+            typeof onLoadedImages === "function" && onLoadedImages()
+          }
+        />
+      ) : null}
     </div>
   )
 })
