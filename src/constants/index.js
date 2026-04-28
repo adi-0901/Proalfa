@@ -5,15 +5,11 @@ export const menuList = [
   },
   {
     redirect: "/capabilities",
-    name: "Capabilities",
+    name: "What We Do",
   },
   {
     redirect: "/applications",
     name: "Applications",
-  },
-  {
-    redirect: "/industrial-solutions",
-    name: "Industrial Solutions",
   },
   {
     redirect: "/contact-us",

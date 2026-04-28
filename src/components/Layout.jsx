@@ -1,19 +1,12 @@
 import React from "react"
 import PropTypes from "prop-types"
-// import { useStaticQuery, graphql } from "gatsby"
 import CustomCursor from "./CustomCursor"
 import { GlobalStyle } from "../styles/globalStyles"
-
-// styled components
 import { ThemeProvider } from "styled-components"
-
-// Components
 import Header from "./Header"
-
-// context
-// import { useGlobalStateContext } from "../context/globalContext"
 import Footer from "./Footer"
 import { ToastContainer } from "react-toastify"
+import { motion } from "framer-motion"
 
 // gatsby hates randomness
 // https://spectrum.chat/gatsby-js/general/random-value-at-build-time~0dfc465a-c52a-45de-97e3-f9380a1c0cf6
@@ -66,7 +59,15 @@ const Layout = ({ children, hideFooter }) => {
         <GlobalStyle />
         <CustomCursor />
         <Header />
-        <main className="overflow-hidden">{children}</main>
+        <motion.main
+          className="overflow-hidden"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.4, ease: [0.25, 0.1, 0.25, 1] }}
+        >
+          {children}
+        </motion.main>
         {!hideFooter && <Footer />}
         <ToastContainer />
       </div>

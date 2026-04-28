@@ -1,5 +1,6 @@
 import * as React from "react"
 import Layout from "../components/Layout"
+import IntroLoader from "../components/IntroLoader"
 import HomeCanvas from "../components/homePage/HomeCanvas"
 import HomeContent from "../components/homePage/HomeContent"
 import About from "../components/homePage/About"
@@ -25,6 +26,7 @@ const IndexPage = props => {
 
   return (
     <Layout>
+      <IntroLoader />
       <Seo
         title="Home"
         description="Proalfa Dynamic—Pune's turnkey industrial infrastructure developer. We design, engineer, and deliver large-scale industrial facilities across Maharashtra and India with integrated EPC capabilities."

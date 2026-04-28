@@ -140,7 +140,7 @@ const Applications = () => {
             <div className="md:text-[40px] sm:text-[32px] text-[20px] font-bold text-[#e5e5e5] ">
               {item.title}
             </div>
-            <div className="text-[#b1b1b1] leading-[150%] mt-3 md:text-base  sm:text-[12px] text-[0px]">
+            <div className="text-[#b1b1b1] leading-[150%] mt-3 md:text-base text-[12px]">
               {item.description}
             </div>
           </div>
