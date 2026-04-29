@@ -1,38 +1,31 @@
-import React, {
-  useState,
-  useEffect,
-  useLayoutEffect as useRealLayoutEffect,
-  useRef,
-} from "react"
+import React, { useState, useEffect, useRef } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 import logoIcon from "../assets/images/logo-icon.png"
 
 const curtainEase = [0.76, 0, 0.24, 1]
 
-// useLayoutEffect is not available in SSR — fall back to useEffect on the server
-const useLayoutEffect =
-  typeof window !== "undefined" ? useRealLayoutEffect : useEffect
-
 const IntroLoader = () => {
   const [iconVisible, setIconVisible] = useState(false)
   // Always start as true so the SSR HTML includes the curtain, preventing FOUC
   const [curtainVisible, setCurtainVisible] = useState(true)
-  const skipAnim = useRef(false)
-
-  // Runs synchronously before the first browser paint.
-  // For returning visitors this dismisses the curtain instantly — no flash.
-  useLayoutEffect(() => {
-    const isDev = process.env.NODE_ENV === "development"
-    if (!isDev && sessionStorage.getItem("proalfa_intro")) {
-      skipAnim.current = true
-      setCurtainVisible(false)
-    }
-  }, [])
+  // shouldAnimate is set via a ref (not state) so useEffect reads the correct
+  // value synchronously — avoids the closure/batching issue with useLayoutEffect
+  const shouldAnimate = useRef(true)
 
   useEffect(() => {
-    if (!curtainVisible) return
-
+    // Determine once, before any timers, whether to play the full animation.
+    // Reading sessionStorage here (synchronously, before any async work) is safe
+    // because useEffect runs before the browser has painted with React content.
     const isDev = process.env.NODE_ENV === "development"
+    const isReturning = !isDev && !!sessionStorage.getItem("proalfa_intro")
+
+    if (isReturning) {
+      // Dismiss instantly for returning visitors — no animation, no timers
+      shouldAnimate.current = false
+      setCurtainVisible(false)
+      return
+    }
+
     if (!isDev) sessionStorage.setItem("proalfa_intro", "1")
     document.body.style.overflow = "hidden"
 
@@ -100,9 +93,9 @@ const IntroLoader = () => {
               willChange: "transform",
             }}
             exit={
-              skipAnim.current
-                ? { y: "-100%", transition: { duration: 0 } }
-                : { y: "-100%", transition: { duration: 1.0, ease: curtainEase } }
+              shouldAnimate.current
+                ? { y: "-100%", transition: { duration: 1.0, ease: curtainEase } }
+                : { y: "-100%", transition: { duration: 0 } }
             }
           />
         )}
