@@ -1,19 +1,33 @@
-import React, { useState, useEffect } from "react"
+import React, {
+  useState,
+  useEffect,
+  useLayoutEffect as useRealLayoutEffect,
+  useRef,
+} from "react"
 import { motion, AnimatePresence } from "framer-motion"
 import logoIcon from "../assets/images/logo-icon.png"
 
 const curtainEase = [0.76, 0, 0.24, 1]
 
-const shouldShow = () => {
-  if (typeof window === "undefined") return false
-  const isDev = process.env.NODE_ENV === "development"
-  return isDev || !sessionStorage.getItem("proalfa_intro")
-}
+// useLayoutEffect is not available in SSR — fall back to useEffect on the server
+const useLayoutEffect =
+  typeof window !== "undefined" ? useRealLayoutEffect : useEffect
 
 const IntroLoader = () => {
   const [iconVisible, setIconVisible] = useState(false)
-  // Lazy initializer reads sessionStorage synchronously — no flash for returning visitors
-  const [curtainVisible, setCurtainVisible] = useState(shouldShow)
+  // Always start as true so the SSR HTML includes the curtain, preventing FOUC
+  const [curtainVisible, setCurtainVisible] = useState(true)
+  const skipAnim = useRef(false)
+
+  // Runs synchronously before the first browser paint.
+  // For returning visitors this dismisses the curtain instantly — no flash.
+  useLayoutEffect(() => {
+    const isDev = process.env.NODE_ENV === "development"
+    if (!isDev && sessionStorage.getItem("proalfa_intro")) {
+      skipAnim.current = true
+      setCurtainVisible(false)
+    }
+  }, [])
 
   useEffect(() => {
     if (!curtainVisible) return
@@ -85,10 +99,11 @@ const IntroLoader = () => {
               backgroundColor: "#ffffff",
               willChange: "transform",
             }}
-            exit={{
-              y: "-100%",
-              transition: { duration: 1.0, ease: curtainEase },
-            }}
+            exit={
+              skipAnim.current
+                ? { y: "-100%", transition: { duration: 0 } }
+                : { y: "-100%", transition: { duration: 1.0, ease: curtainEase } }
+            }
           />
         )}
       </AnimatePresence>
