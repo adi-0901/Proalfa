@@ -34,8 +34,8 @@ const CAPABILITIES = [
   },
 ]
 
-const RX = 370  // horizontal orbit radius (px)
-const RY = 150  // vertical orbit radius (px)
+const RX = 360
+const RY = 140
 const CARD_W = 240
 const CARD_H = 200
 
@@ -45,19 +45,21 @@ const OrbitalCard = ({ item, index, total, rotation }) => {
   const x = useTransform(rotation, r => Math.cos(r + baseAngle) * RX)
   const y = useTransform(rotation, r => Math.sin(r + baseAngle) * RY)
 
+  // sin = 1 → front, sin = -1 → back
   const scale = useTransform(rotation, r => {
-    const s = Math.sin(r + baseAngle)   // -1 = back, 1 = front
-    return 0.52 + ((s + 1) / 2) * 0.48 // 0.52 → 1.0
+    const s = Math.sin(r + baseAngle)
+    return 0.65 + ((s + 1) / 2) * 0.35   // 0.65 → 1.0
   })
 
   const opacity = useTransform(rotation, r => {
     const s = Math.sin(r + baseAngle)
-    return 0.12 + ((s + 1) / 2) * 0.88  // 0.12 → 1.0
+    return 0.38 + ((s + 1) / 2) * 0.62   // 0.38 → 1.0
   })
 
+  // z-index via MotionValue so front cards paint over back cards
   const zIndex = useTransform(rotation, r => {
     const s = Math.sin(r + baseAngle)
-    return Math.round(s * 50 + 51)       // 1 → 101
+    return Math.round(s * 50 + 51)
   })
 
   return (
@@ -75,10 +77,11 @@ const OrbitalCard = ({ item, index, total, rotation }) => {
         opacity,
         zIndex,
         borderRadius: "16px",
-        background: "linear-gradient(145deg, #191919 0%, #111 100%)",
-        border: "1px solid rgba(255,255,255,0.08)",
+        background: "linear-gradient(145deg, #2a0808 0%, #140404 100%)",
+        border: "1px solid rgba(200, 50, 50, 0.14)",
         padding: "1.75rem",
-        boxShadow: "0 30px 80px rgba(0,0,0,0.55), 0 0 0 1px rgba(255,255,255,0.03) inset",
+        boxShadow:
+          "0 28px 72px rgba(0,0,0,0.65), 0 0 50px rgba(120,0,0,0.1) inset",
         userSelect: "none",
         cursor: "default",
       }}
@@ -88,7 +91,7 @@ const OrbitalCard = ({ item, index, total, rotation }) => {
           fontSize: "9px",
           letterSpacing: "0.3em",
           textTransform: "uppercase",
-          color: "#3a3a3a",
+          color: "#5c1c1c",
           marginBottom: "1.1rem",
           fontFamily: "monospace",
         }}
@@ -100,7 +103,7 @@ const OrbitalCard = ({ item, index, total, rotation }) => {
         style={{
           fontSize: "1.1rem",
           fontWeight: 700,
-          color: "#e5e5e5",
+          color: "#f0d8d8",
           lineHeight: 1.2,
           marginBottom: "0.85rem",
         }}
@@ -111,12 +114,12 @@ const OrbitalCard = ({ item, index, total, rotation }) => {
       <div
         style={{
           height: "1px",
-          background: "rgba(255,255,255,0.05)",
+          background: "rgba(200,60,60,0.1)",
           marginBottom: "0.85rem",
         }}
       />
 
-      <p style={{ fontSize: "0.775rem", color: "#555", lineHeight: 1.75 }}>
+      <p style={{ fontSize: "0.775rem", color: "#8a5050", lineHeight: 1.75 }}>
         {item.sub}
       </p>
     </motion.div>
@@ -131,7 +134,7 @@ const OrbitalSection = () => {
     offset: ["start start", "end end"],
   })
 
-  // Start: card 0 at front (sin=1 → bottom of ellipse), complete one full rotation
+  // Card 0 starts front-center (sin=1). One full revolution over the scroll range.
   const rotation = useTransform(
     scrollYProgress,
     [0, 1],
@@ -141,9 +144,8 @@ const OrbitalSection = () => {
   return (
     <div
       ref={containerRef}
-      style={{ height: "300vh", position: "relative", background: "#191919" }}
+      style={{ height: "220vh", position: "relative", background: "#191919" }}
     >
-      {/* Sticky viewport */}
       <div
         style={{
           position: "sticky",
