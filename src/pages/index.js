@@ -6,6 +6,7 @@ import HomeContent from "../components/homePage/HomeContent"
 import About from "../components/homePage/About"
 import Seo from "../components/seo"
 import HorizontalScroll from "../components/HorizontalScroll"
+import OrbitalSection from "../components/OrbitalSection"
 import Services from "../components/Services"
 import { useEffect } from "react"
 import {
@@ -38,6 +39,7 @@ const IndexPage = props => {
       <About />
       <HomeOurClients />
       <HorizontalScroll />
+      <OrbitalSection />
       <Services />
     </Layout>
   )

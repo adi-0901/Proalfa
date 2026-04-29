@@ -6,7 +6,6 @@ import { ThemeProvider } from "styled-components"
 import Header from "./Header"
 import Footer from "./Footer"
 import { ToastContainer } from "react-toastify"
-import { motion } from "framer-motion"
 
 // gatsby hates randomness
 // https://spectrum.chat/gatsby-js/general/random-value-at-build-time~0dfc465a-c52a-45de-97e3-f9380a1c0cf6
@@ -59,15 +58,7 @@ const Layout = ({ children, hideFooter }) => {
         <GlobalStyle />
         <CustomCursor />
         <Header />
-        <motion.main
-          className="overflow-hidden"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          transition={{ duration: 0.4, ease: [0.25, 0.1, 0.25, 1] }}
-        >
-          {children}
-        </motion.main>
+        <main className="overflow-hidden">{children}</main>
         {!hideFooter && <Footer />}
         <ToastContainer />
       </div>

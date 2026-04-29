@@ -1,140 +1,232 @@
-import React, { useEffect, useRef } from "react"
-import RangeAndScope from "../assets/svg/why_range_scope.svg"
-import RangeAndScopeBullet from "../assets/svg/openmoji_telescope.svg"
-import Advantages from "../assets/svg/why_advantages.svg"
-import AdvantagesBullet from "../assets/svg/ph_warehouse.svg"
-import useHorizontalScroll from "../hooks/useHorizontalScroll"
-import { useState } from "react"
-import { Colored } from "../styles/globalStyles"
+import React, { useRef, useState, useEffect } from "react"
+import { motion, useMotionValue, useSpring } from "framer-motion"
 
-const MyComponent = () => {
-  const rangeAndScopePoints = [
-    "Large-span manufacturing, warehousing, and logistics campuses",
-    "Turnkey EPC—design, procurement, construction, and handover",
-    "Industrial parks and multi-unit developments with shared infrastructure",
-    "PEB, civil & RCC, utilities, and coordinated services interfaces",
-    "Heavy-load and crane-integrated structures for process industries",
-    "Seismic, remote, and constrained sites with disciplined engineering",
-    "Energy-efficient envelopes and solar-ready industrial roofs",
-    "Fast-track programs where schedule certainty is non-negotiable",
-  ]
+const rangePoints = [
+  "Large-span manufacturing, warehousing, and logistics campuses",
+  "Turnkey EPC — design, procurement, construction, and handover",
+  "Industrial parks and multi-unit developments with shared infrastructure",
+  "PEB, civil & RCC, utilities, and coordinated services interfaces",
+  "Heavy-load and crane-integrated structures for process industries",
+  "Energy-efficient envelopes and solar-ready industrial roofs",
+  "Fast-track programs where schedule certainty is non-negotiable",
+]
 
-  const advantagesPoints = [
-    "Single-point accountability across structure, civil, and key packages",
-    "Factory-controlled fabrication plus controlled site erection",
-    "Better cost predictability with fewer owner-managed interfaces",
-    "Quality, safety, and compliance systems applied end-to-end",
-    "Layout flexibility for expansion, densification, and automation",
-    "Strength, durability, and resilience for industrial duty cycles",
-    "Modular, transportable steel packages where they create value",
-    "Fire and seismic design aligned to code and insurer expectations",
-  ]
+const advantagePoints = [
+  "Single-point accountability across structure, civil, and key packages",
+  "Factory-controlled fabrication plus controlled site erection",
+  "Better cost predictability with fewer owner-managed interfaces",
+  "Quality, safety, and compliance systems applied end-to-end",
+  "Layout flexibility for expansion, densification, and automation",
+  "Strength, durability, and resilience for industrial duty cycles",
+  "Fire and seismic design aligned to code and insurer expectations",
+]
 
-  const [isIntersecting, setIsIntersecting] = useState(false)
-  const scrollRef = useHorizontalScroll(isIntersecting, setIsIntersecting)
-  const interRef = useRef(null)
+const CARDS = [
+  { number: "01", title: "Range & Scope", points: rangePoints },
+  { number: "02", title: "Delivery Advantage", points: advantagePoints },
+]
 
-  const onWheel = (e, el) => {
-    if (!scrollRef?.current) return
+const Card3D = ({ card, entranceDelay }) => {
+  const wrapperRef = useRef(null)
+  const shineRef = useRef(null)
+  const [visible, setVisible] = useState(false)
 
-    const scrollLeft = el.scrollLeft
-    const maxScrollLeft = el.scrollWidth - el.clientWidth
+  // Spring-smoothed rotation values
+  const rotX = useMotionValue(0)
+  const rotY = useMotionValue(0)
+  const springRotX = useSpring(rotX, { stiffness: 180, damping: 28 })
+  const springRotY = useSpring(rotY, { stiffness: 180, damping: 28 })
 
-    const scrollTopOffset = scrollRef?.current?.getBoundingClientRect()?.top
+  // Entrance via IntersectionObserver
+  useEffect(() => {
+    const el = wrapperRef.current
+    if (!el) return
+    const obs = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) { setVisible(true); obs.disconnect() }
+      },
+      { threshold: 0.15 }
+    )
+    obs.observe(el)
+    return () => obs.disconnect()
+  }, [])
 
-    if (
-      (scrollLeft >= maxScrollLeft - 30 && e.deltaY >= 1) ||
-      (scrollLeft === 0 && e.deltaY < 1)
-    ) {
-      setIsIntersecting(false)
-      document.body.style.overflowY = "auto"
-      document.body.style.overflowX = "hidden"
-    } else if (scrollTopOffset <= 0 && e.deltaY >= 1) {
-      window.scrollTo(0, window.scrollY + el.getBoundingClientRect().top)
-      setIsIntersecting(true)
-      document.body.style.overflow = "hidden"
-    } else if (e.deltaY < 1 && scrollTopOffset > 0) {
-      window.scrollTo(0, window.scrollY + el.getBoundingClientRect().top)
-      document.body.style.overflow = "hidden"
-      setIsIntersecting(true)
+  const onMouseMove = e => {
+    const rect = wrapperRef.current.getBoundingClientRect()
+    const x = e.clientX - rect.left
+    const y = e.clientY - rect.top
+    const cx = rect.width / 2
+    const cy = rect.height / 2
+    rotX.set(((y - cy) / cy) * -9)
+    rotY.set(((x - cx) / cx) * 12)
+    // Move shine highlight
+    if (shineRef.current) {
+      shineRef.current.style.background =
+        `radial-gradient(circle at ${(x / rect.width) * 100}% ${(y / rect.height) * 100}%, rgba(255,255,255,0.08) 0%, transparent 65%)`
     }
   }
 
-  useEffect(() => {
-    if (
-      !scrollRef.current ||
-      (typeof window === "object" && window?.innerWidth < 768)
-    )
-      return
-    const el = scrollRef.current
-
-    document.addEventListener("wheel", e => onWheel(e, el), {passive: true})
-
-    return () => {
-      document.removeEventListener("wheel", onWheel)
-    }
-  }, [scrollRef])
-
-  const whyChooseList = [
-    {
-      image: RangeAndScope,
-      title: "Range and Scope",
-      list: rangeAndScopePoints,
-      listBulletImage: RangeAndScopeBullet,
-    },
-    {
-      image: Advantages,
-      title: "Delivery advantages",
-      list: advantagesPoints,
-      listBulletImage: AdvantagesBullet,
-    },
-  ]
+  const onMouseLeave = () => {
+    rotX.set(0)
+    rotY.set(0)
+    if (shineRef.current) shineRef.current.style.background = "none"
+  }
 
   return (
-    <div className="relative">
-      <div className="absolute bottom-0" ref={interRef}></div>
-      <div
-        className="w-auto md:mb-[100px] overflow-x-auto whitespace-nowrap md:h-screen relative horizontal-scroll"
-        ref={scrollRef}
+    <div
+      ref={wrapperRef}
+      style={{
+        perspective: "1200px",
+        flex: 1,
+        minWidth: 0,
+        opacity: 0,
+        transform: "translateY(70px)",
+        transition: `opacity 0.85s cubic-bezier(0.16,1,0.3,1) ${entranceDelay}s,
+                     transform 0.85s cubic-bezier(0.16,1,0.3,1) ${entranceDelay}s`,
+        ...(visible && { opacity: 1, transform: "translateY(0)" }),
+      }}
+    >
+      <motion.div
+        onMouseMove={onMouseMove}
+        onMouseLeave={onMouseLeave}
+        style={{
+          rotateX: springRotX,
+          rotateY: springRotY,
+          transformStyle: "preserve-3d",
+          position: "relative",
+          borderRadius: "16px",
+          background: "linear-gradient(145deg, #161616 0%, #111111 100%)",
+          border: "1px solid rgba(255,255,255,0.07)",
+          padding: "clamp(1.75rem, 3vw, 2.75rem)",
+          boxShadow: "0 40px 100px rgba(0,0,0,0.6), 0 0 0 1px rgba(255,255,255,0.04) inset",
+          overflow: "hidden",
+          cursor: "default",
+          height: "100%",
+        }}
       >
-        <div className="md:mx-20 flex items-center h-full w-full md:flex-row flex-col md:gap-0 gap-20">
-          <div className="md:text-[72px] text-[40px] md:mr-[150px] text-center">
-            <p>Why build with</p>
-            <p>integrated</p>
-            <p>industrial expertise</p>
-          </div>
+        {/* Shine layer — updated via direct DOM ref for performance */}
+        <div
+          ref={shineRef}
+          style={{ position: "absolute", inset: 0, pointerEvents: "none", borderRadius: "16px" }}
+        />
 
-          {whyChooseList.map(({ image, title, list, listBulletImage }) => (
-            <div key={title} className="md:h-full md:py-10 md:mr-6">
-              <div className="md:border md:border-[#373737] rounded-[20px] h-full w-full md:px-[100px] px-0 flex items-center justify-center overflow-hidden md:flex-row flex-col">
-                <img
-                  className="md:max-w-[initial] max-w-full md:mr-[150px] md:px-0 px-10"
-                  alt=""
-                  src={image}
-                />
-                <div className="mx-10">
-                  <p className="mb-[26px] text-[36px] font-normal md:text-start text-center md:mt-0 mt-4">
-                    <Colored>{title}</Colored>
-                    
-                  </p>
-                  <div className="flex flex-col gap-y-6  md:w-max-[450px] md:w-[450px] overflow-hidden">
-                    {list.map(point => (
-                      <div className="flex items-center gap-x-4" key={point}>
-                        <img src={listBulletImage} alt="" />
-                        <p className="text-base font-normal text-app-text text-ellipsis whitespace-break-spaces">
-                          {point}
-                        </p>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            </div>
-          ))}
+        {/* Raised face: gives depth illusion */}
+        <div style={{ transform: "translateZ(30px)" }}>
+          {/* Card number */}
+          <p style={{
+            fontSize: "10px",
+            letterSpacing: "0.3em",
+            textTransform: "uppercase",
+            color: "#3a3a3a",
+            marginBottom: "1.5rem",
+            fontFamily: "monospace",
+          }}>
+            {card.number}
+          </p>
+
+          {/* Title */}
+          <h3 style={{
+            fontSize: "clamp(1.4rem, 2.5vw, 2rem)",
+            fontWeight: 700,
+            color: "#e5e5e5",
+            lineHeight: 1.1,
+            marginBottom: "2rem",
+          }}>
+            {card.title}
+          </h3>
+
+          {/* Divider */}
+          <div style={{ height: "1px", background: "rgba(255,255,255,0.06)", marginBottom: "2rem" }} />
+
+          {/* Points */}
+          <ul style={{ display: "flex", flexDirection: "column", gap: "0.9rem" }}>
+            {card.points.map((pt, i) => (
+              <li key={i} style={{ display: "flex", alignItems: "flex-start", gap: "0.85rem" }}>
+                <span style={{
+                  display: "inline-block",
+                  width: "4px",
+                  height: "4px",
+                  borderRadius: "50%",
+                  background: "#444",
+                  flexShrink: 0,
+                  marginTop: "9px",
+                }} />
+                <span style={{
+                  fontSize: "0.875rem",
+                  color: "#666",
+                  lineHeight: 1.75,
+                }}>
+                  {pt}
+                </span>
+              </li>
+            ))}
+          </ul>
         </div>
-      </div>
+      </motion.div>
     </div>
   )
 }
 
-export default MyComponent
+const WhySection = () => {
+  const headingRef = useRef(null)
+  const [headingVisible, setHeadingVisible] = useState(false)
+
+  useEffect(() => {
+    const el = headingRef.current
+    if (!el) return
+    const obs = new IntersectionObserver(
+      ([entry]) => { if (entry.isIntersecting) { setHeadingVisible(true); obs.disconnect() } },
+      { threshold: 0.1 }
+    )
+    obs.observe(el)
+    return () => obs.disconnect()
+  }, [])
+
+  return (
+    <section style={{ padding: "clamp(4rem,10vw,8rem) clamp(2rem,5vw,5rem)", background: "#191919" }}>
+      {/* Section label */}
+      <div
+        ref={headingRef}
+        style={{
+          opacity: 0,
+          transform: "translateY(24px)",
+          transition: "opacity 0.7s ease, transform 0.7s ease",
+          ...(headingVisible && { opacity: 1, transform: "translateY(0)" }),
+          marginBottom: "4rem",
+        }}
+      >
+        <p style={{
+          fontSize: "10px",
+          letterSpacing: "0.3em",
+          textTransform: "uppercase",
+          color: "#555",
+          marginBottom: "1.25rem",
+        }}>
+          Why Integrated Expertise
+        </p>
+        <h2 style={{
+          fontSize: "clamp(2rem, 5vw, 3.5rem)",
+          fontWeight: 700,
+          color: "#e5e5e5",
+          lineHeight: 1.05,
+          maxWidth: "720px",
+        }}>
+          Why build with integrated industrial expertise
+        </h2>
+      </div>
+
+      {/* 3D Cards */}
+      <div style={{
+        display: "flex",
+        gap: "clamp(1rem, 2.5vw, 2rem)",
+        flexWrap: "wrap",
+      }}>
+        {CARDS.map((card, i) => (
+          <Card3D key={card.number} card={card} entranceDelay={i * 0.15} />
+        ))}
+      </div>
+    </section>
+  )
+}
+
+export default WhySection

@@ -4,19 +4,21 @@ import logoIcon from "../assets/images/logo-icon.png"
 
 const curtainEase = [0.76, 0, 0.24, 1]
 
+const shouldShow = () => {
+  if (typeof window === "undefined") return false
+  const isDev = process.env.NODE_ENV === "development"
+  return isDev || !sessionStorage.getItem("proalfa_intro")
+}
+
 const IntroLoader = () => {
   const [iconVisible, setIconVisible] = useState(false)
-  const [curtainVisible, setCurtainVisible] = useState(true)
+  // Lazy initializer reads sessionStorage synchronously — no flash for returning visitors
+  const [curtainVisible, setCurtainVisible] = useState(shouldShow)
 
   useEffect(() => {
+    if (!curtainVisible) return
+
     const isDev = process.env.NODE_ENV === "development"
-    const seen = sessionStorage.getItem("proalfa_intro")
-
-    if (!isDev && seen) {
-      setCurtainVisible(false)
-      return
-    }
-
     if (!isDev) sessionStorage.setItem("proalfa_intro", "1")
     document.body.style.overflow = "hidden"
 
