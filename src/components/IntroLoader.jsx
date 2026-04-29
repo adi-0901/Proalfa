@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react"
+import React, { useState, useEffect } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 import logoIcon from "../assets/images/logo-icon.png"
 
@@ -8,25 +8,8 @@ const IntroLoader = () => {
   const [iconVisible, setIconVisible] = useState(false)
   // Always start as true so the SSR HTML includes the curtain, preventing FOUC
   const [curtainVisible, setCurtainVisible] = useState(true)
-  // shouldAnimate is set via a ref (not state) so useEffect reads the correct
-  // value synchronously — avoids the closure/batching issue with useLayoutEffect
-  const shouldAnimate = useRef(true)
 
   useEffect(() => {
-    // Determine once, before any timers, whether to play the full animation.
-    // Reading sessionStorage here (synchronously, before any async work) is safe
-    // because useEffect runs before the browser has painted with React content.
-    const isDev = process.env.NODE_ENV === "development"
-    const isReturning = !isDev && !!sessionStorage.getItem("proalfa_intro")
-
-    if (isReturning) {
-      // Dismiss instantly for returning visitors — no animation, no timers
-      shouldAnimate.current = false
-      setCurtainVisible(false)
-      return
-    }
-
-    if (!isDev) sessionStorage.setItem("proalfa_intro", "1")
     document.body.style.overflow = "hidden"
 
     const t1 = setTimeout(() => setIconVisible(true), 100)
@@ -92,11 +75,7 @@ const IntroLoader = () => {
               backgroundColor: "#ffffff",
               willChange: "transform",
             }}
-            exit={
-              shouldAnimate.current
-                ? { y: "-100%", transition: { duration: 1.0, ease: curtainEase } }
-                : { y: "-100%", transition: { duration: 0 } }
-            }
+            exit={{ y: "-100%", transition: { duration: 1.0, ease: curtainEase } }}
           />
         )}
       </AnimatePresence>
