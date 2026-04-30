@@ -10,7 +10,12 @@
       "Bash(sed -n '123,130p' /Users/adityajaybhay/Cursor/proalfa/src/pages/contact-us/index.js)",
       "Bash(git rm *)",
       "Bash(git rebase *)",
-      "Bash(GIT_EDITOR=true git rebase --continue)"
+      "Bash(GIT_EDITOR=true git rebase --continue)",
+      "Bash(sed -i '' 's/logo-icon\\\\.png/logo-icon.webp/' /Users/adityajaybhay/Cursor/proalfa/src/components/IntroLoader.jsx)",
+      "Bash(sed -i '' 's/adisun_solar\\\\.jpg/adisun_solar.webp/' /Users/adityajaybhay/Cursor/proalfa/src/pages/old-projects/index.js)",
+      "Bash(sed -i '' 's/bhairavnath_feeds\\\\.jpg/bhairavnath_feeds.webp/' /Users/adityajaybhay/Cursor/proalfa/src/pages/old-projects/index.js)",
+      "Bash(sed -i '' 's/gati_battery\\\\.jpg/gati_battery.webp/' /Users/adityajaybhay/Cursor/proalfa/src/pages/old-projects/index.js)",
+      "Bash(sed -i '' 's/kuldeep_greens\\\\.jpg/kuldeep_greens.webp/' /Users/adityajaybhay/Cursor/proalfa/src/pages/old-projects/index.js)"
     ]
   }
 }

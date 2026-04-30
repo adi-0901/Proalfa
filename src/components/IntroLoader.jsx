@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react"
 import { motion, AnimatePresence } from "framer-motion"
-import logoIcon from "../assets/images/logo-icon.png"
+import logoIcon from "../assets/images/logo-icon.webp"
 
 const curtainEase = [0.76, 0, 0.24, 1]
 

@@ -41,8 +41,6 @@ module.exports = {
         icon: "src/assets/images/icon-512x512.png",
       },
     },
-    `gatsby-plugin-gatsby-cloud`,
-    "gatsby-plugin-antd",
     "@babel/plugin-transform-runtime",
     // this (optional) plugin enables Progressive Web App + Offline functionality
     // To learn more, visit: https://gatsby.dev/offline

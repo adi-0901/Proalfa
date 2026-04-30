@@ -1,11 +1,11 @@
 import React from "react"
 import Layout from "../../components/Layout"
 import Seo from "../../components/seo"
-import ProjectAdisun from "../../assets/images/projects/adisun_solar.jpg"
-import ProjectBhairavnathFeeds from "../../assets/images/projects/bhairavnath_feeds.jpg"
-import ProjectGatiBattery from "../../assets/images/projects/gati_battery.jpg"
-import ProjectKuldeepGreens from "../../assets/images/projects/kuldeep_greens.jpg"
-import ProjectYashAgro from "../../assets/images/projects/yash_agro.jpg"
+import ProjectAdisun from "../../assets/images/projects/adisun_solar.webp"
+import ProjectBhairavnathFeeds from "../../assets/images/projects/bhairavnath_feeds.webp"
+import ProjectGatiBattery from "../../assets/images/projects/gati_battery.webp"
+import ProjectKuldeepGreens from "../../assets/images/projects/kuldeep_greens.webp"
+import ProjectYashAgro from "../../assets/images/projects/yash_agro.webp"
 
 const projects = [
   {

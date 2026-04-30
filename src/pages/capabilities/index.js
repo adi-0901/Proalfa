@@ -2,12 +2,12 @@ import React, { useEffect, useRef, useState, useCallback } from "react"
 import Layout from "../../components/Layout"
 import Seo from "../../components/seo"
 import ScrollDown from "../../components/ScrollDown"
-import ImgPEB      from "../../assets/images/sketches/Gemini_Generated_Image_6lgx0d6lgx0d6lgx.png"
-import ImgCivil    from "../../assets/images/sketches/Gemini_Generated_Image_iyiggkiyiggkiyig.png"
-import ImgEPC      from "../../assets/images/sketches/Gemini_Generated_Image_9ezh8m9ezh8m9ezh.png"
-import ImgWarehouse from "../../assets/images/sketches/Gemini_Generated_Image_xr3eakxr3eakxr3e.png"
-import ImgFleet    from "../../assets/images/sketches/Gemini_Generated_Image_8ufj7g8ufj7g8ufj.png"
-import ImgSolar    from "../../assets/images/sketches/Gemini_Generated_Image_w21hcqw21hcqw21h.png"
+import ImgPEB      from "../../assets/images/sketches/Gemini_Generated_Image_6lgx0d6lgx0d6lgx.webp"
+import ImgCivil    from "../../assets/images/sketches/Gemini_Generated_Image_iyiggkiyiggkiyig.webp"
+import ImgEPC      from "../../assets/images/sketches/Gemini_Generated_Image_9ezh8m9ezh8m9ezh.webp"
+import ImgWarehouse from "../../assets/images/sketches/Gemini_Generated_Image_xr3eakxr3eakxr3e.webp"
+import ImgFleet    from "../../assets/images/sketches/Gemini_Generated_Image_8ufj7g8ufj7g8ufj.webp"
+import ImgSolar    from "../../assets/images/sketches/Gemini_Generated_Image_w21hcqw21hcqw21h.webp"
 
 const capabilities = [
   {
@@ -145,6 +145,8 @@ const ItemRow = ({ item, showImage = false, onImageClick }) => (
               <img
                 src={item.image}
                 alt={`${item.title} sketch`}
+                loading="lazy"
+                decoding="async"
                 className="w-full h-20 object-contain opacity-70 group-hover:opacity-100 transition-all duration-500 group-hover:scale-110"
               />
             </button>

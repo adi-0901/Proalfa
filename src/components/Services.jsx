@@ -193,7 +193,7 @@ const Services = () => {
                 index % 2 === 0 ? "md:block" : "md:hidden block"
               }`}
             >
-              <img src={service.img} className="w-[360px]" alt={service.title} />
+              <img src={service.img} className="w-[360px]" alt={service.title} loading="lazy" decoding="async" />
               <div
                 ref={el => (overlaysRef.current[index] = el)}
                 className="absolute md:block hidden top-0 left-0 w-full h-full z-10"
@@ -228,7 +228,7 @@ const Services = () => {
 
             {index % 2 === 1 && (
               <div className="flex-1 md:flex justify-center items-center relative hidden">
-                <img src={service.img} alt={service.title} />
+                <img src={service.img} alt={service.title} loading="lazy" decoding="async" />
                 <div
                   ref={el => (overlaysRef.current[index] = el)}
                   className="absolute top-0 left-0 w-full h-full bg-[#191919]  z-10"

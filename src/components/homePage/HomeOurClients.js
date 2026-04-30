@@ -2,7 +2,7 @@ import React, { useEffect, useRef } from "react"
 import SCONLogo from "../../assets/svg/clients/scon_logo.svg"
 import KiaLogo from "../../assets/svg/clients/kia_logo.svg"
 import FoxconnLogo from "../../assets/svg/clients/foxconn_logo.svg"
-import TataProjectsLogo from "../../assets/svg/clients/tata_projects_logo.png"
+import TataProjectsLogo from "../../assets/svg/clients/tata_projects_logo.webp"
 import RelianceRetailLogo from "../../assets/svg/clients/reliance_retail_logo.svg"
 import JCBLogo from "../../assets/svg/clients/jcb_logo.svg"
 
@@ -64,6 +64,8 @@ const HomeOurClients = () => {
               src={image}
               alt={title}
               title={title}
+              loading="lazy"
+              decoding="async"
               className="h-8 md:h-10 object-contain opacity-50 hover:opacity-100 transition-opacity duration-300 grayscale"
             />
           </FadeIn>
