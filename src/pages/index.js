@@ -8,13 +8,13 @@ import About from "../components/homePage/About"
 import Seo from "../components/seo"
 import HorizontalScroll from "../components/HorizontalScroll"
 import OrbitalSection from "../components/OrbitalSection"
-
-const Services = lazy(() => import("../components/Services"))
 import {
   useGlobalDispatchContext,
   useGlobalStateContext,
 } from "../context/globalContext"
 import HomeOurClients from "../components/homePage/HomeOurClients"
+
+const Services = lazy(() => import("../components/Services"))
 
 const IndexPage = props => {
   const dispatch = useGlobalDispatchContext()
@@ -41,7 +41,9 @@ const IndexPage = props => {
       <About />
       <HomeOurClients />
       <HorizontalScroll />
-      <OrbitalSection />
+      <div className="hidden md:block">
+        <OrbitalSection />
+      </div>
       <Suspense fallback={null}>
         <Services />
       </Suspense>

@@ -78,7 +78,7 @@ const Card3D = ({ card, entranceDelay }) => {
       style={{
         perspective: "1200px",
         flex: 1,
-        minWidth: 0,
+        minWidth: "min(300px, 100%)",
         opacity: 0,
         transform: "translateY(70px)",
         transition: `opacity 0.85s cubic-bezier(0.16,1,0.3,1) ${entranceDelay}s,
