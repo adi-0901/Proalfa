@@ -15,7 +15,14 @@
       "Bash(sed -i '' 's/adisun_solar\\\\.jpg/adisun_solar.webp/' /Users/adityajaybhay/Cursor/proalfa/src/pages/old-projects/index.js)",
       "Bash(sed -i '' 's/bhairavnath_feeds\\\\.jpg/bhairavnath_feeds.webp/' /Users/adityajaybhay/Cursor/proalfa/src/pages/old-projects/index.js)",
       "Bash(sed -i '' 's/gati_battery\\\\.jpg/gati_battery.webp/' /Users/adityajaybhay/Cursor/proalfa/src/pages/old-projects/index.js)",
-      "Bash(sed -i '' 's/kuldeep_greens\\\\.jpg/kuldeep_greens.webp/' /Users/adityajaybhay/Cursor/proalfa/src/pages/old-projects/index.js)"
+      "Bash(sed -i '' 's/kuldeep_greens\\\\.jpg/kuldeep_greens.webp/' /Users/adityajaybhay/Cursor/proalfa/src/pages/old-projects/index.js)",
+      "Bash(node -e \"console.log\\(require\\('./node_modules/three/package.json'\\).version\\)\")",
+      "Bash(lsof -ti:8000)",
+      "Read(//Users/adityajaybhay/Desktop/**)",
+      "Bash(cp \"/Users/adityajaybhay/Desktop/website/Asset 6.png\" \"/Users/adityajaybhay/Cursor/proalfa/src/assets/images/logo-mark.png\")",
+      "Bash(git -C /Users/adityajaybhay/Cursor/proalfa status)",
+      "Bash(git -C /Users/adityajaybhay/Cursor/proalfa log --oneline -5)",
+      "Bash(git -C /Users/adityajaybhay/Cursor/proalfa pull origin main --rebase)"
     ]
   }
 }
