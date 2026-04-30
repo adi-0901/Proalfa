@@ -1,5 +1,5 @@
 import * as React from "react"
-import { useEffect } from "react"
+import { useEffect, Suspense } from "react"
 import Layout from "../components/Layout"
 import IntroLoader from "../components/IntroLoader"
 import HomeCanvas from "../components/homePage/HomeCanvas"
@@ -8,12 +8,13 @@ import About from "../components/homePage/About"
 import Seo from "../components/seo"
 import HorizontalScroll from "../components/HorizontalScroll"
 import OrbitalSection from "../components/OrbitalSection"
-import Services from "../components/Services"
 import {
   useGlobalDispatchContext,
   useGlobalStateContext,
 } from "../context/globalContext"
 import HomeOurClients from "../components/homePage/HomeOurClients"
+
+const Services = React.lazy(() => import("../components/Services"))
 
 const IndexPage = props => {
   const dispatch = useGlobalDispatchContext()
@@ -40,8 +41,12 @@ const IndexPage = props => {
       <About />
       <HomeOurClients />
       <HorizontalScroll />
-      <OrbitalSection />
-      <Services />
+      <div className="hidden md:block">
+        <OrbitalSection />
+      </div>
+      <Suspense fallback={null}>
+        <Services />
+      </Suspense>
     </Layout>
   )
 }
