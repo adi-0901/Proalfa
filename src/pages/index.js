@@ -1,5 +1,5 @@
 import * as React from "react"
-import { useEffect, lazy, Suspense } from "react"
+import { useEffect } from "react"
 import Layout from "../components/Layout"
 import IntroLoader from "../components/IntroLoader"
 import HomeCanvas from "../components/homePage/HomeCanvas"
@@ -8,8 +8,7 @@ import About from "../components/homePage/About"
 import Seo from "../components/seo"
 import HorizontalScroll from "../components/HorizontalScroll"
 import OrbitalSection from "../components/OrbitalSection"
-
-const Services = lazy(() => import("../components/Services"))
+import Services from "../components/Services"
 import {
   useGlobalDispatchContext,
   useGlobalStateContext,
@@ -42,9 +41,7 @@ const IndexPage = props => {
       <HomeOurClients />
       <HorizontalScroll />
       <OrbitalSection />
-      <Suspense fallback={null}>
-        <Services />
-      </Suspense>
+      <Services />
     </Layout>
   )
 }
