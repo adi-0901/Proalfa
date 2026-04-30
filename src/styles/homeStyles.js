@@ -4,7 +4,7 @@ import { motion } from "framer-motion"
 export const Banner = styled(motion.div)`
   height: 100vh;
   width: 100%;
-  /* background: lemonchiffon; */
+  overflow: hidden;
 `
 export const Video = styled(motion.div)`
   height: 100vh;

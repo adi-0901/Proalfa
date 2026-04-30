@@ -64,6 +64,7 @@ const AboutUs = () => {
     <Layout>
       <Seo
         title="About Us"
+        path="/about-us/"
         description="Based in Pune, Maharashtra—Proalfa Dynamic is an industrial infrastructure developer delivering turnkey EPC projects across India. Our story, mission, and vision."
         keywords="industrial construction company Maharashtra, turnkey industrial project contractor Pune, best warehouse construction company in Pune, industrial contractor Pune, EPC contractor Maharashtra, factory construction company Pune, industrial building contractor Pune, warehouse builder Pune, MIDC construction contractor Pune, industrial project management Pune"
       />

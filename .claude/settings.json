@@ -1,0 +1,16 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(node -e ' *)",
+      "Bash(git commit -m ' *)",
+      "Bash(node -e \"require\\('./node_modules/gatsby-plugin-sitemap/package.json'\\); console.log\\('installed'\\)\")",
+      "Bash(sed -n '31,36p' /Users/adityajaybhay/Cursor/proalfa/src/pages/index.js)",
+      "Bash(sed -n '63,70p' /Users/adityajaybhay/Cursor/proalfa/src/pages/about-us/index.js)",
+      "Bash(sed -n '245,252p' /Users/adityajaybhay/Cursor/proalfa/src/pages/capabilities/index.js)",
+      "Bash(sed -n '123,130p' /Users/adityajaybhay/Cursor/proalfa/src/pages/contact-us/index.js)",
+      "Bash(git rm *)",
+      "Bash(git rebase *)",
+      "Bash(GIT_EDITOR=true git rebase --continue)"
+    ]
+  }
+}

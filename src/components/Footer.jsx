@@ -21,8 +21,8 @@ const Footer = () => {
             onMouseLeave={setCursor}
           >
             <p>Contact:</p>
-            <a href="mailto:info@proalfa.in" id="email">
-              <p id="email">info@proalfa.in</p>
+            <a href={`mailto:${"info"}@${"proalfa.in"}`} id="email">
+              <p id="email">{"info"}&#64;{"proalfa.in"}</p>
             </a>
             <a href="tel:+918308823148">
               <p id="address">+91 9096677726</p>

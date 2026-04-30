@@ -144,7 +144,7 @@ const ItemRow = ({ item, showImage = false, onImageClick }) => (
             >
               <img
                 src={item.image}
-                alt=""
+                alt={`${item.title} sketch`}
                 className="w-full h-20 object-contain opacity-70 group-hover:opacity-100 transition-all duration-500 group-hover:scale-110"
               />
             </button>
@@ -246,6 +246,7 @@ const CapabilitiesPage = () => {
   <Layout>
     <Seo
       title="What We Do"
+      path="/capabilities/"
       description="Pune-based turnkey industrial infrastructure developer—in-house PEB fabrication, civil & RCC, EPC execution, warehousing, fleet, and solar across Maharashtra and India."
       keywords="steel structure warehouse Pune, prefabricated warehouse Pune, turnkey industrial project contractor Pune, civil works contractor Pune, industrial civil contractor Pune, design build warehouse Pune, design build factory Pune, industrial project management Pune, warehouse construction cost Pune, industrial shed construction Pune, factory construction company Pune, manufacturing plant construction Pune, industrial building construction Pune, MIDC construction contractor Pune, warehouse construction Chakan, warehouse construction Ranjangaon, industrial construction Maharashtra"
     />
