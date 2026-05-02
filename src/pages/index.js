@@ -1,5 +1,5 @@
 import * as React from "react"
-import { useEffect, lazy, Suspense } from "react"
+import { useEffect } from "react"
 import Layout from "../components/Layout"
 import IntroLoader from "../components/IntroLoader"
 import HomeCanvas from "../components/homePage/HomeCanvas"
@@ -14,7 +14,7 @@ import {
 } from "../context/globalContext"
 import HomeOurClients from "../components/homePage/HomeOurClients"
 
-const Services = lazy(() => import("../components/Services"))
+import Services from "../components/Services"
 
 const IndexPage = props => {
   const dispatch = useGlobalDispatchContext()
@@ -44,9 +44,7 @@ const IndexPage = props => {
       <div className="hidden md:block">
         <OrbitalSection />
       </div>
-      <Suspense fallback={null}>
-        <Services />
-      </Suspense>
+      <Services />
     </Layout>
   )
 }
