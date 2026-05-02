@@ -62,7 +62,7 @@ const About = () => {
           </div>
 
           {/* Right: body + link */}
-          <div className="md:w-1/2 flex flex-col justify-between gap-10">
+          <div className="md:w-1/2 flex flex-col gap-8">
             <FadeIn delay={0.18}>
               <p className="text-[#777] text-lg leading-[1.75]">
                 We design, engineer, and build large-scale industrial
@@ -73,7 +73,30 @@ const About = () => {
               </p>
             </FadeIn>
 
+            <FadeIn delay={0.22}>
+              <p className="text-[#555] text-base leading-[1.75]">
+                Every facility we deliver is built strong from the ground
+                up—engineered for real industrial duty cycles, not the lightest
+                specification that passes approvals. We apply rigorous
+                structural, fire, and seismic design standards so that what we
+                hand over performs reliably for decades. That commitment is why
+                clients building their most critical infrastructure choose
+                Proalfa Dynamic over fragmented multi-vendor approaches.
+              </p>
+            </FadeIn>
+
             <FadeIn delay={0.26}>
+              <p className="text-[#555] text-base leading-[1.75]">
+                Our integrated model spans factory-fabricated steel structure,
+                civil foundations, roofing and cladding, internal utilities,
+                fire protection, and site infrastructure—all coordinated under
+                a single programme. This eliminates owner-managed interfaces,
+                compresses schedules, and delivers cost certainty that
+                fragmented procurement cannot match.
+              </p>
+            </FadeIn>
+
+            <FadeIn delay={0.30}>
               <Link
                 to="/about-us"
                 onMouseEnter={() => setCursor("pointer")}

@@ -66,7 +66,9 @@ const HomeOurClients = () => {
               title={title}
               loading="lazy"
               decoding="async"
-              className="h-8 md:h-10 object-contain opacity-50 hover:opacity-100 transition-opacity duration-300 grayscale"
+              width="160"
+              height="40"
+              className="h-8 md:h-10 w-auto object-contain opacity-50 hover:opacity-100 transition-opacity duration-300 grayscale"
             />
           </FadeIn>
         ))}
