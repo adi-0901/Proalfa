@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>PEB Material Weight Tracker</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -685,15 +686,24 @@
 
 </div>
 
-<div class="footer">Data saved locally on this device · PEB Material Tracker · <span id="entryCount">0</span> entries recorded</div>
+<div class="footer">PEB Material Tracker · <span id="entryCount">0</span> entries recorded · synced to cloud</div>
 
 <script>
+  const SUPABASE_URL = "https://gzjzuudhtvljpwcqygtk.supabase.co";
+  const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imd6anp1dWRodHZsanB3Y3F5Z3RrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzgzOTY4NTksImV4cCI6MjA5Mzk3Mjg1OX0.pCBKZwMDvu8UAfKEXL8_hgkuG95A-MtVKK6sM2qFxEs";
   const PASS = 'Proalfa@50';
+  const { createClient } = supabase;
+  const sb = createClient(SUPABASE_URL, SUPABASE_KEY);
+
+  let entries = [];
+  let targets = {};
+  let _bulkRowId = 0;
 
   function doLogin() {
     if (document.getElementById('loginPass').value === PASS) {
       sessionStorage.setItem('peb_auth', '1');
       document.getElementById('loginOverlay').style.display = 'none';
+      initApp();
     } else {
       document.getElementById('loginErr').style.display = 'block';
       document.getElementById('loginPass').value = '';
@@ -703,28 +713,31 @@
 
   function doLogout() {
     sessionStorage.removeItem('peb_auth');
+    entries = [];
+    targets = {};
     document.getElementById('loginPass').value = '';
     document.getElementById('loginErr').style.display = 'none';
     document.getElementById('loginOverlay').style.display = 'flex';
   }
 
-  if (!sessionStorage.getItem('peb_auth')) {
-    document.getElementById('loginOverlay').style.display = 'flex';
-  } else {
-    document.getElementById('loginOverlay').style.display = 'none';
+  async function initApp() {
+    document.getElementById('f-date').value = new Date().toISOString().split('T')[0];
+    const { data: eRows } = await sb.from('peb_entries').select('*').order('date', { ascending: false }).order('id', { ascending: false });
+    if (eRows) entries = eRows;
+    const { data: tRows } = await sb.from('peb_targets').select('*');
+    if (tRows) { targets = {}; tRows.forEach(r => { targets[r.month_key] = r.target_mt; }); }
+    updateAll();
+    initBulkForm();
   }
 
-  let entries = [];
-  try { entries = JSON.parse(localStorage.getItem('peb_tracker_v1') || '[]'); } catch(e) { entries = []; }
+  if (sessionStorage.getItem('peb_auth')) {
+    document.getElementById('loginOverlay').style.display = 'none';
+    initApp();
+  } else {
+    document.getElementById('loginOverlay').style.display = 'flex';
+  }
 
-  let _bulkRowId = 0;
-
-  document.getElementById('f-date').value = new Date().toISOString().split('T')[0];
-  updateAll();
-  initBulkForm();
-
-  function save() {
-    try { localStorage.setItem('peb_tracker_v1', JSON.stringify(entries)); } catch(e) {}
+  function updateEntryCount() {
     document.getElementById('entryCount').textContent = entries.length;
   }
 
@@ -743,7 +756,7 @@
     setTimeout(() => { b.style.display = 'none'; }, 3000);
   }
 
-  function addEntry() {
+  async function addEntry() {
     const date     = document.getElementById('f-date').value;
     const type     = document.getElementById('f-type').value;
     const entryby  = document.getElementById('f-entryby').value.trim();
@@ -760,8 +773,9 @@
     if (!entryby) { showAlert('Please enter your name in the "Entry made by" field.', 'error'); return; }
     if (net <= 0) { showAlert('Net weight must be greater than 0 kg.', 'error'); return; }
 
-    entries.unshift({ id: Date.now(), date, type, entryby, material, ref, party, gross, tare, net, job, remarks });
-    save();
+    const { data, error } = await sb.from('peb_entries').insert({ date, type, entryby, material, ref, party, gross, tare, net, job, remarks }).select().single();
+    if (error) { showAlert('Failed to save: ' + error.message, 'error'); return; }
+    entries.unshift(data);
     updateAll();
     showAlert('Entry saved — ' + net.toLocaleString('en-IN') + ' kg ' + typeLabel(type));
     clearForm();
@@ -773,10 +787,11 @@
     });
   }
 
-  function deleteEntry(id) {
+  async function deleteEntry(id) {
     if (!confirm('Delete this entry?')) return;
+    const { error } = await sb.from('peb_entries').delete().eq('id', id);
+    if (error) { alert('Failed to delete: ' + error.message); return; }
     entries = entries.filter(e => e.id !== id);
-    save();
     updateAll();
     renderLedger();
     renderStock();
@@ -815,7 +830,7 @@
     document.getElementById('m-out').innerHTML   = fmtMetric(outward);
     document.getElementById('m-stock').innerHTML = fmtMetric(stock);
     document.getElementById('m-wip').innerHTML   = fmtMetric(wip);
-    document.getElementById('entryCount').textContent = entries.length;
+    updateEntryCount();
   }
 
   function switchTab(name, el) {
@@ -917,21 +932,15 @@
     }).join('');
   }
 
-  let targets = {};
-  try { targets = JSON.parse(localStorage.getItem('peb_targets_v1') || '{}'); } catch(e) { targets = {}; }
-
-  function saveTargets() {
-    try { localStorage.setItem('peb_targets_v1', JSON.stringify(targets)); } catch(e) {}
-  }
-
-  function setTarget(monthKey) {
+  async function setTarget(monthKey) {
     const cur = targets[monthKey] > 0 ? targets[monthKey] : '';
     const val = prompt('Set production target for ' + monthKey + ' (in MT):', cur);
     if (val === null) return;
     const num = parseFloat(val);
     if (isNaN(num) || num < 0) { alert('Enter a valid number in MT (e.g. 150).'); return; }
+    const { error } = await sb.from('peb_targets').upsert({ month_key: monthKey, target_mt: num });
+    if (error) { alert('Failed to save target: ' + error.message); return; }
     targets[monthKey] = num;
-    saveTargets();
     renderProduction();
   }
 
@@ -1069,7 +1078,7 @@
     setTimeout(function() { b.style.display = 'none'; }, 4000);
   }
 
-  function saveBulkEntries() {
+  async function saveBulkEntries() {
     const date    = document.getElementById('b-date').value;
     const type    = document.getElementById('b-type').value;
     const entryby = document.getElementById('b-entryby').value.trim();
@@ -1085,26 +1094,16 @@
     if (!entryby)      { showBulkAlert('Please enter your name in "Entry made by".', 'error'); return; }
     if (rows.length === 0) { showBulkAlert('Add at least one material row with a name and weight.', 'error'); return; }
 
-    const ts = Date.now();
-    rows.forEach(function(r, i) {
-      entries.unshift({
-        id:       ts + i,
-        date:     date,
-        type:     type,
-        entryby:  entryby,
-        material: r.material,
-        ref:      ref,
-        party:    party,
-        gross:    i === 0 ? gross : 0,
-        tare:     i === 0 ? tare  : 0,
-        net:      r.net,
-        job:      job,
-        remarks:  remarks
-      });
+    const bulkRows = rows.map(function(r, i) {
+      return { date, type, entryby, material: r.material, ref, party,
+               gross: i === 0 ? gross : 0, tare: i === 0 ? tare : 0,
+               net: r.net, job, remarks };
     });
 
+    const { data, error } = await sb.from('peb_entries').insert(bulkRows).select();
+    if (error) { showBulkAlert('Failed to save: ' + error.message, 'error'); return; }
+    if (data) data.reverse().forEach(function(row) { entries.unshift(row); });
     const totalKg = rows.reduce(function(s, r) { return s + r.net; }, 0);
-    save();
     updateAll();
     showBulkAlert(rows.length + ' entries saved — ' + totalKg.toLocaleString('en-IN') + ' kg total', 'success');
     clearBulkForm();
