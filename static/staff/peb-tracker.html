@@ -575,13 +575,14 @@
 
   <!-- STOCK -->
   <div class="panel" id="panel-stock">
-    <div class="section-label">Raw material balance in factory — Inward minus issued to WIP</div>
+    <div class="section-label">Raw material balance in factory — Inward minus Issued to WIP minus Dispatched</div>
     <div class="tbl-wrapper">
       <table>
         <thead><tr>
           <th>Material / Item</th>
           <th style="text-align:right">Total Inward (kg)</th>
           <th style="text-align:right">Issued to WIP (kg)</th>
+          <th style="text-align:right">Dispatched (kg)</th>
           <th style="text-align:right">Balance in Stock (kg)</th>
           <th style="text-align:right">Balance (MT)</th>
         </tr></thead>
@@ -818,7 +819,7 @@
     const outward = entries.filter(e => e.type === 'OUTWARD').reduce((s,e) => s + e.net, 0);
     const toWip   = entries.filter(e => e.type === 'TO_WIP').reduce((s,e) => s + e.net, 0);
     const fromWip = entries.filter(e => e.type === 'FROM_WIP').reduce((s,e) => s + e.net, 0);
-    const stock   = Math.max(0, inward - toWip);
+    const stock   = Math.max(0, inward - toWip - outward);
     const wip     = Math.max(0, toWip - fromWip);
 
     function fmtMetric(v) {
@@ -882,23 +883,25 @@
   function renderStock() {
     const mat = {};
     entries.forEach(e => {
-      if (!mat[e.material]) mat[e.material] = { inward: 0, toWip: 0 };
-      if (e.type === 'INWARD') mat[e.material].inward += e.net;
-      if (e.type === 'TO_WIP') mat[e.material].toWip  += e.net;
+      if (!mat[e.material]) mat[e.material] = { inward: 0, toWip: 0, outward: 0 };
+      if (e.type === 'INWARD')  mat[e.material].inward  += e.net;
+      if (e.type === 'TO_WIP')  mat[e.material].toWip   += e.net;
+      if (e.type === 'OUTWARD') mat[e.material].outward  += e.net;
     });
     const keys = Object.keys(mat);
     const body = document.getElementById('stockBody');
     if (keys.length === 0) {
-      body.innerHTML = `<tr><td colspan="5" class="empty-state">No data yet. Start by adding Inward entries.</td></tr>`;
+      body.innerHTML = `<tr><td colspan="6" class="empty-state">No data yet. Start by adding Inward entries.</td></tr>`;
       return;
     }
     body.innerHTML = keys.map(k => {
-      const bal = mat[k].inward - mat[k].toWip;
+      const bal = mat[k].inward - mat[k].toWip - mat[k].outward;
       const cls = bal < 0 ? 'balance-neg' : 'balance-pos';
       return `<tr>
         <td>${k}</td>
         <td style="text-align:right">${fmt(mat[k].inward)}</td>
         <td style="text-align:right">${fmt(mat[k].toWip)}</td>
+        <td style="text-align:right;color:var(--text-secondary)">${fmt(mat[k].outward)}</td>
         <td style="text-align:right" class="${cls}">${fmt(bal)}</td>
         <td style="text-align:right" class="${cls}">${fmtMT(bal)}</td>
       </tr>`;
