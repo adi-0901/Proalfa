@@ -187,6 +187,8 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Helvetica
     <button class="tab" onclick="switchTab('employees',this)">Employees</button>
     <button class="tab" onclick="switchTab('add',this)">＋ Add Employee</button>
     <button class="tab" onclick="switchTab('onboarding',this)">Onboarding</button>
+    <button class="tab" onclick="switchTab('leaves',this)">Leave Tracker</button>
+    <button class="tab" onclick="switchTab('hiring',this)">Hiring Pipeline</button>
     <button class="tab" onclick="switchTab('attendance',this)">Attendance & Salary</button>
   </div>
 
@@ -265,6 +267,171 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Helvetica
     <div id="obContent"></div>
   </div>
 </div>
+
+  <!-- LEAVE TRACKER -->
+  <div class="panel" id="panel-leaves">
+    <div style="display:flex;gap:8px;margin-bottom:20px;flex-wrap:wrap;align-items:center">
+      <select id="lvEmpFilter" onchange="renderLeaves()" style="padding:8px 10px;border:1px solid var(--border2);border-radius:var(--r);background:var(--card);color:var(--text);font-size:13px;outline:none;min-width:180px"><option value="">All Employees</option></select>
+      <select id="lvStatusFilter" onchange="renderLeaves()" style="padding:8px 10px;border:1px solid var(--border2);border-radius:var(--r);background:var(--card);color:var(--text);font-size:13px;outline:none">
+        <option value="">All Status</option>
+        <option value="pending">Pending</option>
+        <option value="approved">Approved</option>
+        <option value="rejected">Rejected</option>
+      </select>
+      <select id="lvTypeFilter" onchange="renderLeaves()" style="padding:8px 10px;border:1px solid var(--border2);border-radius:var(--r);background:var(--card);color:var(--text);font-size:13px;outline:none">
+        <option value="">All Types</option>
+        <option value="CL">Casual Leave</option>
+        <option value="SL">Sick Leave</option>
+        <option value="EL">Earned Leave</option>
+        <option value="LWP">Leave Without Pay</option>
+        <option value="WO">Work Off</option>
+      </select>
+      <button class="btn btn-primary btn-sm" onclick="toggleLeaveForm()" id="lvFormBtn">＋ New Request</button>
+    </div>
+
+    <div id="lvForm" class="fsec" style="display:none;margin-bottom:16px">
+      <div class="fsec-title">New Leave Request</div>
+      <div class="fgrid">
+        <div class="fg"><label>Employee *</label><select id="lv-emp"><option value="">— Select —</option></select></div>
+        <div class="fg"><label>Leave Type *</label><select id="lv-type">
+          <option value="CL">Casual Leave (CL)</option>
+          <option value="SL">Sick Leave (SL)</option>
+          <option value="EL">Earned Leave (EL)</option>
+          <option value="LWP">Leave Without Pay (LWP)</option>
+          <option value="WO">Work Off</option>
+        </select></div>
+        <div class="fg"><label>From Date *</label><input type="date" id="lv-from"></div>
+        <div class="fg"><label>To Date *</label><input type="date" id="lv-to"></div>
+        <div class="fg"><label>Half Day?</label><select id="lv-half">
+          <option value="no">No — Full Days</option>
+          <option value="yes">Yes — Half Day</option>
+        </select></div>
+        <div class="fg"><label>Reason</label><input id="lv-reason" placeholder="Optional reason"></div>
+      </div>
+      <div style="margin-top:12px;display:flex;gap:8px">
+        <button class="btn btn-primary btn-sm" onclick="submitLeave()">Submit Request</button>
+        <button class="btn btn-sm" onclick="toggleLeaveForm()">Cancel</button>
+      </div>
+    </div>
+
+    <div class="fsec" style="margin-bottom:14px">
+      <div class="fsec-title">Leave Requests</div>
+      <div style="overflow-x:auto">
+        <table style="width:100%;border-collapse:collapse;font-size:13px">
+          <thead><tr style="background:var(--card2)">
+            <th style="padding:9px 12px;text-align:left;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--text2);white-space:nowrap;border-bottom:1px solid var(--border)">Employee</th>
+            <th style="padding:9px 12px;text-align:left;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--text2);border-bottom:1px solid var(--border)">Type</th>
+            <th style="padding:9px 12px;text-align:left;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--text2);border-bottom:1px solid var(--border)">From</th>
+            <th style="padding:9px 12px;text-align:left;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--text2);border-bottom:1px solid var(--border)">To</th>
+            <th style="padding:9px 12px;text-align:center;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--text2);border-bottom:1px solid var(--border)">Days</th>
+            <th style="padding:9px 12px;text-align:left;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--text2);border-bottom:1px solid var(--border)">Reason</th>
+            <th style="padding:9px 12px;text-align:left;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--text2);border-bottom:1px solid var(--border)">Status</th>
+            <th style="padding:9px 12px;border-bottom:1px solid var(--border)"></th>
+          </tr></thead>
+          <tbody id="lvBody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="fsec">
+      <div class="fsec-title">Leave Balance Summary — <span id="lvBalYear"></span></div>
+      <div id="lvBalGrid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:10px;margin-top:4px"></div>
+    </div>
+  </div>
+
+  <!-- HIRING PIPELINE -->
+  <div class="panel" id="panel-hiring">
+    <div style="display:flex;gap:8px;margin-bottom:20px;flex-wrap:wrap;align-items:center">
+      <select id="hjJobFilter" onchange="renderCandidates()" style="padding:8px 10px;border:1px solid var(--border2);border-radius:var(--r);background:var(--card);color:var(--text);font-size:13px;outline:none;min-width:200px"><option value="">All Positions</option></select>
+      <select id="hjStageFilter" onchange="renderCandidates()" style="padding:8px 10px;border:1px solid var(--border2);border-radius:var(--r);background:var(--card);color:var(--text);font-size:13px;outline:none">
+        <option value="">All Stages</option>
+        <option value="Applied">Applied</option>
+        <option value="Shortlisted">Shortlisted</option>
+        <option value="Interview Scheduled">Interview Scheduled</option>
+        <option value="Interview Done">Interview Done</option>
+        <option value="Offer Made">Offer Made</option>
+        <option value="Joined">Joined</option>
+        <option value="Rejected">Rejected</option>
+      </select>
+      <button class="btn btn-primary btn-sm" onclick="toggleJobForm()">＋ New Position</button>
+      <button class="btn btn-sm" onclick="toggleCandForm()">＋ Add Candidate</button>
+    </div>
+
+    <div id="hjJobForm" class="fsec" style="display:none;margin-bottom:16px">
+      <div class="fsec-title">New Job Opening</div>
+      <div class="fgrid">
+        <div class="fg"><label>Job Title *</label><input id="hj-title" placeholder="e.g. Site Engineer"></div>
+        <div class="fg"><label>Department</label><select id="hj-dept"><option value="">— Select —</option>${DEPTS ? '' : ''}</select></div>
+        <div class="fg"><label>No. of Openings</label><input type="number" id="hj-count" value="1" min="1"></div>
+        <div class="fg"><label>Status</label><select id="hj-status"><option value="open">Open</option><option value="closed">Closed</option></select></div>
+        <div class="fg fg-full"><label>Description / Requirements</label><textarea id="hj-desc" style="width:100%;padding:8px 10px;border:1px solid var(--border2);border-radius:var(--r);background:var(--bg);color:var(--text);font-size:13px;font-family:inherit;outline:none;min-height:64px;resize:vertical"></textarea></div>
+      </div>
+      <div style="margin-top:12px;display:flex;gap:8px">
+        <button class="btn btn-primary btn-sm" onclick="addJob()">Save Position</button>
+        <button class="btn btn-sm" onclick="toggleJobForm()">Cancel</button>
+      </div>
+    </div>
+
+    <div id="hjCandForm" class="fsec" style="display:none;margin-bottom:16px">
+      <div class="fsec-title">Add Candidate</div>
+      <div class="fgrid">
+        <div class="fg"><label>Full Name *</label><input id="hc-name" placeholder="Candidate name"></div>
+        <div class="fg"><label>Mobile</label><input id="hc-mobile" placeholder="+91 XXXXX XXXXX"></div>
+        <div class="fg"><label>Email</label><input id="hc-email" placeholder="candidate@email.com"></div>
+        <div class="fg"><label>Applying For *</label><select id="hc-job"><option value="">— Select Position —</option></select></div>
+        <div class="fg"><label>Source</label><select id="hc-source">
+          <option value="Walk-in">Walk-in</option>
+          <option value="Referral">Referral</option>
+          <option value="LinkedIn">LinkedIn</option>
+          <option value="Naukri">Naukri</option>
+          <option value="Indeed">Indeed</option>
+          <option value="Other">Other</option>
+        </select></div>
+        <div class="fg"><label>Current Stage</label><select id="hc-stage">
+          <option value="Applied">Applied</option>
+          <option value="Shortlisted">Shortlisted</option>
+          <option value="Interview Scheduled">Interview Scheduled</option>
+          <option value="Interview Done">Interview Done</option>
+          <option value="Offer Made">Offer Made</option>
+          <option value="Joined">Joined</option>
+          <option value="Rejected">Rejected</option>
+        </select></div>
+        <div class="fg"><label>Expected CTC (₹/mo)</label><input type="number" id="hc-ctc" placeholder="e.g. 35000"></div>
+        <div class="fg"><label>Interview Date</label><input type="date" id="hc-idate"></div>
+        <div class="fg fg-full"><label>Notes</label><textarea id="hc-notes" style="width:100%;padding:8px 10px;border:1px solid var(--border2);border-radius:var(--r);background:var(--bg);color:var(--text);font-size:13px;font-family:inherit;outline:none;min-height:56px;resize:vertical"></textarea></div>
+      </div>
+      <div style="margin-top:12px;display:flex;gap:8px">
+        <button class="btn btn-primary btn-sm" onclick="addCandidate()">Save Candidate</button>
+        <button class="btn btn-sm" onclick="toggleCandForm()">Cancel</button>
+      </div>
+    </div>
+
+    <div class="fsec" style="margin-bottom:14px">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
+        <div class="fsec-title" style="margin-bottom:0">Open Positions</div>
+      </div>
+      <div id="hjJobsList"></div>
+    </div>
+
+    <div class="fsec">
+      <div class="fsec-title">Candidates</div>
+      <div style="overflow-x:auto">
+        <table style="width:100%;border-collapse:collapse;font-size:13px">
+          <thead><tr style="background:var(--card2)">
+            <th style="padding:9px 12px;text-align:left;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--text2);border-bottom:1px solid var(--border)">Name</th>
+            <th style="padding:9px 12px;text-align:left;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--text2);border-bottom:1px solid var(--border)">Position</th>
+            <th style="padding:9px 12px;text-align:left;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--text2);border-bottom:1px solid var(--border)">Stage</th>
+            <th style="padding:9px 12px;text-align:left;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--text2);border-bottom:1px solid var(--border)">Source</th>
+            <th style="padding:9px 12px;text-align:left;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--text2);border-bottom:1px solid var(--border)">Contact</th>
+            <th style="padding:9px 12px;text-align:right;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--text2);border-bottom:1px solid var(--border)">CTC</th>
+            <th style="padding:9px 12px;text-align:left;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--text2);border-bottom:1px solid var(--border)">Interview</th>
+            <th style="padding:9px 12px;border-bottom:1px solid var(--border)"></th>
+          </tr></thead>
+          <tbody id="hjCandBody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
 
   <!-- ATTENDANCE (iframe) -->
   <div class="panel" id="panel-attendance" style="margin:-24px -20px">
@@ -360,6 +527,8 @@ function switchTab(name, el) {
     const f = document.getElementById('attFrame');
     if (!f.src || f.src === window.location.href) f.src = '/staff/attendance.html';
   }
+  if (name === 'leaves')  initLeaves();
+  if (name === 'hiring')  initHiring();
 }
 
 // ── OVERVIEW ─────────────────────────────────────────────────────
@@ -468,9 +637,10 @@ async function saveEmployee() {
   if (idx > -1) employees[idx] = { ...employees[idx], ...data };
   document.getElementById('dName').textContent = data.full_name;
   document.getElementById('dSub').textContent  = [data.emp_id, data.designation, data.department].filter(Boolean).join(' · ');
+  await syncToAttendance({ ...employees[idx], ...data });
   renderOverview();
   populateObSelect();
-  showAlert('Employee record saved.', 'ok');
+  showAlert('Employee record saved and synced to Attendance.', 'ok');
 }
 
 async function deleteEmployee() {
@@ -478,10 +648,11 @@ async function deleteEmployee() {
   if (!e || !confirm(`Delete ${e.full_name}? This also removes their onboarding records.`)) return;
   const { error } = await sb.from('hr_employees').delete().eq('id', currentId);
   if (error) { showAlert('Error: ' + error.message, 'err'); return; }
+  await removeFromAttendance(e.emp_id);
   employees = employees.filter(x => x.id !== currentId);
   renderOverview(); renderList(); populateObSelect();
   showList();
-  showAlert('Employee deleted.', 'ok');
+  showAlert('Employee deleted and removed from Attendance.', 'ok');
 }
 
 // ── ADD EMPLOYEE ───────────────────────────────────────────────────
@@ -504,9 +675,12 @@ async function addEmployee() {
   const tasks = DEFAULT_TASKS.map((t,i) => ({ emp_id: row.id, task: t, done: false, sort_order: i }));
   await sb.from('hr_onboarding').insert(tasks);
 
+  // Sync to attendance
+  await syncToAttendance(row);
+
   renderOverview(); renderList(); populateObSelect();
   buildAddForm();
-  showAlert(`${row.full_name} added. Onboarding checklist created.`, 'ok');
+  showAlert(`${row.full_name} added and synced to Attendance.`, 'ok');
 }
 
 // ── FORM HTML ──────────────────────────────────────────────────────
@@ -533,6 +707,15 @@ function formHTML(e) {
       <div class="fg"><label>Status</label><select id="f-status">${selOpts(STATUSES, e.status||'probation')}</select></div>
       <div class="fg"><label>Date of Joining</label><input type="date" id="f-date_of_joining" value="${esc(e.date_of_joining)}"></div>
       <div class="fg"><label>Probation End Date</label><input type="date" id="f-probation_end_date" value="${esc(e.probation_end_date)}"></div>
+      <div class="fg"><label>Attendance Category</label><select id="f-attendance_type">
+        <option value="staff"${(e.attendance_type||'staff')==='staff'?' selected':''}>Staff (no OT)</option>
+        <option value="worker"${e.attendance_type==='worker'?' selected':''}>Worker (OT eligible)</option>
+      </select></div>
+      <div class="fg"><label>Monthly Salary (₹)</label><input type="number" id="f-monthly_salary" value="${e.monthly_salary||''}" placeholder="e.g. 25000" min="0"></div>
+      <div class="fg"><label>Weekly Off</label><select id="f-weekly_off">
+        <option value="thursday"${(e.weekly_off||'thursday')==='thursday'?' selected':''}>Thursday</option>
+        <option value="sunday"${e.weekly_off==='sunday'?' selected':''}>Sunday</option>
+      </select></div>
     </div>
   </div>
 
@@ -599,7 +782,8 @@ function formHTML(e) {
 
 function collectForm() {
   const fields = ['emp_id','full_name','designation','department','employment_type','status',
-    'date_of_joining','probation_end_date','dob','gender','blood_group','mobile','email',
+    'date_of_joining','probation_end_date','attendance_type','monthly_salary','weekly_off',
+    'dob','gender','blood_group','mobile','email',
     'current_address','permanent_address','aadhar','pan','uan','esic',
     'bank_name','bank_account','bank_ifsc','bank_holder_name',
     'emergency_name','emergency_relation','emergency_phone',
@@ -671,6 +855,344 @@ function initials(name) {
 function cap(s) { return s ? s.charAt(0).toUpperCase() + s.slice(1) : ''; }
 function esc(v) { return (v||'').toString().replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 
+// ══════════════════════════════════════════════════════════════
+// LEAVE TRACKER
+// ══════════════════════════════════════════════════════════════
+let leaves = [], leaveBalances = [];
+const LEAVE_TYPES = { CL:'Casual Leave', SL:'Sick Leave', EL:'Earned Leave', LWP:'Leave Without Pay', WO:'Work Off' };
+const LEAVE_COLORS = { CL:'badge-active', SL:'badge-probation', EL:'badge-docs', LWP:'badge-resigned', WO:'badge-terminated' };
+
+async function initLeaves() {
+  const year = new Date().getFullYear();
+  document.getElementById('lvBalYear').textContent = year;
+  const [lr, br] = await Promise.all([
+    sb.from('hr_leaves').select('*').order('from_date', { ascending: false }),
+    sb.from('hr_leave_balances').select('*').eq('year', year)
+  ]);
+  if (lr.data) leaves = lr.data;
+  if (br.data) leaveBalances = br.data;
+  populateLvEmpFilter();
+  renderLeaves();
+  renderLeaveBalances();
+}
+
+function populateLvEmpFilter() {
+  const active = employees.filter(e => e.status === 'active' || e.status === 'probation');
+  const empOpts = '<option value="">All Employees</option>' + active.map(e => `<option value="${e.id}">${e.full_name}</option>`).join('');
+  document.getElementById('lvEmpFilter').innerHTML = empOpts;
+  document.getElementById('lv-emp').innerHTML = '<option value="">— Select —</option>' + active.map(e => `<option value="${e.id}">${e.full_name}</option>`).join('');
+}
+
+function toggleLeaveForm() {
+  const f = document.getElementById('lvForm');
+  const btn = document.getElementById('lvFormBtn');
+  const show = f.style.display === 'none';
+  f.style.display = show ? 'block' : 'none';
+  btn.textContent = show ? '✕ Cancel' : '＋ New Request';
+  if (show) {
+    document.getElementById('lv-from').value = new Date().toISOString().slice(0,10);
+    document.getElementById('lv-to').value   = new Date().toISOString().slice(0,10);
+  }
+}
+
+async function submitLeave() {
+  const emp_id   = document.getElementById('lv-emp').value;
+  const type     = document.getElementById('lv-type').value;
+  const from     = document.getElementById('lv-from').value;
+  const to       = document.getElementById('lv-to').value;
+  const half     = document.getElementById('lv-half').value === 'yes';
+  const reason   = document.getElementById('lv-reason').value.trim();
+  if (!emp_id || !from || !to) { showAlert('Select employee and dates.', 'err'); return; }
+  const days = half ? 0.5 : Math.max(1, Math.round((new Date(to) - new Date(from)) / 864e5) + 1);
+  const { data, error } = await sb.from('hr_leaves').insert({ emp_id: parseInt(emp_id), type, from_date: from, to_date: to, days, half_day: half, reason, status: 'pending' }).select().single();
+  if (error) { showAlert('Error: ' + error.message, 'err'); return; }
+  leaves.unshift(data);
+  toggleLeaveForm();
+  renderLeaves();
+  showAlert(`Leave request submitted — ${days} day${days===1?'':'s'}.`, 'ok');
+}
+
+function renderLeaves() {
+  const ef = document.getElementById('lvEmpFilter').value;
+  const sf = document.getElementById('lvStatusFilter').value;
+  const tf = document.getElementById('lvTypeFilter').value;
+  const rows = leaves.filter(l =>
+    (!ef || l.emp_id == ef) && (!sf || l.status === sf) && (!tf || l.type === tf)
+  );
+  const body = document.getElementById('lvBody');
+  if (!rows.length) { body.innerHTML = `<tr><td colspan="8" style="text-align:center;padding:32px;color:var(--text2);font-size:13px">No leave requests found.</td></tr>`; return; }
+  const tdStyle = 'padding:9px 12px;border-bottom:1px solid var(--border);font-size:13px;vertical-align:middle';
+  const statusColors = { pending:'badge-probation', approved:'badge-active', rejected:'badge-resigned' };
+  body.innerHTML = rows.map(l => {
+    const emp = employees.find(e => e.id === l.emp_id);
+    const empName = emp ? emp.full_name : '—';
+    return `<tr>
+      <td style="${tdStyle}">${empName}</td>
+      <td style="${tdStyle}"><span class="badge ${LEAVE_COLORS[l.type]||''}">${l.type}</span></td>
+      <td style="${tdStyle};white-space:nowrap">${l.from_date}</td>
+      <td style="${tdStyle};white-space:nowrap">${l.to_date}</td>
+      <td style="${tdStyle};text-align:center">${l.days}${l.half_day?' (½)':''}</td>
+      <td style="${tdStyle};color:var(--text2)">${l.reason||'—'}</td>
+      <td style="${tdStyle}"><span class="badge ${statusColors[l.status]||''}">${cap(l.status)}</span></td>
+      <td style="${tdStyle};white-space:nowrap">
+        ${l.status==='pending' ? `<button class="btn btn-sm" style="background:var(--green-bg);color:var(--green);border-color:var(--green);margin-right:4px" onclick="reviewLeave(${l.id},'approved')">✓</button><button class="btn btn-sm" style="background:var(--red-bg);color:var(--red);border-color:var(--red)" onclick="reviewLeave(${l.id},'rejected')">✕</button>` : ''}
+        <button class="btn btn-sm" style="margin-left:4px;color:var(--text2)" onclick="deleteLeave(${l.id})">🗑</button>
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+async function reviewLeave(id, status) {
+  const { error } = await sb.from('hr_leaves').update({ status, reviewed_at: new Date().toISOString() }).eq('id', id);
+  if (error) { showAlert('Error: ' + error.message, 'err'); return; }
+  const l = leaves.find(x => x.id === id);
+  if (l) { l.status = status; if (status === 'approved') updateLeaveBalance(l); }
+  renderLeaves();
+  renderLeaveBalances();
+  showAlert(`Leave ${status}.`, 'ok');
+}
+
+async function deleteLeave(id) {
+  if (!confirm('Delete this leave record?')) return;
+  const { error } = await sb.from('hr_leaves').delete().eq('id', id);
+  if (error) { showAlert('Error: ' + error.message, 'err'); return; }
+  leaves = leaves.filter(l => l.id !== id);
+  renderLeaves();
+}
+
+async function updateLeaveBalance(leave) {
+  const year = new Date(leave.from_date).getFullYear();
+  let bal = leaveBalances.find(b => b.emp_id === leave.emp_id && b.year === year);
+  if (!bal) {
+    const { data } = await sb.from('hr_leave_balances').insert({ emp_id: leave.emp_id, year, cl_total:12, sl_total:8, el_total:15, cl_used:0, sl_used:0, el_used:0 }).select().single();
+    if (data) { leaveBalances.push(data); bal = data; }
+  }
+  if (!bal) return;
+  const field = leave.type === 'CL' ? 'cl_used' : leave.type === 'SL' ? 'sl_used' : leave.type === 'EL' ? 'el_used' : null;
+  if (!field) return;
+  const newVal = (bal[field] || 0) + leave.days;
+  await sb.from('hr_leave_balances').update({ [field]: newVal }).eq('id', bal.id);
+  bal[field] = newVal;
+  renderLeaveBalances();
+}
+
+function renderLeaveBalances() {
+  const active = employees.filter(e => e.status === 'active' || e.status === 'probation');
+  const year = new Date().getFullYear();
+  const grid = document.getElementById('lvBalGrid');
+  if (!active.length) { grid.innerHTML = '<div class="empty">No active employees.</div>'; return; }
+  grid.innerHTML = active.map(e => {
+    const bal = leaveBalances.find(b => b.emp_id === e.id && b.year === year) || { cl_total:12, cl_used:0, sl_total:8, sl_used:0, el_total:15, el_used:0 };
+    const bar = (used, total) => {
+      const pct = total > 0 ? Math.min(100, used/total*100) : 0;
+      const col = pct > 80 ? 'var(--red)' : pct > 50 ? 'var(--amber)' : 'var(--green)';
+      return `<div style="background:var(--card2);border-radius:4px;height:4px;margin-top:4px"><div style="width:${pct}%;height:100%;border-radius:4px;background:${col};transition:width .3s"></div></div>`;
+    };
+    return `<div class="fsec" style="margin:0;padding:14px 16px">
+      <div style="font-weight:600;font-size:13px;margin-bottom:10px">${e.full_name}</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;font-size:12px">
+        <div><div style="color:var(--text2)">CL</div><div style="font-weight:600">${bal.cl_used}/${bal.cl_total}</div>${bar(bal.cl_used,bal.cl_total)}</div>
+        <div><div style="color:var(--text2)">SL</div><div style="font-weight:600">${bal.sl_used}/${bal.sl_total}</div>${bar(bal.sl_used,bal.sl_total)}</div>
+        <div><div style="color:var(--text2)">EL</div><div style="font-weight:600">${bal.el_used}/${bal.el_total}</div>${bar(bal.el_used,bal.el_total)}</div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ══════════════════════════════════════════════════════════════
+// HIRING PIPELINE
+// ══════════════════════════════════════════════════════════════
+let jobs = [], candidates = [];
+const STAGES = ['Applied','Shortlisted','Interview Scheduled','Interview Done','Offer Made','Joined','Rejected'];
+const STAGE_COLORS = { Applied:'badge-docs', Shortlisted:'badge-probation', 'Interview Scheduled':'badge-probation', 'Interview Done':'badge-active', 'Offer Made':'badge-active', Joined:'badge-active', Rejected:'badge-resigned' };
+
+async function initHiring() {
+  const [jr, cr] = await Promise.all([
+    sb.from('hr_jobs').select('*').order('created_at', { ascending: false }),
+    sb.from('hr_candidates').select('*').order('applied_at', { ascending: false })
+  ]);
+  if (jr.data) jobs = jr.data;
+  if (cr.data) candidates = cr.data;
+  populateJobFilters();
+  renderJobsList();
+  renderCandidates();
+}
+
+function populateJobFilters() {
+  const openJobs = jobs.filter(j => j.status === 'open');
+  const opts = '<option value="">All Positions</option>' + jobs.map(j => `<option value="${j.id}">${j.title}${j.status==='closed'?' (closed)':''}</option>`).join('');
+  document.getElementById('hjJobFilter').innerHTML = opts;
+  document.getElementById('hc-job').innerHTML = '<option value="">— Select Position —</option>' + openJobs.map(j => `<option value="${j.id}">${j.title}</option>`).join('');
+  // populate dept select in form
+  const deptSel = document.getElementById('hj-dept');
+  if (deptSel && !deptSel.options.length > 1) {
+    deptSel.innerHTML = '<option value="">— Select —</option>' + DEPTS.map(d => `<option value="${d}">${d}</option>`).join('');
+  }
+}
+
+function toggleJobForm() {
+  const f = document.getElementById('hjJobForm');
+  f.style.display = f.style.display === 'none' ? 'block' : 'none';
+}
+function toggleCandForm() {
+  const f = document.getElementById('hjCandForm');
+  f.style.display = f.style.display === 'none' ? 'block' : 'none';
+}
+
+async function addJob() {
+  const title = document.getElementById('hj-title').value.trim();
+  const dept  = document.getElementById('hj-dept').value;
+  const count = parseInt(document.getElementById('hj-count').value) || 1;
+  const status= document.getElementById('hj-status').value;
+  const desc  = document.getElementById('hj-desc').value.trim();
+  if (!title) { showAlert('Job title is required.', 'err'); return; }
+  const { data, error } = await sb.from('hr_jobs').insert({ title, department: dept||null, openings: count, status, description: desc||null }).select().single();
+  if (error) { showAlert('Error: ' + error.message, 'err'); return; }
+  jobs.unshift(data);
+  populateJobFilters();
+  renderJobsList();
+  toggleJobForm();
+  document.getElementById('hj-title').value = '';
+  showAlert(`Position "${title}" added.`, 'ok');
+}
+
+async function closeJob(id) {
+  const j = jobs.find(x => x.id === id);
+  if (!j || !confirm(`Close position "${j.title}"?`)) return;
+  const { error } = await sb.from('hr_jobs').update({ status: 'closed' }).eq('id', id);
+  if (error) { showAlert('Error: ' + error.message, 'err'); return; }
+  j.status = 'closed';
+  renderJobsList();
+  populateJobFilters();
+  showAlert('Position closed.', 'ok');
+}
+
+async function deleteJob(id) {
+  const j = jobs.find(x => x.id === id);
+  if (!j || !confirm(`Delete "${j.title}" and all its candidates?`)) return;
+  await sb.from('hr_candidates').delete().eq('job_id', id);
+  await sb.from('hr_jobs').delete().eq('id', id);
+  jobs = jobs.filter(x => x.id !== id);
+  candidates = candidates.filter(c => c.job_id !== id);
+  populateJobFilters();
+  renderJobsList();
+  renderCandidates();
+  showAlert('Position deleted.', 'ok');
+}
+
+function renderJobsList() {
+  const el = document.getElementById('hjJobsList');
+  const open = jobs.filter(j => j.status === 'open');
+  if (!open.length) { el.innerHTML = '<div class="empty" style="padding:16px">No open positions. Add one above.</div>'; return; }
+  el.innerHTML = open.map(j => {
+    const candCount = candidates.filter(c => c.job_id === j.id).length;
+    const atStage = s => candidates.filter(c => c.job_id === j.id && c.stage === s).length;
+    return `<div style="background:var(--card2);border:1px solid var(--border);border-radius:var(--r);padding:12px 16px;margin-bottom:8px;display:flex;align-items:center;gap:16px;flex-wrap:wrap">
+      <div style="flex:1;min-width:160px">
+        <div style="font-weight:600;font-size:14px">${j.title}</div>
+        <div style="font-size:12px;color:var(--text2);margin-top:2px">${j.department||'—'} · ${j.openings} opening${j.openings!==1?'s':''} · ${candCount} candidate${candCount!==1?'s':''}</div>
+      </div>
+      <div style="display:flex;gap:6px;flex-wrap:wrap;font-size:11px">
+        ${['Applied','Shortlisted','Interview Scheduled','Offer Made'].map(s => {
+          const n = atStage(s); return n ? `<span class="badge ${STAGE_COLORS[s]}">${s}: ${n}</span>` : '';
+        }).join('')}
+      </div>
+      <div style="display:flex;gap:6px">
+        <button class="btn btn-sm" onclick="closeJob(${j.id})">Close</button>
+        <button class="btn btn-sm btn-danger" onclick="deleteJob(${j.id})">Delete</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+async function addCandidate() {
+  const name  = document.getElementById('hc-name').value.trim();
+  const mobile= document.getElementById('hc-mobile').value.trim();
+  const email = document.getElementById('hc-email').value.trim();
+  const job_id= document.getElementById('hc-job').value;
+  const source= document.getElementById('hc-source').value;
+  const stage = document.getElementById('hc-stage').value;
+  const ctc   = parseFloat(document.getElementById('hc-ctc').value) || null;
+  const idate = document.getElementById('hc-idate').value || null;
+  const notes = document.getElementById('hc-notes').value.trim();
+  if (!name || !job_id) { showAlert('Name and position are required.', 'err'); return; }
+  const { data, error } = await sb.from('hr_candidates').insert({ name, mobile:mobile||null, email:email||null, job_id:parseInt(job_id), source, stage, expected_ctc:ctc, interview_date:idate, notes:notes||null, applied_at:new Date().toISOString() }).select().single();
+  if (error) { showAlert('Error: ' + error.message, 'err'); return; }
+  candidates.unshift(data);
+  toggleCandForm();
+  renderJobsList();
+  renderCandidates();
+  ['hc-name','hc-mobile','hc-email','hc-ctc','hc-notes'].forEach(id => document.getElementById(id).value = '');
+  showAlert(`${name} added to pipeline.`, 'ok');
+}
+
+async function updateStage(id, stage) {
+  const { error } = await sb.from('hr_candidates').update({ stage, updated_at: new Date().toISOString() }).eq('id', id);
+  if (error) { showAlert('Error: ' + error.message, 'err'); return; }
+  const c = candidates.find(x => x.id === id);
+  if (c) c.stage = stage;
+  renderJobsList();
+  renderCandidates();
+}
+
+async function deleteCandidate(id) {
+  if (!confirm('Remove this candidate?')) return;
+  const { error } = await sb.from('hr_candidates').delete().eq('id', id);
+  if (error) { showAlert('Error: ' + error.message, 'err'); return; }
+  candidates = candidates.filter(c => c.id !== id);
+  renderJobsList();
+  renderCandidates();
+}
+
+function renderCandidates() {
+  const jf = document.getElementById('hjJobFilter').value;
+  const sf = document.getElementById('hjStageFilter').value;
+  const rows = candidates.filter(c => (!jf || c.job_id == jf) && (!sf || c.stage === sf));
+  const body = document.getElementById('hjCandBody');
+  if (!rows.length) { body.innerHTML = `<tr><td colspan="8" style="text-align:center;padding:32px;color:var(--text2);font-size:13px">No candidates found.</td></tr>`; return; }
+  const tdStyle = 'padding:9px 12px;border-bottom:1px solid var(--border);font-size:13px;vertical-align:middle';
+  body.innerHTML = rows.map(c => {
+    const job = jobs.find(j => j.id === c.job_id);
+    const stageOpts = STAGES.map(s => `<option value="${s}"${c.stage===s?' selected':''}>${s}</option>`).join('');
+    return `<tr>
+      <td style="${tdStyle};font-weight:500">${c.name}${c.notes?`<div style="font-size:11px;color:var(--text2);margin-top:2px">${c.notes.slice(0,60)}${c.notes.length>60?'…':''}</div>`:''}</td>
+      <td style="${tdStyle};color:var(--text2)">${job ? job.title : '—'}</td>
+      <td style="${tdStyle}">
+        <select onchange="updateStage(${c.id},this.value)" style="padding:4px 8px;border:1px solid var(--border2);border-radius:6px;background:var(--card);color:var(--text);font-size:12px;outline:none">${stageOpts}</select>
+      </td>
+      <td style="${tdStyle};color:var(--text2)">${c.source||'—'}</td>
+      <td style="${tdStyle};font-size:12px;color:var(--text2)">${c.mobile||''}${c.mobile&&c.email?'<br>':''}${c.email||''}</td>
+      <td style="${tdStyle};text-align:right;white-space:nowrap">${c.expected_ctc ? '₹'+parseInt(c.expected_ctc).toLocaleString('en-IN') : '—'}</td>
+      <td style="${tdStyle};white-space:nowrap;color:var(--text2)">${c.interview_date||'—'}</td>
+      <td style="${tdStyle}"><button class="btn btn-sm btn-danger" onclick="deleteCandidate(${c.id})">✕</button></td>
+    </tr>`;
+  }).join('');
+}
+
+// ── ATTENDANCE SYNC ───────────────────────────────────────────────
+async function syncToAttendance(hrEmp) {
+  if (!hrEmp.emp_id) return;
+  const active = hrEmp.status === 'active' || hrEmp.status === 'probation';
+  const row = {
+    emp_id:         hrEmp.emp_id,
+    name:           hrEmp.full_name,
+    designation:    hrEmp.designation || '',
+    type:           hrEmp.attendance_type || 'staff',
+    monthly_salary: parseFloat(hrEmp.monthly_salary) || 0,
+    weekly_off:     hrEmp.weekly_off || 'thursday',
+    ot_eligible:    (hrEmp.attendance_type || 'staff') === 'worker',
+    active,
+  };
+  const { error } = await sb.from('employees').upsert(row, { onConflict: 'emp_id' });
+  if (error) console.warn('Attendance sync failed:', error.message);
+}
+
+async function removeFromAttendance(empId) {
+  if (!empId) return;
+  await sb.from('employees').delete().eq('emp_id', empId);
+}
+
+// ── HELPERS ───────────────────────────────────────────────────────
 function showAlert(msg, type) {
   const b = document.getElementById('abar');
   b.textContent = msg;

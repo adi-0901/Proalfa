@@ -8,18 +8,28 @@ const tools = [
     description: "Track and manage PEB material weights and quantities for ongoing projects.",
     href: "/staff/peb-tracker.html",
     access: "All Staff",
+    icon: "📦",
   },
   {
     title: "Store Room Tracker",
     description: "Monitor store room inventory, stock movements, and item locations.",
     href: "/staff/store-room.html",
     access: "All Staff",
+    icon: "🗄️",
   },
   {
     title: "HR Dashboard",
     description: "Employee KYC, documents, onboarding, attendance and salary. Management access only.",
     href: "/staff/hr.html",
     access: "Management",
+    icon: "👥",
+  },
+  {
+    title: "Policy Library",
+    description: "Company policies, SOPs, roles, production milestones and operational guidelines.",
+    href: "/staff/policies.html",
+    access: "All Staff",
+    icon: "📋",
   },
 ]
 
@@ -54,11 +64,14 @@ const StaffPage = () => {
                 className="group block border border-[#2a2a2a] rounded-lg p-6 hover:border-[#444] transition-colors duration-200 bg-[#161616]"
               >
                 <div className="flex items-start justify-between gap-4">
-                  <div>
-                    <h2 className="text-base font-semibold text-[#e5e5e5] group-hover:text-white transition-colors mb-1">
-                      {tool.title}
-                    </h2>
-                    <p className="text-[#666] text-sm leading-relaxed">{tool.description}</p>
+                  <div className="flex items-start gap-4">
+                    <span className="text-2xl leading-none mt-0.5 shrink-0">{tool.icon}</span>
+                    <div>
+                      <h2 className="text-base font-semibold text-[#e5e5e5] group-hover:text-white transition-colors mb-1">
+                        {tool.title}
+                      </h2>
+                      <p className="text-[#666] text-sm leading-relaxed">{tool.description}</p>
+                    </div>
                   </div>
                   <span
                     className={`shrink-0 text-[10px] uppercase tracking-widest px-2 py-1 rounded border ${

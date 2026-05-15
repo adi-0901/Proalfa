@@ -1,0 +1,885 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Policy Library — Proalfa Dynamic</title>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --bg: #f5f5f3; --card: #ffffff; --card2: #eeede9;
+  --text: #1a1a18; --text2: #6b6b67; --border: rgba(0,0,0,0.09); --border2: rgba(0,0,0,0.16);
+  --blue: #185FA5; --blue-bg: #E6F1FB; --blue-text: #042C53;
+  --green: #0F6E56; --green-bg: #E1F5EE; --green-text: #04342C;
+  --amber: #854F0B; --amber-bg: #FAEEDA; --amber-text: #412402;
+  --red: #A32D2D; --red-bg: #FCEBEB; --red-text: #501313;
+  --purple: #5B35A8; --purple-bg: #F0EAFB; --purple-text: #2D0F5C;
+  --r: 8px; --r2: 12px;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #1a1a18; --card: #232320; --card2: #2c2c28;
+    --text: #f0ede8; --text2: #9a9a96; --border: rgba(255,255,255,0.07); --border2: rgba(255,255,255,0.14);
+    --blue: #378ADD; --blue-bg: #0c2540; --blue-text: #B5D4F4;
+    --green: #1D9E75; --green-bg: #062820; --green-text: #9FE1CB;
+    --amber: #EF9F27; --amber-bg: #2a1a04; --amber-text: #FAC775;
+    --red: #E24B4A; --red-bg: #2c0f0f; --red-text: #F7C1C1;
+    --purple: #9B6EE8; --purple-bg: #1a0f2e; --purple-text: #C9A8F8;
+  }
+}
+body { font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; font-size: 14px; }
+
+/* ── Login ── */
+#loginOverlay { position:fixed;inset:0;background:var(--bg);display:flex;align-items:center;justify-content:center;z-index:1000; }
+.lcard { background:var(--card);border:1px solid var(--border2);border-radius:var(--r2);padding:40px;width:340px; }
+.lcard h2 { font-size:18px;font-weight:700;margin-bottom:4px; }
+.lcard p { color:var(--text2);font-size:12px;margin-bottom:24px; }
+.lcard label { display:block;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--text2);margin-bottom:6px; }
+.lcard input { width:100%;padding:9px 12px;border:1px solid var(--border2);border-radius:var(--r);background:var(--card2);color:var(--text);font-size:14px;outline:none;margin-bottom:16px;font-family:inherit; }
+.lcard input:focus { border-color:var(--blue); }
+.lerr { color:var(--red);font-size:12px;margin-top:-10px;margin-bottom:12px;display:none; }
+
+/* ── Header ── */
+.hdr { background:var(--card);border-bottom:1px solid var(--border);padding:14px 24px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100; }
+.hdr-title { font-size:15px;font-weight:700; }
+.hdr-sub { font-size:11px;color:var(--text2); }
+.btn { padding:7px 14px;border-radius:var(--r);border:1px solid var(--border2);background:var(--card);color:var(--text);font-size:12px;font-weight:500;cursor:pointer; }
+.btn:hover { border-color:var(--blue);color:var(--blue); }
+.btn-primary { background:var(--blue);border-color:var(--blue);color:#fff; }
+.btn-primary:hover { opacity:.88;color:#fff; }
+
+/* ── Layout ── */
+.app { max-width:900px;margin:0 auto;padding:28px 20px; }
+
+/* ── Search & filter bar ── */
+.topbar { display:flex;gap:10px;margin-bottom:24px;flex-wrap:wrap;align-items:center; }
+.search-wrap { flex:1;min-width:220px;position:relative; }
+.search-wrap input { width:100%;padding:9px 12px 9px 36px;border:1px solid var(--border2);border-radius:var(--r);background:var(--card);color:var(--text);font-size:13px;outline:none;font-family:inherit; }
+.search-wrap input:focus { border-color:var(--blue); }
+.search-icon { position:absolute;left:11px;top:50%;transform:translateY(-50%);color:var(--text2);font-size:14px; }
+.filters { display:flex;gap:6px;flex-wrap:wrap; }
+.filter-btn { padding:6px 12px;border-radius:20px;border:1px solid var(--border2);background:var(--card);color:var(--text2);font-size:12px;font-weight:500;cursor:pointer;transition:all .15s; }
+.filter-btn:hover,.filter-btn.active { border-color:var(--blue);color:var(--blue);background:var(--blue-bg); }
+
+/* ── Category header ── */
+.cat-header { display:flex;align-items:center;gap:10px;margin:28px 0 12px;padding-bottom:8px;border-bottom:1px solid var(--border); }
+.cat-icon { font-size:18px; }
+.cat-title { font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--text2); }
+.cat-count { font-size:11px;color:var(--text2);margin-left:auto; }
+
+/* ── Policy card (accordion) ── */
+.policy-card { background:var(--card);border:1px solid var(--border);border-radius:var(--r2);margin-bottom:8px;overflow:hidden;transition:box-shadow .15s; }
+.policy-card:hover { box-shadow:0 2px 12px rgba(0,0,0,.07); }
+.policy-header { display:flex;align-items:center;gap:12px;padding:14px 18px;cursor:pointer;user-select:none; }
+.policy-tag { padding:2px 9px;border-radius:20px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;white-space:nowrap; }
+.tag-blue   { background:var(--blue-bg);color:var(--blue); }
+.tag-green  { background:var(--green-bg);color:var(--green); }
+.tag-amber  { background:var(--amber-bg);color:var(--amber); }
+.tag-red    { background:var(--red-bg);color:var(--red); }
+.tag-purple { background:var(--purple-bg);color:var(--purple); }
+.policy-title { font-size:14px;font-weight:600;flex:1; }
+.policy-subtitle { font-size:12px;color:var(--text2);margin-top:1px; }
+.policy-chevron { color:var(--text2);font-size:16px;transition:transform .2s;flex-shrink:0; }
+.policy-card.open .policy-chevron { transform:rotate(180deg); }
+.policy-body { display:none;padding:0 18px 18px;border-top:1px solid var(--border); }
+.policy-card.open .policy-body { display:block; }
+
+/* ── Policy content styles ── */
+.policy-body p { font-size:13px;color:var(--text2);line-height:1.7;margin-top:14px; }
+.policy-body h4 { font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--text2);margin-top:18px;margin-bottom:8px; }
+.policy-body ul { padding-left:18px;margin-top:6px; }
+.policy-body ul li { font-size:13px;line-height:1.7;color:var(--text);margin-bottom:3px; }
+.policy-body ul li strong { font-weight:600; }
+.steps { display:flex;flex-direction:column;gap:0;margin-top:14px; }
+.step { display:flex;gap:14px;padding:12px 0;border-bottom:1px solid var(--border); }
+.step:last-child { border-bottom:none; }
+.step-num { width:28px;height:28px;border-radius:50%;background:var(--blue-bg);color:var(--blue);font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px; }
+.step-content { flex:1; }
+.step-title { font-size:13px;font-weight:600; }
+.step-desc { font-size:12px;color:var(--text2);line-height:1.65;margin-top:3px; }
+.roles-grid { display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:10px;margin-top:14px; }
+.role-card { background:var(--card2);border:1px solid var(--border);border-radius:var(--r);padding:14px; }
+.role-title { font-size:13px;font-weight:700;margin-bottom:6px; }
+.role-dept { font-size:11px;color:var(--text2);margin-bottom:8px;text-transform:uppercase;letter-spacing:.05em; }
+.role-card ul { padding-left:14px; }
+.role-card ul li { font-size:12px;color:var(--text);line-height:1.6; }
+.kpi-table { width:100%;border-collapse:collapse;margin-top:14px;font-size:12px; }
+.kpi-table th { text-align:left;padding:8px 10px;background:var(--card2);color:var(--text2);font-weight:700;text-transform:uppercase;font-size:10px;letter-spacing:.06em;border-bottom:1px solid var(--border); }
+.kpi-table td { padding:9px 10px;border-bottom:1px solid var(--border);vertical-align:top;line-height:1.5; }
+.kpi-table tr:last-child td { border-bottom:none; }
+.highlight-box { background:var(--amber-bg);border:1px solid var(--amber);border-radius:var(--r);padding:12px 14px;margin-top:14px;font-size:13px;color:var(--amber-text);line-height:1.6; }
+.highlight-box strong { font-weight:700; }
+.rule-list { display:flex;flex-direction:column;gap:8px;margin-top:14px; }
+.rule-item { display:flex;gap:10px;align-items:flex-start;padding:10px 12px;background:var(--card2);border-radius:var(--r);font-size:13px;line-height:1.6; }
+.rule-dot { width:6px;height:6px;border-radius:50%;background:var(--blue);margin-top:7px;flex-shrink:0; }
+.fine-table { display:grid;grid-template-columns:auto 1fr;gap:0;margin-top:14px;border:1px solid var(--border);border-radius:var(--r);overflow:hidden; }
+.fine-label { padding:10px 14px;font-size:12px;font-weight:600;background:var(--card2);border-bottom:1px solid var(--border); }
+.fine-val { padding:10px 14px;font-size:12px;border-bottom:1px solid var(--border);color:var(--text2); }
+.fine-label:last-of-type, .fine-val:last-of-type { border-bottom:none; }
+
+/* ── Empty state ── */
+.empty { text-align:center;padding:60px 20px;color:var(--text2);font-size:13px; }
+
+/* ── Footer ── */
+.footer { text-align:center;padding:20px;font-size:11px;color:var(--text2);margin-top:8px; }
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div id="loginOverlay">
+  <div class="lcard">
+    <h2>Policy Library</h2>
+    <p>Proalfa Dynamic — Staff access</p>
+    <label>Password</label>
+    <input type="password" id="lpass" placeholder="Enter staff password" onkeydown="if(event.key==='Enter')doLogin()">
+    <div class="lerr" id="lerr">Incorrect password.</div>
+    <button class="btn btn-primary" style="width:100%" onclick="doLogin()">Enter</button>
+  </div>
+</div>
+
+<!-- HEADER -->
+<div class="hdr">
+  <div>
+    <div class="hdr-title">Policy Library</div>
+    <div class="hdr-sub">Proalfa Dynamic Pvt Ltd — Roles, SOPs & Company Policies</div>
+  </div>
+  <button class="btn" onclick="doLogout()">Logout</button>
+</div>
+
+<!-- APP -->
+<div class="app" id="mainApp" style="display:none">
+  <div class="topbar">
+    <div class="search-wrap">
+      <span class="search-icon">🔍</span>
+      <input type="text" id="searchBox" placeholder="Search policies, roles, rules…" oninput="filterAll()">
+    </div>
+    <div class="filters">
+      <button class="filter-btn active" data-cat="all" onclick="setFilter('all',this)">All</button>
+      <button class="filter-btn" data-cat="roles" onclick="setFilter('roles',this)">Roles</button>
+      <button class="filter-btn" data-cat="production" onclick="setFilter('production',this)">Production</button>
+      <button class="filter-btn" data-cat="finance" onclick="setFilter('finance',this)">Finance</button>
+      <button class="filter-btn" data-cat="hr" onclick="setFilter('hr',this)">HR</button>
+      <button class="filter-btn" data-cat="quality" onclick="setFilter('quality',this)">Quality</button>
+      <button class="filter-btn" data-cat="ops" onclick="setFilter('ops',this)">Operations</button>
+      <button class="filter-btn" data-cat="safety" onclick="setFilter('safety',this)">Safety</button>
+    </div>
+  </div>
+
+  <div id="policyList"></div>
+  <div class="empty" id="emptyState" style="display:none">No policies match your search.</div>
+</div>
+
+<div class="footer">Proalfa Dynamic Pvt Ltd · Policy Library · Effective 01/04/2025 · Approved by Aditya Jaybhay, MD</div>
+
+<script>
+const PASS = 'Proalfa@50';
+
+function doLogin() {
+  if (document.getElementById('lpass').value === PASS) {
+    sessionStorage.setItem('pol_auth','1');
+    document.getElementById('loginOverlay').style.display = 'none';
+    document.getElementById('mainApp').style.display = 'block';
+    render();
+  } else {
+    document.getElementById('lerr').style.display = 'block';
+    document.getElementById('lpass').value = '';
+    document.getElementById('lpass').focus();
+  }
+}
+function doLogout() {
+  sessionStorage.removeItem('pol_auth');
+  document.getElementById('loginOverlay').style.display = 'flex';
+  document.getElementById('mainApp').style.display = 'none';
+}
+if (sessionStorage.getItem('pol_auth')) {
+  document.getElementById('loginOverlay').style.display = 'none';
+  document.getElementById('mainApp').style.display = 'block';
+}
+
+// ── POLICY DATA ──────────────────────────────────────────────────
+const POLICIES = [
+
+  // ─── ROLES & RESPONSIBILITIES ────────────────────────────────
+  {
+    id: 'org-structure', cat: 'roles', tag: 'tag-blue', tagLabel: 'Roles',
+    title: 'Organizational Structure & Reporting',
+    subtitle: 'Who reports to whom — org chart overview',
+    body: `
+      <p>Proalfa Dynamic's reporting hierarchy ensures clear accountability at every level. All departments ultimately report to the Founder & CEO / Managing Director.</p>
+      <div class="roles-grid">
+        <div class="role-card">
+          <div class="role-dept">Leadership</div>
+          <div class="role-title">Aditya Jaybhay — Founder & MD</div>
+          <ul><li>Business development & strategy</li><li>Final approval on all major decisions</li><li>Oversee automation & ERP implementation</li><li>Monitor production output & business goals</li></ul>
+        </div>
+        <div class="role-card">
+          <div class="role-dept">Production</div>
+          <div class="role-title">Production Head</div>
+          <ul><li>Oversee entire factory operations</li><li>Allocate manpower & optimize resources</li><li>Ensure 150 MT/month production target</li><li>Report daily production status to management</li></ul>
+        </div>
+        <div class="role-card">
+          <div class="role-dept">Production</div>
+          <div class="role-title">Programmer — Plasma Cutting & CNC</div>
+          <ul><li>Prepare & optimize cutting programs</li><li>Reduce material wastage through nesting</li><li>Maintain material utilization above 95%</li><li>Ensure cutting schedules avoid delays</li></ul>
+        </div>
+        <div class="role-card">
+          <div class="role-dept">Quality</div>
+          <div class="role-title">QC Engineer / Incharge</div>
+          <ul><li>Inspect fabrication at every stage</li><li>SA level & DFT coat thickness verification</li><li>Approve or reject components for dispatch</li><li>Maintain rejection logs & corrective action logs</li></ul>
+        </div>
+        <div class="role-card">
+          <div class="role-dept">Finance & Accounts</div>
+          <div class="role-title">Finance Manager</div>
+          <ul><li>Allocate funds to specific projects</li><li>Track project-wise expenses & vendor payments</li><li>Follow up on client payments & invoicing</li><li>Implement financial automation tools</li></ul>
+        </div>
+        <div class="role-card">
+          <div class="role-dept">Finance & Accounts</div>
+          <div class="role-title">Accountant</div>
+          <ul><li>Maintain financial records, taxation & compliance</li><li>Process invoices, payroll & day-to-day accounting</li><li>Ensure all transactions are recorded & tracked</li><li>Approve expenses up to ₹50,000 with Production Head</li></ul>
+        </div>
+        <div class="role-card">
+          <div class="role-dept">Logistics</div>
+          <div class="role-title">Dispatch & Logistics Coordinator</div>
+          <ul><li>Plan & schedule dispatches per project deadlines</li><li>Coordinate with transport vendors</li><li>Ensure components are packed & documented</li><li>Track shipments & update team on delivery status</li></ul>
+        </div>
+        <div class="role-card">
+          <div class="role-dept">Site</div>
+          <div class="role-title">Erection & Site Coordinator</div>
+          <ul><li>Manage on-site assembly & structural alignment</li><li>Coordinate with client's team for installation</li><li>Ensure safety & quality during erection</li><li>Log daily progress & flag risks</li></ul>
+        </div>
+        <div class="role-card">
+          <div class="role-dept">Sales</div>
+          <div class="role-title">Sales & Marketing Manager</div>
+          <ul><li>Handle inquiries, negotiations & closing deals</li><li>Secure advance payments & timely client payments</li><li>Maintain client relationships for repeat business</li><li>Oversee branding & company promotion</li></ul>
+        </div>
+      </div>`
+  },
+
+  {
+    id: 'kpis', cat: 'roles', tag: 'tag-blue', tagLabel: 'Roles',
+    title: 'Performance Review KPIs',
+    subtitle: 'How each role is measured and evaluated',
+    body: `
+      <p>All team members are evaluated against defined KPIs reviewed quarterly by management.</p>
+      <table class="kpi-table">
+        <thead><tr><th>Role</th><th>Key Performance Indicators</th></tr></thead>
+        <tbody>
+          <tr><td><strong>Production Head</strong></td><td>Output vs Target, Downtime analysis, Rejection percentage</td></tr>
+          <tr><td><strong>Project Execution Head</strong></td><td>Site completion timelines, contractor performance, material utilization</td></tr>
+          <tr><td><strong>Senior Accountant</strong></td><td>Invoice cycle time, compliance error rate, reporting accuracy</td></tr>
+          <tr><td><strong>Production Supervisor</strong></td><td>Output per worker, cleanliness score, work allocation accuracy</td></tr>
+          <tr><td><strong>Store Keeper</strong></td><td>Stock accuracy, audit pass rate, issue turnaround time</td></tr>
+          <tr><td><strong>QC Incharge</strong></td><td>Rejection rate (target: below 5%), inspection efficiency, SOP compliance</td></tr>
+          <tr><td><strong>Site Engineer</strong></td><td>Daily progress accuracy, site safety score, contractor coordination</td></tr>
+          <tr><td><strong>Sales & Marketing</strong></td><td>Leads generated, order conversion rate, sales growth, marketing ROI, timely closure</td></tr>
+          <tr><td><strong>Programmer</strong></td><td>Material utilization above 95%, error rates, schedule adherence</td></tr>
+        </tbody>
+      </table>`
+  },
+
+  // ─── PRODUCTION ──────────────────────────────────────────────
+  {
+    id: 'production-milestones', cat: 'production', tag: 'tag-green', tagLabel: 'Production',
+    title: 'Production Process — All 20 Milestones',
+    subtitle: 'Sales, production & dispatch stages end-to-end',
+    body: `
+      <h4>Phase 1 — Sales & Purchase (Steps 1–7)</h4>
+      <div class="steps">
+        <div class="step"><div class="step-num">1</div><div class="step-content"><div class="step-title">Project Finalization</div><div class="step-desc">Receive project, finalize terms, generate Purchase Order (PO) with advance payment terms.</div></div></div>
+        <div class="step"><div class="step-num">2</div><div class="step-content"><div class="step-title">Fabrication Drawing Proposal</div><div class="step-desc">Programmer submits proposal to third-party architect for fabrication drawings.</div></div></div>
+        <div class="step"><div class="step-num">3</div><div class="step-content"><div class="step-title">Raw Material Estimation</div><div class="step-desc">Programmer calculates estimated raw material (weight, thickness) required.</div></div></div>
+        <div class="step"><div class="step-num">4</div><div class="step-content"><div class="step-title">Consumables Estimation</div><div class="step-desc">Purchase team estimates consumables and wear-tear requirements.</div></div></div>
+        <div class="step"><div class="step-num">5</div><div class="step-content"><div class="step-title">Client Quotation & Advance</div><div class="step-desc">Submit final quotation with T&C, request minimum 50% advance payment.</div></div></div>
+        <div class="step"><div class="step-num">6</div><div class="step-content"><div class="step-title">Payment Distribution</div><div class="step-desc">After receiving advance, distribute funds to raw materials, consumables, contractors, and operational costs.</div></div></div>
+        <div class="step"><div class="step-num">7</div><div class="step-content"><div class="step-title">Internal Planning Discussions</div><div class="step-desc">Discuss cutting losses, burning losses, scrap management, and dispatch planning internally.</div></div></div>
+      </div>
+      <h4>Phase 2 — Production (Steps 8–13)</h4>
+      <div class="steps">
+        <div class="step"><div class="step-num">8</div><div class="step-content"><div class="step-title">Raw Material Procurement</div><div class="step-desc">Place orders for raw material plates, ensure receipt with valid test certificates.</div></div></div>
+        <div class="step"><div class="step-num">9</div><div class="step-content"><div class="step-title">Cutting Program</div><div class="step-desc">Programmer plans and submits cutting program to operators for material cutting.</div></div></div>
+        <div class="step"><div class="step-num">10</div><div class="step-content"><div class="step-title">Material Cutting</div><div class="step-desc">Start cutting plates per program, label parts with clear part marks, provide shop drawings to operators.</div></div></div>
+        <div class="step"><div class="step-num">11</div><div class="step-content"><div class="step-title">H-Beam Formation</div><div class="step-desc">Transfer cut materials to H-beam operator. All small parts must be cut before H-beam fabrication starts.</div></div></div>
+        <div class="step"><div class="step-num">12</div><div class="step-content"><div class="step-title">Welding & Base Plate Work</div><div class="step-desc">Contractors handle manual welding and base plate attachment. QC engineers verify at each stage.</div></div></div>
+        <div class="step"><div class="step-num">13</div><div class="step-content"><div class="step-title">Quality Checks (QC)</div><div class="step-desc">QC verifies raw material certificates, welding quality, small part accuracy, and preparation before blasting.</div></div></div>
+      </div>
+      <h4>Phase 3 — Dispatch (Steps 14–20)</h4>
+      <div class="steps">
+        <div class="step"><div class="step-num">14</div><div class="step-content"><div class="step-title">Copper Blasting</div><div class="step-desc">Achieve SA 2.5 blasting standard. QC verifies surface finish before painting.</div></div></div>
+        <div class="step"><div class="step-num">15</div><div class="step-content"><div class="step-title">Painting</div><div class="step-desc">Order paint per client's color code, apply coats per requirements, verify DFT with QC checks after each coat.</div></div></div>
+        <div class="step"><div class="step-num">16</div><div class="step-content"><div class="step-title">Dispatch Preparation</div><div class="step-desc">Arrange transport and dispatch materials per installation grid. Provide invoices based on weight and agreed rates.</div></div></div>
+        <div class="step"><div class="step-num">17</div><div class="step-content"><div class="step-title">Milestone-Based Payments</div><div class="step-desc">Request 40% payment after first dispatch, 10% after all material is dispatched.</div></div></div>
+        <div class="step"><div class="step-num">18</div><div class="step-content"><div class="step-title">Payment Distribution</div><div class="step-desc">Use milestone payments to clear pending dues for suppliers and operational costs.</div></div></div>
+        <div class="step"><div class="step-num">19</div><div class="step-content"><div class="step-title">Scrap Management</div><div class="step-desc">Discuss cutting losses, scrap handling, dispatch, and payments internally.</div></div></div>
+        <div class="step"><div class="step-num">20</div><div class="step-content"><div class="step-title">Machine Maintenance</div><div class="step-desc">Ensure weekly maintenance of machines and cleanliness of premises for smooth operations.</div></div></div>
+      </div>`
+  },
+
+  {
+    id: 'ops-process', cat: 'production', tag: 'tag-green', tagLabel: 'Production',
+    title: 'Step-by-Step Operations Process (A–I)',
+    subtitle: 'Design, procurement, fabrication, QC, dispatch & erection',
+    body: `
+      <div class="steps">
+        <div class="step"><div class="step-num">A</div><div class="step-content"><div class="step-title">Design & Engineering</div><div class="step-desc">Receive approved architectural drawings → prepare structural drawings and BOM → finalize GFM drawings and issue to Production.</div></div></div>
+        <div class="step"><div class="step-num">B</div><div class="step-content"><div class="step-title">Material Planning & Procurement</div><div class="step-desc">BOM verified by Planning → Material Requisition Form raised → minimum 3 vendor quotes → rate comparison → PO issued → Store receives with GRN → QC clears material.</div></div></div>
+        <div class="step"><div class="step-num">C</div><div class="step-content"><div class="step-title">Store Keeping</div><div class="step-desc">FIFO system applied. Material issued only against signed requisition. Inward/Outward recorded and updated daily.</div></div></div>
+        <div class="step"><div class="step-num">D</div><div class="step-content"><div class="step-title">Production / Fabrication</div><div class="step-desc">Work allocated daily by Production Head. Logs maintained by Production Supervisor. Welding, cutting, fitting follow process sheets.</div></div></div>
+        <div class="step"><div class="step-num">E</div><div class="step-content"><div class="step-title">QC Inspections</div><div class="step-desc">Raw Material QC → In-Process QC → Final QC. All logs maintained with batch traceability. Rework and rejection logs analysed.</div></div></div>
+        <div class="step"><div class="step-num">F</div><div class="step-content"><div class="step-title">Surface Treatment & Painting</div><div class="step-desc">Shot blasting → primer → paint application. Paint batch and DFT logs maintained per coat per section.</div></div></div>
+        <div class="step"><div class="step-num">G</div><div class="step-content"><div class="step-title">Assembly / Trial Fit</div><div class="step-desc">Trial assembly for complex structures. Alignment and fitting verified before dispatch.</div></div></div>
+        <div class="step"><div class="step-num">H</div><div class="step-content"><div class="step-title">Packing & Dispatch</div><div class="step-desc">Final QC clearance required. Packing and loading per delivery guidelines. Delivery Challan prepared and documented.</div></div></div>
+        <div class="step"><div class="step-num">I</div><div class="step-content"><div class="step-title">Site Erection</div><div class="step-desc">Site Engineer oversees delivery receipt. Erection per sequence plan. Daily progress and contractor supervision logged.</div></div></div>
+      </div>`
+  },
+
+  // ─── QUALITY ─────────────────────────────────────────────────
+  {
+    id: 'quality-control', cat: 'quality', tag: 'tag-amber', tagLabel: 'Quality',
+    title: 'Quality Control Process & Standards',
+    subtitle: 'QC checkpoints, certifications, DFT, welding standards',
+    body: `
+      <div class="highlight-box"><strong>Target:</strong> Quality rejection rate below 5%. All products must meet ISO and company standards before dispatch. No dispatch without quality clearance report.</div>
+      <h4>QC Checkpoints</h4>
+      <ul>
+        <li>Raw Material Inspection at GRN stage</li>
+        <li>In-process QC checks for each production phase</li>
+        <li>Final QC before dispatch</li>
+        <li>QC logs include: Visuals, Dimensions, Welding, Paint, Rework</li>
+        <li>Non-conformance reports filed for rejections</li>
+      </ul>
+      <h4>Welding Certifications Required</h4>
+      <ul>
+        <li><strong>WPS (Welding Procedure Specification)</strong> — Approved welding procedures documenting weld types, materials, thickness, positions, and parameters. Must be accessible to all welding personnel on shop floor.</li>
+        <li><strong>PQR (Procedure Qualification Record)</strong> — Test records confirming procedures produce sound welds (tensile, bend, impact tests). Retained for audits.</li>
+        <li><strong>DFT (Dry Film Thickness) Reports</strong> — Specified measured thickness of paint/protective coating per batch, per client and international standards.</li>
+      </ul>
+      <h4>Material Traceability</h4>
+      <ul>
+        <li>Each batch of steel/raw materials must carry unique batch and heat numbers</li>
+        <li>Numbers recorded at goods receipt with supplier documents</li>
+        <li>Log maps batch/heat numbers to specific fabricated parts</li>
+        <li>Traceability tags/stickers applied on physical materials and finished components</li>
+      </ul>
+      <h4>Six Sigma — DMAIC Framework</h4>
+      <div class="steps">
+        <div class="step"><div class="step-num">1</div><div class="step-content"><div class="step-title">Define</div><div class="step-desc">Identify process inefficiencies across production, dispatch, and quality stages.</div></div></div>
+        <div class="step"><div class="step-num">2</div><div class="step-content"><div class="step-title">Measure</div><div class="step-desc">Use rejection data, rework hours, and delivery lags as primary metrics.</div></div></div>
+        <div class="step"><div class="step-num">3</div><div class="step-content"><div class="step-title">Analyse</div><div class="step-desc">Root cause analysis for deviations and repeated defects.</div></div></div>
+        <div class="step"><div class="step-num">4</div><div class="step-content"><div class="step-title">Improve</div><div class="step-desc">Implement SOP updates, training, and process revisions.</div></div></div>
+        <div class="step"><div class="step-num">5</div><div class="step-content"><div class="step-title">Control</div><div class="step-desc">Standardize, audit, and review quarterly to sustain improvements.</div></div></div>
+      </div>`
+  },
+
+  {
+    id: 'dispatch-checklist', cat: 'quality', tag: 'tag-amber', tagLabel: 'Quality',
+    title: 'Safety Dispatch Checklist',
+    subtitle: 'Pre-dispatch inspection, load stability, PPE verification',
+    body: `
+      <p>No dispatch shall be made without quality clearance. The following checklist must be completed and countersigned by QC and Dispatch personnel before every shipment.</p>
+      <div class="rule-list">
+        <div class="rule-item"><div class="rule-dot"></div><div><strong>Pre-Dispatch Visual Inspection:</strong> Check overall integrity of finished goods — physical damage, sharp edges, correct labeling.</div></div>
+        <div class="rule-item"><div class="rule-dot"></div><div><strong>Load Stability:</strong> Validate proper stacking, securing tie-downs, and load weight distribution on transport vehicles.</div></div>
+        <div class="rule-item"><div class="rule-dot"></div><div><strong>PPE & Safety Compliance:</strong> Verify handlers and loaders are using proper Personal Protective Equipment.</div></div>
+        <div class="rule-item"><div class="rule-dot"></div><div><strong>Documentation:</strong> Complete checklist countersigned by QC and Dispatch personnel, archived with dispatch records.</div></div>
+      </div>
+      <h4>Client Handover Documents Required</h4>
+      <ul>
+        <li><strong>Final Drawing Set</strong> — Signed and approved "as-built" drawings including field modifications.</li>
+        <li><strong>Erection Log</strong> — Daily log by Site Engineer with progress, challenges, completion dates, and photos.</li>
+        <li><strong>QC Report</strong> — Consolidated dossier: inspection reports, NCRs, corrective actions, paint certs, welding certs, material test results.</li>
+        <li><strong>Client Receipt</strong> — Formal submission dossier for client sign-off, proving compliance and completion.</li>
+      </ul>`
+  },
+
+  // ─── FINANCE ─────────────────────────────────────────────────
+  {
+    id: 'payment-policy', cat: 'finance', tag: 'tag-red', tagLabel: 'Finance',
+    title: 'Payment & Financial Policy',
+    subtitle: 'Payment cycles, approval thresholds, client payment terms',
+    body: `
+      <div class="highlight-box"><strong>Standard Payment Cycle:</strong> 50% Advance → 30% After First Dispatch → 10% After All Material Dispatched → 10% After Erection. No purchase or production activity to start without financial clearance.</div>
+      <h4>Expense Approval Thresholds</h4>
+      <table class="kpi-table">
+        <thead><tr><th>Amount</th><th>Approved By</th></tr></thead>
+        <tbody>
+          <tr><td>Below ₹50,000</td><td>Accountant & Production Head (jointly)</td></tr>
+          <tr><td>Above ₹50,000</td><td>Written approval from Aditya Jaybhay (MD)</td></tr>
+          <tr><td>Every purchase</td><td>Must have a Purchase Order or approval note</td></tr>
+        </tbody>
+      </table>
+      <h4>Authorization Matrix</h4>
+      <table class="kpi-table">
+        <thead><tr><th>Document</th><th>Prepared By</th><th>Verified By</th><th>Approved By</th></tr></thead>
+        <tbody>
+          <tr><td>Invoice</td><td>Accounts</td><td>Sr. Accountant</td><td>Director / MD</td></tr>
+          <tr><td>Purchase Order</td><td>Purchase Executive</td><td>Purchase Manager</td><td>Director</td></tr>
+          <tr><td>Delivery Challan</td><td>Store Keeper</td><td>Production Head</td><td>Project Head / Director</td></tr>
+          <tr><td>Fund Request</td><td>Department Head</td><td>Sr. Accountant</td><td>Director</td></tr>
+        </tbody>
+      </table>
+      <h4>Advance Request Rules</h4>
+      <ul>
+        <li>All advance requests must be submitted <strong>7 days prior</strong></li>
+        <li>Must include: purpose, amount, and usage timeline</li>
+        <li>No personal expenses can be merged with project expenses under any circumstances</li>
+      </ul>`
+  },
+
+  {
+    id: 'purchase-policy', cat: 'finance', tag: 'tag-red', tagLabel: 'Finance',
+    title: 'Purchase & Procurement Policy',
+    subtitle: 'Vendor quotes, PO rules, emergency purchases',
+    body: `
+      <div class="rule-list">
+        <div class="rule-item"><div class="rule-dot"></div>Minimum <strong>3 vendor quotes</strong> required before any purchase.</div>
+        <div class="rule-item"><div class="rule-dot"></div>Purchase Order created only after vendor comparison and rate approval.</div>
+        <div class="rule-item"><div class="rule-dot"></div>Emergency buys must be <strong>justified in writing</strong> and reported to management.</div>
+        <div class="rule-item"><div class="rule-dot"></div>QC clearance required before invoice submission for received goods.</div>
+        <div class="rule-item"><div class="rule-dot"></div>Final approval by Director/MD for purchases above threshold amount.</div>
+        <div class="rule-item"><div class="rule-dot"></div>Any purchase related to a project must be routed through the Accountant and Production Head.</div>
+      </div>`
+  },
+
+  // ─── HR & DISCIPLINE ─────────────────────────────────────────
+  {
+    id: 'daily-discipline', cat: 'hr', tag: 'tag-purple', tagLabel: 'HR',
+    title: 'Daily Responsibilities & Discipline',
+    subtitle: 'Reporting, conduct, and workplace standards',
+    body: `
+      <div class="rule-list">
+        <div class="rule-item"><div class="rule-dot"></div>Every department head must ensure their team <strong>reports on time</strong> and maintains professional conduct.</div>
+        <div class="rule-item"><div class="rule-dot"></div>Maintain cleanliness and safety at the workplace at all times.</div>
+        <div class="rule-item"><div class="rule-dot"></div>Each employee must be aware of their <strong>daily targets and project timelines.</strong></div>
+        <div class="rule-item"><div class="rule-dot"></div>Mobile phone usage during work hours is discouraged unless work-related.</div>
+        <div class="rule-item"><div class="rule-dot"></div>All staff must report daily work status to their immediate supervisor or department head.</div>
+        <div class="rule-item"><div class="rule-dot"></div>Department heads compile and send updates to management every evening.</div>
+        <div class="rule-item"><div class="rule-dot"></div>Any problem, delay, or issue must be escalated <strong>immediately</strong> without waiting for review.</div>
+      </div>`
+  },
+
+  {
+    id: 'disciplinary-fines', cat: 'hr', tag: 'tag-purple', tagLabel: 'HR',
+    title: 'Disciplinary Fines & Safety Rules',
+    subtitle: 'Cleanliness, machinery misuse, violation escalation',
+    body: `
+      <p>Fines apply for violations of: cleanliness, mishandling of machinery, and misuse of consumables.</p>
+      <div class="fine-table">
+        <div class="fine-label">First Offense</div><div class="fine-val">Written warning issued</div>
+        <div class="fine-label">Second Offense</div><div class="fine-val">₹500 fine deducted from salary</div>
+        <div class="fine-label">Third Offense</div><div class="fine-val">Escalation to HR / Director — further action</div>
+      </div>
+      <h4>Workplace Rules</h4>
+      <ul>
+        <li>Work areas must be cleaned at the end of each shift</li>
+        <li>Personal items not allowed in work zones</li>
+        <li>All safety protocols to be followed at all times</li>
+        <li>Company data, pricing, designs, and project information must <strong>not</strong> be shared with outsiders</li>
+        <li>Any negligence or misconduct will result in disciplinary action</li>
+      </ul>`
+  },
+
+  {
+    id: 'project-mgmt-rules', cat: 'hr', tag: 'tag-purple', tagLabel: 'HR',
+    title: 'Project Management Rules',
+    subtitle: 'Documentation, approvals, project folder requirements',
+    body: `
+      <div class="rule-list">
+        <div class="rule-item"><div class="rule-dot"></div>Every project must have its own <strong>dedicated folder</strong> for drawings, budget, materials, and communication logs.</div>
+        <div class="rule-item"><div class="rule-dot"></div><strong>No project work must start</strong> without official approval and advance payment.</div>
+        <div class="rule-item"><div class="rule-dot"></div>Any purchase related to a project must be routed through the Accountant and Production Head.</div>
+        <div class="rule-item"><div class="rule-dot"></div><strong>No personal expenses</strong> can be merged with project expenses under any circumstances.</div>
+        <div class="rule-item"><div class="rule-dot"></div>All client conversations must remain professional, clear, and solution-oriented.</div>
+        <div class="rule-item"><div class="rule-dot"></div>Do not make commitments without consulting the concerned department.</div>
+        <div class="rule-item"><div class="rule-dot"></div>Share all client feedback (positive or negative) with management.</div>
+      </div>`
+  },
+
+  // ─── OPERATIONS ──────────────────────────────────────────────
+  {
+    id: 'store-inventory', cat: 'ops', tag: 'tag-green', tagLabel: 'Operations',
+    title: 'Storekeeping & Inventory Policy',
+    subtitle: 'FIFO, GRNs, issue slips, monthly audits',
+    body: `
+      <div class="rule-list">
+        <div class="rule-item"><div class="rule-dot"></div><strong>FIFO (First In First Out)</strong> system strictly enforced for all materials.</div>
+        <div class="rule-item"><div class="rule-dot"></div>GRNs (Goods Receipt Notes) for all inwards; Material Issue Slips required for all outwards.</div>
+        <div class="rule-item"><div class="rule-dot"></div>Real-time stock register maintained and updated daily.</div>
+        <div class="rule-item"><div class="rule-dot"></div>Monthly physical audits conducted to reconcile stock records.</div>
+        <div class="rule-item"><div class="rule-dot"></div>Damaged or obsolete items logged separately and reported to management.</div>
+        <div class="rule-item"><div class="rule-dot"></div>Material issued <strong>only against signed requisition</strong> from authorised personnel.</div>
+      </div>`
+  },
+
+  {
+    id: 'contractor-guidelines', cat: 'ops', tag: 'tag-green', tagLabel: 'Operations',
+    title: '3rd Party Contractor Guidelines',
+    subtitle: 'Contractor duties, penalty clauses, PPE requirements',
+    body: `
+      <h4>Contractor Requirements</h4>
+      <ul>
+        <li>Must bring own tools and Personal Protective Equipment (PPE)</li>
+        <li>Daily attendance and progress log required — submitted to Production Head</li>
+        <li>Must follow all site safety rules without exception</li>
+        <li>All work subject to QC engineer approval before payment milestone</li>
+      </ul>
+      <h4>Penalty Clause</h4>
+      <div class="fine-table">
+        <div class="fine-label">Grace Period</div><div class="fine-val">2-day grace period allowed for delays</div>
+        <div class="fine-label">Delay Beyond Grace</div><div class="fine-val">Daily deduction from contractor bill</div>
+        <div class="fine-label">Poor Quality Rework</div><div class="fine-val">Rework cost is contractor's responsibility — no additional payment</div>
+      </div>`
+  },
+
+  {
+    id: 'maintenance', cat: 'ops', tag: 'tag-green', tagLabel: 'Operations',
+    title: 'Preventive Maintenance Schedule (PMS)',
+    subtitle: 'Machine maintenance logs, frequency, responsibilities',
+    body: `
+      <p>All machines and critical equipment must have a detailed PMS log. Weekly machine maintenance is mandatory to ensure smooth operations.</p>
+      <h4>PMS Log Must Include</h4>
+      <ul>
+        <li>Maintenance frequency: daily, weekly, monthly, annually, or as required</li>
+        <li>Maintenance tasks: lubrication, calibration, inspection, cleaning, replacement of worn parts</li>
+        <li>Responsible personnel assigned for each task with sign-off columns</li>
+        <li>All activities documented with dates for audit trails and breakdown prevention</li>
+      </ul>
+      <h4>Load Test Logs</h4>
+      <ul>
+        <li>Required for crane beams, lifting lugs, brackets, and load-bearing elements</li>
+        <li>Record: date, time, equipment tested, test loads applied, results (pass/fail)</li>
+        <li>Note corrective actions for any equipment that fails testing</li>
+        <li>Logs maintained as part of QC documentation, retrievable during audits</li>
+      </ul>`
+  },
+
+  {
+    id: 'client-comms', cat: 'ops', tag: 'tag-blue', tagLabel: 'Operations',
+    title: 'Client Communication & Confidentiality',
+    subtitle: 'Communication standards, data protection, commitment rules',
+    body: `
+      <div class="rule-list">
+        <div class="rule-item"><div class="rule-dot"></div>All client conversations must remain <strong>professional, clear, and solution-oriented</strong> at all times.</div>
+        <div class="rule-item"><div class="rule-dot"></div>Do not make commitments to clients without consulting the concerned department first.</div>
+        <div class="rule-item"><div class="rule-dot"></div>Share all client feedback — positive or negative — with management immediately.</div>
+        <div class="rule-item"><div class="rule-dot"></div>Company data, pricing, designs, or project information must <strong>never</strong> be shared with outsiders.</div>
+        <div class="rule-item"><div class="rule-dot"></div>Every project must have its own dedicated folder — no mixing of project files.</div>
+        <div class="rule-item"><div class="rule-dot"></div>Employees are encouraged to suggest process improvements, safety ideas, or cost savings to management.</div>
+      </div>`
+  },
+
+  // ─── SAFETY ──────────────────────────────────────────────────
+  {
+    id: 'workplace-safety', cat: 'safety', tag: 'tag-red', tagLabel: 'Safety',
+    title: 'Workplace Safety & PPE Policy',
+    subtitle: 'Mandatory PPE by zone, emergency procedures, factory safety rules',
+    body: `
+      <div class="highlight-box"><strong>Zero Tolerance:</strong> No employee or contractor may enter active production, blasting, or painting zones without proper PPE. Safety violations result in immediate disciplinary action per the fine schedule.</div>
+      <h4>Mandatory PPE by Zone / Activity</h4>
+      <table class="kpi-table">
+        <thead><tr><th>Zone / Activity</th><th>Required PPE</th></tr></thead>
+        <tbody>
+          <tr><td>Welding</td><td>Auto-darkening welding helmet, leather gloves, flame-resistant apron, safety shoes, earplugs</td></tr>
+          <tr><td>Plasma / CNC Cutting</td><td>Safety goggles, earplugs, gloves, safety shoes, face shield for plasma</td></tr>
+          <tr><td>Shot Blasting</td><td>Full blasting hood, blast suit, P100 respirator, safety shoes, heavy gloves</td></tr>
+          <tr><td>Painting</td><td>Organic vapor respirator, goggles, nitrile gloves, full disposable coveralls</td></tr>
+          <tr><td>Grinding / Chipping</td><td>Full face shield, earplugs, gloves, safety shoes — no loose clothing</td></tr>
+          <tr><td>Material Handling / Loading</td><td>Hard hat, safety shoes, reflective vest, leather gloves</td></tr>
+          <tr><td>Crane / Hoist Operation</td><td>Hard hat, safety shoes, high-visibility vest — only trained operators to operate</td></tr>
+        </tbody>
+      </table>
+      <h4>Emergency Procedures</h4>
+      <div class="steps">
+        <div class="step"><div class="step-num">1</div><div class="step-content"><div class="step-title">Fire</div><div class="step-desc">Activate nearest alarm. Use fire extinguisher only if safe and trained. All personnel evacuate to assembly point at main gate. Call Production Head and emergency services immediately.</div></div></div>
+        <div class="step"><div class="step-num">2</div><div class="step-content"><div class="step-title">Injury / Accident</div><div class="step-desc">Stop all work in the area. Administer first aid. Call Production Head and arrange hospital transport. Log incident in Accident Register within 2 hours — do not delay.</div></div></div>
+        <div class="step"><div class="step-num">3</div><div class="step-content"><div class="step-title">Chemical Spill (Paint / Solvent)</div><div class="step-desc">Clear the area immediately. Do not use water on solvent spills. Use absorbent sand or cloth — wear chemical gloves and vapor respirator during cleanup. Dispose per SDS sheet instructions.</div></div></div>
+        <div class="step"><div class="step-num">4</div><div class="step-content"><div class="step-title">Gas Cylinder Leak</div><div class="step-desc">Shut off valve if accessible. Evacuate 15-metre radius. No ignition sources. Ventilate area. Call Production Head — do not attempt repair without trained personnel.</div></div></div>
+      </div>
+      <h4>General Factory Safety Rules</h4>
+      <ul>
+        <li>Absolutely no smoking inside the factory, yard, or near stored materials</li>
+        <li>Gas cylinders (O₂, LPG, acetylene) must be stored upright, chained, and segregated — minimum 3 m apart</li>
+        <li>Hot work permit required before any welding or cutting near paint, solvent, or stored material areas</li>
+        <li>All electrical cables routed safely — no trailing cables across walkways or work zones</li>
+        <li>Lifting equipment (EOT crane, chain hoist) inspected by operator before each shift — any defect reported immediately</li>
+        <li>First aid kit location: near Production Supervisor's desk — contents checked monthly</li>
+        <li>Safety signage must be visible and legible at all zone entry points at all times</li>
+        <li>Walking paths in shop must remain clear — no material stored in marked walkways</li>
+      </ul>`
+  },
+
+  // ─── PRODUCTION (additional) ─────────────────────────────────
+  {
+    id: 'welding-sop', cat: 'production', tag: 'tag-green', tagLabel: 'Production',
+    title: 'Welding & Fabrication Standards SOP',
+    subtitle: 'H-beam assembly sequence, tolerances, welder qualification — IS standards',
+    body: `
+      <h4>H-Beam Fabrication Sequence</h4>
+      <div class="steps">
+        <div class="step"><div class="step-num">1</div><div class="step-content"><div class="step-title">Plate Verification</div><div class="step-desc">Confirm flange and web plate dimensions against shop drawing. Plates must be free of laminations, cracks, or heavy scale. Mark part number and heat number on each piece before assembly.</div></div></div>
+        <div class="step"><div class="step-num">2</div><div class="step-content"><div class="step-title">Tack & Assembly</div><div class="step-desc">Tack weld flanges to web at 200–300 mm intervals. Check squareness (flanges ⊥ web) with set square at both ends and mid-span. Pre-set camber if required per drawing.</div></div></div>
+        <div class="step"><div class="step-num">3</div><div class="step-content"><div class="step-title">Main Welding</div><div class="step-desc">Weld per approved WPS — SAW or MIG/MAG. Alternate side-to-side to control distortion. Complete full-length weld on each side before switching. Interpass temperature to be maintained per WPS.</div></div></div>
+        <div class="step"><div class="step-num">4</div><div class="step-content"><div class="step-title">Post-Weld Check & Straightening</div><div class="step-desc">Measure camber and sweep after welding. Flame straightening only with QC engineer approval — document corrections. No cold hammering of structural welds.</div></div></div>
+        <div class="step"><div class="step-num">5</div><div class="step-content"><div class="step-title">Stiffener & Clip Welding</div><div class="step-desc">Weld stiffeners, end plates, and connection clips per drawing. Verify locations and dimensions. QC checks weld size and fit-up before release to next stage.</div></div></div>
+        <div class="step"><div class="step-num">6</div><div class="step-content"><div class="step-title">QC Sign-off & Marking</div><div class="step-desc">QC verifies all dimensions, weld visual, distortion, and bolt hole accuracy. Stamp or paint-mark member with: Part Mark, Project Code, QC Pass sticker, and Erection Grid reference.</div></div></div>
+      </div>
+      <h4>Fabrication Tolerances (IS 7215 / IS 800)</h4>
+      <table class="kpi-table">
+        <thead><tr><th>Parameter</th><th>Allowable Tolerance</th></tr></thead>
+        <tbody>
+          <tr><td>Member length</td><td>± 3 mm</td></tr>
+          <tr><td>Flange width</td><td>± 2 mm</td></tr>
+          <tr><td>Web height (depth)</td><td>± 2 mm</td></tr>
+          <tr><td>Camber (vertical bow)</td><td>L/1000 max, not exceeding 5 mm</td></tr>
+          <tr><td>Sweep (horizontal bow)</td><td>L/1000 max, not exceeding 5 mm</td></tr>
+          <tr><td>Squareness at ends</td><td>± 1 mm per 100 mm of flange width</td></tr>
+          <tr><td>Bolt hole position</td><td>± 1.5 mm from drawing</td></tr>
+          <tr><td>Fillet weld size</td><td>− 0 mm / + 2 mm from specified size</td></tr>
+        </tbody>
+      </table>
+      <h4>Welder Qualification Rules</h4>
+      <ul>
+        <li>All welders must hold a valid qualification certificate for the weld process, position, and material thickness they perform</li>
+        <li>Tested per IS 7307 (Part 1) / AWS D1.1 or approved equivalent</li>
+        <li>Re-qualification mandatory after a break of more than 6 months in continuous welding</li>
+        <li>Any welder with rejection rate exceeding 5% in a month must be retrained and re-tested before resuming structural welding</li>
+        <li>Welder ID marked on all weld joints in the log for traceability</li>
+      </ul>`
+  },
+
+  {
+    id: 'job-card-system', cat: 'production', tag: 'tag-green', tagLabel: 'Production',
+    title: 'Job Card & Daily Work Allocation System',
+    subtitle: 'How work is assigned, tracked, and signed off on the shop floor',
+    body: `
+      <p>Every production task must be tracked through a Job Card. Work is not considered complete unless the Job Card is signed off by the operator and countersigned by the Production Supervisor.</p>
+      <h4>Job Card Contents</h4>
+      <ul>
+        <li><strong>Job Card No.</strong> — sequential, linked to project code (e.g., PRJ-24-001-JC-005)</li>
+        <li><strong>Project & Part Info</strong> — project name, part mark, shop drawing reference number</li>
+        <li><strong>Operation Type</strong> — cutting / fitting / welding / blasting / painting / assembly / dispatch prep</li>
+        <li><strong>Operator Assigned</strong> — name and designation</li>
+        <li><strong>Start Date & Target Completion Date</strong></li>
+        <li><strong>Quantity & Weight</strong> — number of pieces and estimated weight (kg)</li>
+        <li><strong>Material Batch Ref.</strong> — linked to GRN / Store issue slip number</li>
+        <li><strong>Sign-off Columns</strong> — operator completion → supervisor verification → QC clearance</li>
+      </ul>
+      <h4>Daily Production Rhythm</h4>
+      <div class="steps">
+        <div class="step"><div class="step-num">1</div><div class="step-content"><div class="step-title">Morning Briefing — 8:00 AM</div><div class="step-desc">Production Head assigns daily tasks per project priority. Job Cards issued to each operator and contractor. Material requisitions raised and sent to Store for issue.</div></div></div>
+        <div class="step"><div class="step-num">2</div><div class="step-content"><div class="step-title">Mid-Day Check — 1:00 PM</div><div class="step-desc">Production Supervisor walks the floor, reviews actual progress vs Job Card targets. Any blockers (material shortage, machine breakdown, manpower issue) escalated to Production Head immediately — not at end of day.</div></div></div>
+        <div class="step"><div class="step-num">3</div><div class="step-content"><div class="step-title">End-of-Day Log — 5:30 PM</div><div class="step-desc">Operator marks Job Card as complete (100%) or logs % completion with reason for shortfall. Supervisor countersigns. Production Head compiles daily output summary and sends to MD by 6:30 PM.</div></div></div>
+      </div>
+      <h4>Daily Production Targets</h4>
+      <table class="kpi-table">
+        <thead><tr><th>Metric</th><th>Target</th></tr></thead>
+        <tbody>
+          <tr><td>Monthly production output</td><td>Minimum 150 MT fabricated</td></tr>
+          <tr><td>Material nesting efficiency</td><td>Above 95% utilization</td></tr>
+          <tr><td>Rejection / rework rate</td><td>Below 5% by weight</td></tr>
+          <tr><td>On-time dispatch</td><td>Per project milestone schedule — zero unplanned delays</td></tr>
+        </tbody>
+      </table>`
+  },
+
+  // ─── QUALITY (additional) ────────────────────────────────────
+  {
+    id: 'steel-specifications', cat: 'quality', tag: 'tag-amber', tagLabel: 'Quality',
+    title: 'Steel Grade & Material Certification Policy',
+    subtitle: 'Acceptable IS 2062 grades, MTC requirements, GRN inspection checks',
+    body: `
+      <p>All raw materials procured for PEB fabrication must conform to accepted Indian standards. No material may be issued from Store for production without QC clearance at Goods Receipt stage.</p>
+      <h4>Acceptable Steel Grades — IS 2062</h4>
+      <table class="kpi-table">
+        <thead><tr><th>Grade</th><th>Typical Use in PEB</th><th>Min Yield Strength</th></tr></thead>
+        <tbody>
+          <tr><td>IS 2062 E250 A/B</td><td>Secondary members — purlins, girts, bracing</td><td>250 MPa</td></tr>
+          <tr><td>IS 2062 E350 A/B</td><td>Primary frames — columns, rafters, haunch plates</td><td>350 MPa</td></tr>
+          <tr><td>IS 2062 E410</td><td>Heavy load-bearing elements (special specification only)</td><td>410 MPa</td></tr>
+          <tr><td>IS 1079 HR Coil</td><td>Cold-formed sections, sheeting rails, base plates</td><td>Per specification</td></tr>
+        </tbody>
+      </table>
+      <h4>Mill Test Certificate (MTC) — Mandatory Requirements</h4>
+      <ul>
+        <li>MTC required for every batch of plates and sections without exception — no MTC = material rejected at gate</li>
+        <li>MTC must state: heat number, cast number, chemical composition, mechanical test results (UTS / YS / elongation / impact), and steel grade</li>
+        <li>Heat/cast number on MTC must physically match markings on the material — verified at GRN by Store Keeper + QC</li>
+        <li>Out-of-specification MTC values → material returned to supplier + NCR raised on vendor</li>
+        <li>All MTCs archived per project for minimum 5 years for traceability audits</li>
+      </ul>
+      <h4>GRN Quality Inspection Checks</h4>
+      <div class="rule-list">
+        <div class="rule-item"><div class="rule-dot"></div><strong>Visual:</strong> No cracks, laminations, pitting, or unacceptable scale on any plate or section.</div>
+        <div class="rule-item"><div class="rule-dot"></div><strong>Dimensional:</strong> Spot-check thickness with calibrated gauge — minimum 10% of plates per batch.</div>
+        <div class="rule-item"><div class="rule-dot"></div><strong>Weight:</strong> Weigh-check delivery against Purchase Order quantity — tolerance ±2%.</div>
+        <div class="rule-item"><div class="rule-dot"></div><strong>Marking:</strong> Stencil or tag each plate/bundle with grade, heat number, and GRN number before placing in store.</div>
+        <div class="rule-item"><div class="rule-dot"></div><strong>Flatness:</strong> Plates with excessive bow or twist rejected or subject to straightening before production use.</div>
+      </div>`
+  },
+
+  {
+    id: 'blasting-painting-sop', cat: 'quality', tag: 'tag-amber', tagLabel: 'Quality',
+    title: 'Shot Blasting & Paint Application SOP',
+    subtitle: 'SA 2.5 standard, coat system, DFT targets, humidity limits',
+    body: `
+      <div class="highlight-box"><strong>Hold Points:</strong> (1) QC must sign off on completed fabrication before blasting starts. (2) QC must verify SA 2.5 surface before primer is applied. (3) Final DFT log must be approved before dispatch clearance.</div>
+      <h4>Shot Blasting Requirements</h4>
+      <table class="kpi-table">
+        <thead><tr><th>Parameter</th><th>Requirement</th></tr></thead>
+        <tbody>
+          <tr><td>Blasting Standard</td><td>SA 2.5 — Near White Metal (ISO 8501-1)</td></tr>
+          <tr><td>Surface Profile (Anchor)</td><td>40–75 microns Rz — measured with Testex tape or Rougometer</td></tr>
+          <tr><td>Relative Humidity Limit</td><td>Max 85% — blasting stops if exceeded or if dew point is within 3°C of steel temp</td></tr>
+          <tr><td>Max hold time before primer</td><td>4 hours (dry weather) / 2 hours (humid or monsoon season)</td></tr>
+          <tr><td>Visual verification</td><td>No rust bloom, no mill scale, no oil/grease — QC sign-off before painting crew enters</td></tr>
+        </tbody>
+      </table>
+      <h4>Standard Paint Coat System (Minimum — unless client spec overrides)</h4>
+      <div class="steps">
+        <div class="step"><div class="step-num">1</div><div class="step-content"><div class="step-title">Primer Coat</div><div class="step-desc">Zinc phosphate or epoxy primer. Minimum DFT: 50 microns dry. Apply within hold time of blasting. QC measures DFT at 5 points per member after cure. Batch number recorded.</div></div></div>
+        <div class="step"><div class="step-num">2</div><div class="step-content"><div class="step-title">Intermediate / MIO Coat (if specified)</div><div class="step-desc">Micaceous Iron Oxide (MIO) or equivalent. Min DFT: 40–60 microns. Allow primer to fully cure before applying. QC re-measures cumulative DFT.</div></div></div>
+        <div class="step"><div class="step-num">3</div><div class="step-content"><div class="step-title">Top / Finish Coat</div><div class="step-desc">Client-specified color code (RAL or IS code). Min DFT: 40–50 microns. Final coat must achieve uniform color and sheen. QC signs off final DFT log before dispatch clearance given.</div></div></div>
+      </div>
+      <h4>DFT Measurement Protocol</h4>
+      <ul>
+        <li>Measure at minimum 5 points per member — both flanges, web top, web bottom, and each end plate</li>
+        <li>Record per batch in DFT Log: date, member part mark, coat number, individual readings, min/max/average, pass/fail</li>
+        <li>Any reading below minimum DFT: apply additional coat, allow cure, re-measure before accepting</li>
+        <li>DFT gauge calibrated monthly — calibration tag attached to gauge at all times</li>
+        <li>Paint batch numbers and supplier names recorded per project — retained with project QC file</li>
+      </ul>`
+  },
+
+  {
+    id: 'ncr-rework', cat: 'quality', tag: 'tag-amber', tagLabel: 'Quality',
+    title: 'Non-Conformance Report (NCR) & Rework Procedure',
+    subtitle: 'HOLD tagging, disposition decisions, root cause tracking',
+    body: `
+      <div class="highlight-box"><strong>Principle:</strong> Any component not meeting drawing or SOP requirements must be immediately tagged as Non-Conforming. No non-conforming part may proceed to the next stage without a written disposition decision.</div>
+      <h4>NCR Process — Step by Step</h4>
+      <div class="steps">
+        <div class="step"><div class="step-num">1</div><div class="step-content"><div class="step-title">Identify & Tag</div><div class="step-desc">QC inspector identifies non-conformance. Red "HOLD — DO NOT USE" tag attached to the part. Part physically moved to designated NCR Hold Area — must not be returned to production flow.</div></div></div>
+        <div class="step"><div class="step-num">2</div><div class="step-content"><div class="step-title">Raise NCR Form</div><div class="step-desc">QC fills NCR form: NCR number, project, part mark, description of defect, stage detected, photos attached where possible, responsible department noted.</div></div></div>
+        <div class="step"><div class="step-num">3</div><div class="step-content"><div class="step-title">Disposition Decision</div><div class="step-desc">QC Incharge and Production Head jointly decide within 24 hours: Rework to drawing / Repair (if structurally sound) / Scrap / Use As-Is (with client and MD sign-off). Decision documented on NCR form — no verbal dispositions.</div></div></div>
+        <div class="step"><div class="step-num">4</div><div class="step-content"><div class="step-title">Rework / Repair Execution</div><div class="step-desc">Rework carried out per approved method and re-inspected by QC. Rework cost logged against responsible contractor or operator. NCR form updated with outcome and re-inspection result.</div></div></div>
+        <div class="step"><div class="step-num">5</div><div class="step-content"><div class="step-title">Root Cause & Corrective Action</div><div class="step-desc">Root cause identified and documented. Corrective action assigned with responsible person and 30-day deadline. Follow-up check logged on NCR form when complete.</div></div></div>
+      </div>
+      <h4>Disposition Authority</h4>
+      <table class="kpi-table">
+        <thead><tr><th>Disposition</th><th>Authority Required</th></tr></thead>
+        <tbody>
+          <tr><td>Rework to drawing dimensions</td><td>QC Incharge</td></tr>
+          <tr><td>Use As-Is (minor deviation)</td><td>QC Incharge + Production Head + MD written approval</td></tr>
+          <tr><td>Scrap the part</td><td>QC Incharge + Production Head</td></tr>
+          <tr><td>Return to Supplier (raw material defect)</td><td>Production Head + Accounts (credit note)</td></tr>
+        </tbody>
+      </table>
+      <h4>NCR Tracking & Review</h4>
+      <ul>
+        <li>Monthly NCR summary reviewed by management — frequency, type, department, and root cause trends</li>
+        <li>Rejection rate target: below 5% by weight of total monthly production</li>
+        <li>Same defect type occurring more than twice in a month → mandatory SOP review and toolbox talk within 5 working days</li>
+        <li>All NCRs archived per project for customer and audit reference</li>
+      </ul>`
+  },
+
+  // ─── OPERATIONS (additional) ─────────────────────────────────
+  {
+    id: 'scrap-management', cat: 'ops', tag: 'tag-green', tagLabel: 'Operations',
+    title: 'Scrap & Cutting Loss Management Policy',
+    subtitle: 'Loss % targets, scrap segregation, weighing, and sale authorization',
+    body: `
+      <div class="highlight-box"><strong>Target:</strong> Cutting loss must not exceed 5% of total raw material inward per project. Loss above 8% must be reported to management with a written explanation and corrective plan.</div>
+      <h4>Cutting Loss Calculation (Per Project)</h4>
+      <table class="kpi-table">
+        <thead><tr><th>Input</th><th>Source</th></tr></thead>
+        <tbody>
+          <tr><td>Raw Material Inward (MT)</td><td>GRN total weight from Store register</td></tr>
+          <tr><td>Finished Component Output (MT)</td><td>PEB Tracker — dispatched weight</td></tr>
+          <tr><td>Scrap Generated (MT)</td><td>Weighed and logged separately by Store Keeper</td></tr>
+          <tr><td><strong>Cutting Loss % = (Scrap ÷ Inward) × 100</strong></td><td>Calculated monthly per project by Production Head</td></tr>
+        </tbody>
+      </table>
+      <h4>Scrap Segregation Rules</h4>
+      <div class="rule-list">
+        <div class="rule-item"><div class="rule-dot"></div><strong>Heavy Drops</strong> — Reusable offcuts larger than 300 mm. Stored in dedicated area and offered back to production programmer before being sold. Programmer confirms usability within 48 hours.</div>
+        <div class="rule-item"><div class="rule-dot"></div><strong>Light Scrap</strong> — Trimmings and small off-cuts under 300 mm. Collected in marked scrap bins at each machine.</div>
+        <div class="rule-item"><div class="rule-dot"></div><strong>Blasting / Grinding Dust</strong> — Collected and disposed separately — not mixed with metal scrap. Follows local environmental disposal guidelines.</div>
+      </div>
+      <h4>Scrap Sale Authorization</h4>
+      <div class="rule-list">
+        <div class="rule-item"><div class="rule-dot"></div>Store Keeper weighs all scrap on certified weigh scale and logs in Scrap Register: date, project code, type, weight (MT), destination yard.</div>
+        <div class="rule-item"><div class="rule-dot"></div>Minimum 2 scrap dealer quotes required before sale. Best rate selected and noted on Scrap Sale Approval form.</div>
+        <div class="rule-item"><div class="rule-dot"></div>Written approval from Production Head mandatory before any scrap is moved out — no verbal orders.</div>
+        <div class="rule-item"><div class="rule-dot"></div>Scrap sale proceeds recorded in accounts and credited to the respective project's cost center.</div>
+        <div class="rule-item"><div class="rule-dot"></div>QC confirms all sold scrap is genuinely unusable — no good material to leave as scrap.</div>
+      </div>`
+  },
+
+];
+
+// ── RENDER ───────────────────────────────────────────────────────
+let activeFilter = 'all';
+
+function setFilter(cat, el) {
+  activeFilter = cat;
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  el.classList.add('active');
+  filterAll();
+}
+
+function filterAll() {
+  const q = (document.getElementById('searchBox').value || '').toLowerCase();
+  render(q, activeFilter);
+}
+
+function render(q = '', cat = 'all') {
+  const list = document.getElementById('policyList');
+  const empty = document.getElementById('emptyState');
+
+  const filtered = POLICIES.filter(p => {
+    const matchCat = cat === 'all' || p.cat === cat;
+    const matchQ   = !q || p.title.toLowerCase().includes(q) || p.subtitle.toLowerCase().includes(q) || p.body.toLowerCase().includes(q);
+    return matchCat && matchQ;
+  });
+
+  if (!filtered.length) { list.innerHTML = ''; empty.style.display = 'block'; return; }
+  empty.style.display = 'none';
+
+  const cats = [
+    { key:'roles',      icon:'👤', label:'Roles & Responsibilities' },
+    { key:'production', icon:'🏭', label:'Production & Milestones' },
+    { key:'quality',    icon:'✅', label:'Quality Control' },
+    { key:'finance',    icon:'💰', label:'Finance & Accounts' },
+    { key:'hr',         icon:'📋', label:'HR & Discipline' },
+    { key:'ops',        icon:'⚙️', label:'Operations & Store' },
+    { key:'safety',     icon:'🦺', label:'Safety & PPE' },
+  ];
+
+  let html = '';
+  cats.forEach(c => {
+    const items = filtered.filter(p => p.cat === c.key);
+    if (!items.length) return;
+    html += `<div class="cat-header"><span class="cat-icon">${c.icon}</span><span class="cat-title">${c.label}</span><span class="cat-count">${items.length} polic${items.length===1?'y':'ies'}</span></div>`;
+    items.forEach(p => {
+      html += `<div class="policy-card" id="card-${p.id}">
+        <div class="policy-header" onclick="toggle('${p.id}')">
+          <span class="policy-tag ${p.tag}">${p.tagLabel}</span>
+          <div><div class="policy-title">${p.title}</div><div class="policy-subtitle">${p.subtitle}</div></div>
+          <span class="policy-chevron">▾</span>
+        </div>
+        <div class="policy-body">${p.body}</div>
+      </div>`;
+    });
+  });
+  list.innerHTML = html;
+}
+
+function toggle(id) {
+  document.getElementById('card-' + id).classList.toggle('open');
+}
+
+if (sessionStorage.getItem('pol_auth')) render();
+</script>
+</body>
+</html>
