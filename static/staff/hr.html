@@ -1,0 +1,670 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>HR Dashboard — Proalfa Dynamic</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --bg: #f5f5f3; --card: #ffffff; --card2: #eeede9;
+  --text: #1a1a18; --text2: #6b6b67; --border: rgba(0,0,0,0.10); --border2: rgba(0,0,0,0.18);
+  --blue: #185FA5; --blue-bg: #E6F1FB; --blue-text: #042C53;
+  --green: #0F6E56; --green-bg: #E1F5EE; --green-text: #04342C;
+  --amber: #854F0B; --amber-bg: #FAEEDA; --amber-text: #412402;
+  --red: #A32D2D; --red-bg: #FCEBEB; --red-text: #501313;
+  --r: 8px; --r2: 12px;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #1a1a18; --card: #232320; --card2: #2c2c28;
+    --text: #f0ede8; --text2: #9a9a96; --border: rgba(255,255,255,0.08); --border2: rgba(255,255,255,0.16);
+    --blue: #378ADD; --blue-bg: #0c2540; --blue-text: #B5D4F4;
+    --green: #1D9E75; --green-bg: #062820; --green-text: #9FE1CB;
+    --amber: #EF9F27; --amber-bg: #2a1a04; --amber-text: #FAC775;
+    --red: #E24B4A; --red-bg: #2c0f0f; --red-text: #F7C1C1;
+  }
+}
+body { font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Helvetica Neue', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; font-size: 14px; }
+
+/* ── Login ── */
+#loginOverlay { position:fixed;inset:0;background:var(--bg);display:flex;align-items:center;justify-content:center;z-index:1000; }
+.lcard { background:var(--card);border:1px solid var(--border2);border-radius:var(--r2);padding:40px;width:340px; }
+.lcard h2 { font-size:18px;font-weight:700;margin-bottom:4px; }
+.lcard p { color:var(--text2);font-size:12px;margin-bottom:24px; }
+.lcard label { display:block;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--text2);margin-bottom:6px; }
+.lcard input[type=password] { width:100%;padding:9px 12px;border:1px solid var(--border2);border-radius:var(--r);background:var(--card2);color:var(--text);font-size:14px;outline:none;margin-bottom:16px;font-family:inherit; }
+.lcard input[type=password]:focus { border-color:var(--blue); }
+.lerr { color:var(--red);font-size:12px;margin-top:-10px;margin-bottom:12px;display:none; }
+
+/* ── Header ── */
+.hdr { background:var(--card);border-bottom:1px solid var(--border);padding:14px 24px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100; }
+.hdr-title { font-size:15px;font-weight:700; }
+.hdr-sub { font-size:11px;color:var(--text2); }
+
+/* ── Layout ── */
+.app { max-width:1200px;margin:0 auto;padding:24px 20px; }
+
+/* ── Tabs ── */
+.tabs { display:flex;gap:2px;border-bottom:1px solid var(--border);margin-bottom:24px;overflow-x:auto; }
+.tab { padding:9px 18px;font-size:13px;font-weight:500;color:var(--text2);background:none;border:none;cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px;white-space:nowrap;transition:all .15s; }
+.tab.active { color:var(--blue);border-bottom-color:var(--blue); }
+.panel { display:none; }
+.panel.active { display:block; }
+
+/* ── Stat cards ── */
+.cards { display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin-bottom:24px; }
+.card { background:var(--card);border:1px solid var(--border);border-radius:var(--r2);padding:18px 20px; }
+.card-label { font-size:11px;color:var(--text2);text-transform:uppercase;letter-spacing:.08em;margin-bottom:8px; }
+.card-value { font-size:30px;font-weight:700;line-height:1; }
+.card-sub { font-size:11px;color:var(--text2);margin-top:6px; }
+.card.amber .card-value { color:var(--amber); }
+.card.red .card-value { color:var(--red); }
+.card.green .card-value { color:var(--green); }
+
+/* ── Alerts ── */
+.alert-list { display:flex;flex-direction:column;gap:8px;margin-bottom:20px; }
+.alert-item { padding:10px 14px;border-radius:var(--r);font-size:13px; }
+.alert-item.warn { background:var(--amber-bg);color:var(--amber-text);border:1px solid var(--amber); }
+.alert-item.info { background:var(--blue-bg);color:var(--blue-text);border:1px solid var(--blue); }
+
+/* ── Buttons ── */
+.btn { padding:8px 16px;border-radius:var(--r);border:1px solid var(--border2);background:var(--card);color:var(--text);font-size:13px;font-weight:500;cursor:pointer;transition:all .15s; }
+.btn:hover { border-color:var(--blue);color:var(--blue); }
+.btn-primary { background:var(--blue);border-color:var(--blue);color:#fff; }
+.btn-primary:hover { opacity:.88;color:#fff; }
+.btn-danger { background:var(--red-bg);color:var(--red);border-color:var(--red); }
+.btn-danger:hover { opacity:.85;color:var(--red); }
+.btn-sm { padding:5px 12px;font-size:12px; }
+
+/* ── Search/filter row ── */
+.search-row { display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap;align-items:center; }
+.search-row input { flex:1;min-width:180px;padding:8px 12px;border:1px solid var(--border2);border-radius:var(--r);background:var(--card);color:var(--text);font-size:13px;outline:none;font-family:inherit; }
+.search-row input:focus { border-color:var(--blue); }
+.search-row select { padding:8px 10px;border:1px solid var(--border2);border-radius:var(--r);background:var(--card);color:var(--text);font-size:13px;outline:none; }
+
+/* ── Employee cards ── */
+.emp-grid { display:flex;flex-direction:column;gap:8px; }
+.emp-card { background:var(--card);border:1px solid var(--border);border-radius:var(--r2);padding:16px 20px;display:flex;align-items:center;gap:16px;cursor:pointer;transition:border-color .15s; }
+.emp-card:hover { border-color:var(--blue); }
+.emp-avatar { width:44px;height:44px;border-radius:50%;background:var(--blue-bg);color:var(--blue);font-weight:700;font-size:16px;display:flex;align-items:center;justify-content:center;flex-shrink:0; }
+.emp-info { flex:1;min-width:0; }
+.emp-name { font-weight:600;font-size:14px; }
+.emp-meta { font-size:12px;color:var(--text2);margin-top:2px; }
+.emp-badges { display:flex;gap:6px;flex-wrap:wrap;align-items:center; }
+
+/* ── Badges ── */
+.badge { padding:2px 9px;border-radius:20px;font-size:11px;font-weight:600;white-space:nowrap; }
+.badge-active    { background:var(--green-bg);color:var(--green); }
+.badge-probation { background:var(--amber-bg);color:var(--amber); }
+.badge-resigned  { background:var(--red-bg);color:var(--red); }
+.badge-terminated{ background:var(--red-bg);color:var(--red); }
+.badge-docs      { background:var(--amber-bg);color:var(--amber); }
+
+/* ── Detail view ── */
+#detailView { display:none; }
+.detail-hdr { display:flex;align-items:center;gap:14px;margin-bottom:24px;flex-wrap:wrap; }
+.detail-avatar { width:54px;height:54px;border-radius:50%;background:var(--blue-bg);color:var(--blue);font-weight:700;font-size:20px;display:flex;align-items:center;justify-content:center;flex-shrink:0; }
+.detail-name { font-size:20px;font-weight:700; }
+.detail-sub { font-size:13px;color:var(--text2);margin-top:2px; }
+.detail-actions { margin-left:auto;display:flex;gap:8px; }
+
+/* ── Form sections ── */
+.fsec { background:var(--card);border:1px solid var(--border);border-radius:var(--r2);padding:20px;margin-bottom:14px; }
+.fsec-title { font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text2);margin-bottom:16px; }
+.fgrid { display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px; }
+.fgrid-2 { grid-template-columns:1fr 1fr; }
+.fg { display:flex;flex-direction:column;gap:4px; }
+.fg label { font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--text2); }
+.fg input, .fg select, .fg textarea {
+  padding:8px 10px;border:1px solid var(--border2);border-radius:var(--r);
+  background:var(--bg);color:var(--text);font-size:13px;outline:none;font-family:inherit;
+}
+.fg input:focus, .fg select:focus, .fg textarea:focus { border-color:var(--blue); }
+.fg textarea { resize:vertical;min-height:72px; }
+.fg-full { grid-column:1/-1; }
+
+/* ── Doc status grid ── */
+.doc-grid { display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px; }
+.doc-item { background:var(--card2);border:1px solid var(--border);border-radius:var(--r);padding:12px 14px; }
+.doc-name { font-size:12px;font-weight:600;margin-bottom:8px; }
+.doc-item select { width:100%;padding:5px 8px;border:1px solid var(--border2);border-radius:6px;background:var(--card);color:var(--text);font-size:12px;outline:none; }
+
+/* ── Onboarding checklist ── */
+.checklist { display:flex;flex-direction:column;gap:6px; }
+.chk-item { background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:11px 16px;display:flex;align-items:center;gap:12px;transition:opacity .2s; }
+.chk-item.done { opacity:.55; }
+.chk-item input[type=checkbox] { width:16px;height:16px;accent-color:var(--green);cursor:pointer;flex-shrink:0; }
+.chk-label { flex:1;font-size:13px; }
+.chk-label.done { text-decoration:line-through;color:var(--text2); }
+.chk-date { font-size:11px;color:var(--text2);white-space:nowrap; }
+
+/* ── Alert bar ── */
+.abar { padding:10px 14px;border-radius:var(--r);font-size:13px;margin-bottom:14px;display:none; }
+.abar-ok  { background:var(--green-bg);color:var(--green-text);border:1px solid var(--green); }
+.abar-err { background:var(--red-bg);color:var(--red-text);border:1px solid var(--red); }
+
+/* ── Misc ── */
+.empty { text-align:center;color:var(--text2);padding:40px;font-size:13px; }
+.footer { text-align:center;padding:20px;font-size:11px;color:var(--text2);margin-top:8px; }
+.section-note { font-size:12px;color:var(--text2);margin-bottom:16px; }
+@media(max-width:600px) {
+  .detail-actions { width:100%;justify-content:flex-start; }
+  .fgrid { grid-template-columns:1fr; }
+}
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div id="loginOverlay">
+  <div class="lcard">
+    <h2>HR Dashboard</h2>
+    <p>Proalfa Dynamic · Management access only</p>
+    <label>Password</label>
+    <input type="password" id="lpass" placeholder="Enter password" onkeydown="if(event.key==='Enter')doLogin()">
+    <div class="lerr" id="lerr">Incorrect password.</div>
+    <button class="btn btn-primary" style="width:100%" onclick="doLogin()">Sign In</button>
+  </div>
+</div>
+
+<!-- HEADER -->
+<div class="hdr">
+  <div>
+    <div class="hdr-title">HR Dashboard</div>
+    <div class="hdr-sub">Proalfa Dynamic — Employee Records & KYC</div>
+  </div>
+  <button class="btn btn-sm" onclick="doLogout()">Logout</button>
+</div>
+
+<!-- APP -->
+<div class="app" id="mainApp" style="display:none">
+  <div id="abar" class="abar"></div>
+
+  <div class="tabs">
+    <button class="tab active" onclick="switchTab('overview',this)">Overview</button>
+    <button class="tab" onclick="switchTab('employees',this)">Employees</button>
+    <button class="tab" onclick="switchTab('add',this)">＋ Add Employee</button>
+    <button class="tab" onclick="switchTab('onboarding',this)">Onboarding</button>
+  </div>
+
+  <!-- OVERVIEW -->
+  <div class="panel active" id="panel-overview">
+    <div class="cards">
+      <div class="card green"><div class="card-label">Active</div><div class="card-value" id="st-active">—</div><div class="card-sub">employees on roll</div></div>
+      <div class="card amber"><div class="card-label">On Probation</div><div class="card-value" id="st-prob">—</div><div class="card-sub">pending confirmation</div></div>
+      <div class="card red"><div class="card-label">Docs Incomplete</div><div class="card-value" id="st-docs">—</div><div class="card-sub">one or more pending</div></div>
+      <div class="card"><div class="card-label">Joined This Month</div><div class="card-value" id="st-new">—</div><div class="card-sub">new hires</div></div>
+    </div>
+    <div id="alertsArea"></div>
+  </div>
+
+  <!-- EMPLOYEES -->
+  <div class="panel" id="panel-employees">
+    <div id="empListView">
+      <div class="search-row">
+        <input type="text" id="srch" placeholder="Search name, ID, designation…" oninput="renderList()">
+        <select id="fStatus" onchange="renderList()">
+          <option value="">All Status</option>
+          <option value="active">Active</option>
+          <option value="probation">Probation</option>
+          <option value="resigned">Resigned</option>
+          <option value="terminated">Terminated</option>
+        </select>
+        <select id="fDept" onchange="renderList()">
+          <option value="">All Departments</option>
+          <option value="Civil">Civil</option>
+          <option value="Structural / PEB">Structural / PEB</option>
+          <option value="MEP">MEP</option>
+          <option value="Procurement">Procurement</option>
+          <option value="Accounts">Accounts</option>
+          <option value="HR / Admin">HR / Admin</option>
+          <option value="Site">Site</option>
+          <option value="Management">Management</option>
+        </select>
+      </div>
+      <div id="empGrid" class="emp-grid"></div>
+    </div>
+
+    <div id="detailView">
+      <div class="detail-hdr">
+        <button class="btn btn-sm" onclick="showList()">← Back</button>
+        <div class="detail-avatar" id="dAvatar"></div>
+        <div>
+          <div class="detail-name" id="dName"></div>
+          <div class="detail-sub" id="dSub"></div>
+        </div>
+        <div class="detail-actions">
+          <button class="btn btn-primary btn-sm" onclick="saveEmployee()">Save Changes</button>
+          <button class="btn btn-danger btn-sm" onclick="deleteEmployee()">Delete</button>
+        </div>
+      </div>
+      <div id="empFormWrap"></div>
+    </div>
+  </div>
+
+  <!-- ADD EMPLOYEE -->
+  <div class="panel" id="panel-add">
+    <div id="addFormWrap"></div>
+    <div style="display:flex;gap:8px;margin-top:4px">
+      <button class="btn btn-primary" onclick="addEmployee()">Save Employee</button>
+      <button class="btn" onclick="buildAddForm()">Clear Form</button>
+    </div>
+  </div>
+
+  <!-- ONBOARDING -->
+  <div class="panel" id="panel-onboarding">
+    <div class="fsec" style="margin-bottom:16px">
+      <div class="fsec-title">Select Employee</div>
+      <select id="obEmpSel" onchange="loadOnboarding()" style="padding:8px 12px;border:1px solid var(--border2);border-radius:var(--r);background:var(--card);color:var(--text);font-size:13px;outline:none;min-width:280px">
+        <option value="">— Choose an employee —</option>
+      </select>
+    </div>
+    <div id="obContent"></div>
+  </div>
+</div>
+
+<div class="footer">HR Dashboard · Proalfa Dynamic · Management access only</div>
+
+<script>
+const SB_URL  = "https://gzjzuudhtvljpwcqygtk.supabase.co";
+const SB_KEY  = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imd6anp1dWRodHZsanB3Y3F5Z3RrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzgzOTY4NTksImV4cCI6MjA5Mzk3Mjg1OX0.pCBKZwMDvu8UAfKEXL8_hgkuG95A-MtVKK6sM2qFxEs";
+const APP_PASS = "ProalfaAdmin@2025";
+
+const { createClient } = supabase;
+const sb = createClient(SB_URL, SB_KEY);
+
+let employees = [];
+let currentId = null;
+
+const DEPTS = ["Civil","Structural / PEB","MEP","Procurement","Accounts","HR / Admin","Site","Management"];
+const EMP_TYPES = ["permanent","contract","daily_wage","trainee"];
+const STATUSES = ["active","probation","resigned","terminated"];
+const DOC_FIELDS = [
+  { key:"doc_aadhar",   label:"Aadhar Copy" },
+  { key:"doc_pan",      label:"PAN Copy" },
+  { key:"doc_photo",    label:"Photo" },
+  { key:"doc_bank",     label:"Bank Proof" },
+  { key:"doc_certificates", label:"Certificates" },
+];
+const DEFAULT_TASKS = [
+  "Offer letter signed and collected",
+  "Aadhar copy collected",
+  "PAN copy collected",
+  "Passport photo collected",
+  "Bank details and cancelled cheque collected",
+  "Emergency contact recorded",
+  "Site induction and safety briefing done",
+  "PPE / tools issued",
+  "ID card issued",
+  "Added to attendance system",
+  "Added to payroll",
+];
+
+// ── AUTH ──────────────────────────────────────────────────────────
+function doLogin() {
+  if (document.getElementById('lpass').value === APP_PASS) {
+    sessionStorage.setItem('hr_auth','1');
+    document.getElementById('loginOverlay').style.display = 'none';
+    document.getElementById('mainApp').style.display = 'block';
+    initApp();
+  } else {
+    document.getElementById('lerr').style.display = 'block';
+    document.getElementById('lpass').value = '';
+    document.getElementById('lpass').focus();
+  }
+}
+function doLogout() {
+  sessionStorage.removeItem('hr_auth');
+  employees = [];
+  document.getElementById('loginOverlay').style.display = 'flex';
+  document.getElementById('mainApp').style.display = 'none';
+}
+if (sessionStorage.getItem('hr_auth')) {
+  document.getElementById('loginOverlay').style.display = 'none';
+  document.getElementById('mainApp').style.display = 'block';
+  initApp();
+}
+
+// ── INIT ─────────────────────────────────────────────────────────
+async function initApp() {
+  const { data, error } = await sb.from('hr_employees').select('*').order('full_name');
+  if (data) employees = data;
+  renderOverview();
+  renderList();
+  buildAddForm();
+  populateObSelect();
+}
+
+// ── TABS ─────────────────────────────────────────────────────────
+function switchTab(name, el) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  el.classList.add('active');
+  document.getElementById('panel-' + name).classList.add('active');
+  if (name === 'employees') { showList(); renderList(); }
+  if (name === 'add') buildAddForm();
+  if (name === 'onboarding') populateObSelect();
+}
+
+// ── OVERVIEW ─────────────────────────────────────────────────────
+function renderOverview() {
+  const active = employees.filter(e => e.status === 'active').length;
+  const prob   = employees.filter(e => e.status === 'probation').length;
+  const docsPending = employees.filter(e =>
+    DOC_FIELDS.some(d => (e[d.key] || 'pending') === 'pending') &&
+    (e.status === 'active' || e.status === 'probation')
+  ).length;
+  const thisMonth = new Date().toISOString().slice(0,7);
+  const newJoined = employees.filter(e => (e.date_of_joining||'').slice(0,7) === thisMonth).length;
+
+  document.getElementById('st-active').textContent = active;
+  document.getElementById('st-prob').textContent   = prob;
+  document.getElementById('st-docs').textContent   = docsPending;
+  document.getElementById('st-new').textContent    = newJoined;
+
+  const today = new Date();
+  const in30  = new Date(today.getTime() + 30 * 864e5);
+  const alerts = [];
+
+  employees.forEach(e => {
+    if (e.probation_end_date) {
+      const pd = new Date(e.probation_end_date);
+      if (pd < today && e.status === 'probation')
+        alerts.push({ type:'warn', msg:`⚠ ${e.full_name} — probation ended on ${e.probation_end_date}. Status not updated.` });
+      else if (pd >= today && pd <= in30) {
+        const days = Math.ceil((pd - today) / 864e5);
+        alerts.push({ type:'warn', msg:`⏰ ${e.full_name} — probation ends in ${days} day${days===1?'':'s'} (${e.probation_end_date})` });
+      }
+    }
+    if (e.status === 'active' || e.status === 'probation') {
+      const missing = DOC_FIELDS.filter(d => (e[d.key]||'pending') === 'pending').map(d => d.label);
+      if (missing.length) alerts.push({ type:'info', msg:`📋 ${e.full_name} — docs pending: ${missing.join(', ')}` });
+    }
+  });
+
+  const area = document.getElementById('alertsArea');
+  if (!alerts.length) {
+    area.innerHTML = '<p style="color:var(--text2);font-size:13px;padding:4px 0">✓ No alerts. Everything looks good.</p>';
+  } else {
+    area.innerHTML = '<div class="alert-list">' +
+      alerts.map(a => `<div class="alert-item ${a.type}">${a.msg}</div>`).join('') +
+      '</div>';
+  }
+}
+
+// ── EMPLOYEE LIST ─────────────────────────────────────────────────
+function showList() {
+  document.getElementById('empListView').style.display = 'block';
+  document.getElementById('detailView').style.display = 'none';
+  currentId = null;
+}
+function renderList() {
+  const q  = (document.getElementById('srch').value || '').toLowerCase();
+  const sf = document.getElementById('fStatus').value;
+  const df = document.getElementById('fDept').value;
+  const list = employees.filter(e =>
+    (!q || (e.full_name||'').toLowerCase().includes(q) ||
+           (e.emp_id||'').toLowerCase().includes(q) ||
+           (e.designation||'').toLowerCase().includes(q)) &&
+    (!sf || e.status === sf) &&
+    (!df || e.department === df)
+  );
+  const grid = document.getElementById('empGrid');
+  if (!list.length) { grid.innerHTML = '<div class="empty">No employees found.</div>'; return; }
+  grid.innerHTML = list.map(e => {
+    const init = initials(e.full_name);
+    const docsOk = !DOC_FIELDS.some(d => (e[d.key]||'pending') === 'pending');
+    return `<div class="emp-card" onclick="openEmp(${e.id})">
+      <div class="emp-avatar">${init}</div>
+      <div class="emp-info">
+        <div class="emp-name">${e.full_name}</div>
+        <div class="emp-meta">${[e.emp_id, e.designation, e.department].filter(Boolean).join(' · ')}</div>
+        <div class="emp-meta">Joined: ${e.date_of_joining || '—'} &nbsp;·&nbsp; ${(e.employment_type||'').replace('_',' ')}</div>
+      </div>
+      <div class="emp-badges">
+        <span class="badge badge-${e.status||'active'}">${cap(e.status||'active')}</span>
+        ${!docsOk ? '<span class="badge badge-docs">Docs Pending</span>' : ''}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ── EMPLOYEE DETAIL ────────────────────────────────────────────────
+function openEmp(id) {
+  const e = employees.find(x => x.id === id);
+  if (!e) return;
+  currentId = id;
+  document.getElementById('dAvatar').textContent = initials(e.full_name);
+  document.getElementById('dName').textContent   = e.full_name;
+  document.getElementById('dSub').textContent    = [e.emp_id, e.designation, e.department].filter(Boolean).join(' · ');
+  document.getElementById('empFormWrap').innerHTML = formHTML(e);
+  document.getElementById('empListView').style.display = 'none';
+  document.getElementById('detailView').style.display  = 'block';
+}
+
+async function saveEmployee() {
+  if (!currentId) return;
+  const data = collectForm();
+  if (!data.full_name) { showAlert('Full name is required.', 'err'); return; }
+  const { error } = await sb.from('hr_employees').update(data).eq('id', currentId);
+  if (error) { showAlert('Error: ' + error.message, 'err'); return; }
+  const idx = employees.findIndex(e => e.id === currentId);
+  if (idx > -1) employees[idx] = { ...employees[idx], ...data };
+  document.getElementById('dName').textContent = data.full_name;
+  document.getElementById('dSub').textContent  = [data.emp_id, data.designation, data.department].filter(Boolean).join(' · ');
+  renderOverview();
+  populateObSelect();
+  showAlert('Employee record saved.', 'ok');
+}
+
+async function deleteEmployee() {
+  const e = employees.find(x => x.id === currentId);
+  if (!e || !confirm(`Delete ${e.full_name}? This also removes their onboarding records.`)) return;
+  const { error } = await sb.from('hr_employees').delete().eq('id', currentId);
+  if (error) { showAlert('Error: ' + error.message, 'err'); return; }
+  employees = employees.filter(x => x.id !== currentId);
+  renderOverview(); renderList(); populateObSelect();
+  showList();
+  showAlert('Employee deleted.', 'ok');
+}
+
+// ── ADD EMPLOYEE ───────────────────────────────────────────────────
+function buildAddForm() {
+  document.getElementById('addFormWrap').innerHTML = formHTML({});
+}
+
+async function addEmployee() {
+  const data = collectForm();
+  if (!data.full_name) { showAlert('Full name is required.', 'err'); return; }
+  if (!data.status) data.status = 'probation';
+  DOC_FIELDS.forEach(d => { if (!data[d.key]) data[d.key] = 'pending'; });
+
+  const { data: row, error } = await sb.from('hr_employees').insert(data).select().single();
+  if (error) { showAlert('Error: ' + error.message, 'err'); return; }
+  employees.push(row);
+  employees.sort((a,b) => a.full_name.localeCompare(b.full_name));
+
+  // Auto-create onboarding checklist
+  const tasks = DEFAULT_TASKS.map((t,i) => ({ emp_id: row.id, task: t, done: false, sort_order: i }));
+  await sb.from('hr_onboarding').insert(tasks);
+
+  renderOverview(); renderList(); populateObSelect();
+  buildAddForm();
+  showAlert(`${row.full_name} added. Onboarding checklist created.`, 'ok');
+}
+
+// ── FORM HTML ──────────────────────────────────────────────────────
+function dsel(field, val) {
+  return ['pending','submitted','verified'].map(s =>
+    `<option value="${s}"${(val||'pending')===s?' selected':''}>${cap(s)}</option>`
+  ).join('');
+}
+function selOpts(arr, val, blank) {
+  return (blank ? `<option value="">— ${blank} —</option>` : '') +
+    arr.map(v => `<option value="${v}"${val===v?' selected':''}>${v.replace('_',' ')}</option>`).join('');
+}
+
+function formHTML(e) {
+  return `
+  <div class="fsec">
+    <div class="fsec-title">Basic Information</div>
+    <div class="fgrid">
+      <div class="fg"><label>Employee ID</label><input id="f-emp_id" value="${esc(e.emp_id)}" placeholder="e.g. PA-001"></div>
+      <div class="fg"><label>Full Name *</label><input id="f-full_name" value="${esc(e.full_name)}" placeholder="As per Aadhar"></div>
+      <div class="fg"><label>Designation</label><input id="f-designation" value="${esc(e.designation)}" placeholder="e.g. Site Engineer"></div>
+      <div class="fg"><label>Department</label><select id="f-department"><option value="">— Select —</option>${selOpts(DEPTS, e.department)}</select></div>
+      <div class="fg"><label>Employment Type</label><select id="f-employment_type">${selOpts(EMP_TYPES, e.employment_type||'permanent')}</select></div>
+      <div class="fg"><label>Status</label><select id="f-status">${selOpts(STATUSES, e.status||'probation')}</select></div>
+      <div class="fg"><label>Date of Joining</label><input type="date" id="f-date_of_joining" value="${esc(e.date_of_joining)}"></div>
+      <div class="fg"><label>Probation End Date</label><input type="date" id="f-probation_end_date" value="${esc(e.probation_end_date)}"></div>
+    </div>
+  </div>
+
+  <div class="fsec">
+    <div class="fsec-title">Personal Details</div>
+    <div class="fgrid">
+      <div class="fg"><label>Date of Birth</label><input type="date" id="f-dob" value="${esc(e.dob)}"></div>
+      <div class="fg"><label>Gender</label><select id="f-gender"><option value="">—</option>${['Male','Female','Other'].map(g=>`<option value="${g}"${e.gender===g?' selected':''}>${g}</option>`).join('')}</select></div>
+      <div class="fg"><label>Blood Group</label><input id="f-blood_group" value="${esc(e.blood_group)}" placeholder="e.g. B+"></div>
+      <div class="fg"><label>Mobile</label><input id="f-mobile" value="${esc(e.mobile)}" placeholder="+91 XXXXX XXXXX"></div>
+      <div class="fg"><label>Email</label><input id="f-email" value="${esc(e.email)}" placeholder="name@example.com"></div>
+    </div>
+  </div>
+
+  <div class="fsec">
+    <div class="fsec-title">Address</div>
+    <div class="fgrid fgrid-2">
+      <div class="fg"><label>Current Address</label><textarea id="f-current_address">${esc(e.current_address)}</textarea></div>
+      <div class="fg"><label>Permanent Address</label><textarea id="f-permanent_address">${esc(e.permanent_address)}</textarea></div>
+    </div>
+  </div>
+
+  <div class="fsec">
+    <div class="fsec-title">Government IDs</div>
+    <div class="fgrid">
+      <div class="fg"><label>Aadhar Number</label><input id="f-aadhar" value="${esc(e.aadhar)}" placeholder="XXXX XXXX XXXX"></div>
+      <div class="fg"><label>PAN Number</label><input id="f-pan" value="${esc(e.pan)}" placeholder="ABCDE1234F"></div>
+      <div class="fg"><label>UAN (PF)</label><input id="f-uan" value="${esc(e.uan)}" placeholder="Universal Account Number"></div>
+      <div class="fg"><label>ESIC Number</label><input id="f-esic" value="${esc(e.esic)}"></div>
+    </div>
+  </div>
+
+  <div class="fsec">
+    <div class="fsec-title">Bank Details</div>
+    <div class="fgrid">
+      <div class="fg"><label>Bank Name</label><input id="f-bank_name" value="${esc(e.bank_name)}"></div>
+      <div class="fg"><label>Account Number</label><input id="f-bank_account" value="${esc(e.bank_account)}"></div>
+      <div class="fg"><label>IFSC Code</label><input id="f-bank_ifsc" value="${esc(e.bank_ifsc)}" placeholder="e.g. SBIN0001234"></div>
+      <div class="fg"><label>Account Holder Name</label><input id="f-bank_holder_name" value="${esc(e.bank_holder_name)}"></div>
+    </div>
+  </div>
+
+  <div class="fsec">
+    <div class="fsec-title">Emergency Contact</div>
+    <div class="fgrid">
+      <div class="fg"><label>Name</label><input id="f-emergency_name" value="${esc(e.emergency_name)}"></div>
+      <div class="fg"><label>Relation</label><input id="f-emergency_relation" value="${esc(e.emergency_relation)}" placeholder="e.g. Spouse, Father"></div>
+      <div class="fg"><label>Phone</label><input id="f-emergency_phone" value="${esc(e.emergency_phone)}"></div>
+    </div>
+  </div>
+
+  <div class="fsec">
+    <div class="fsec-title">Document Status</div>
+    <div class="doc-grid">
+      ${DOC_FIELDS.map(d => `<div class="doc-item"><div class="doc-name">${d.label}</div><select id="f-${d.key}">${dsel(d.key, e[d.key])}</select></div>`).join('')}
+    </div>
+  </div>
+
+  <div class="fsec">
+    <div class="fsec-title">Notes / Remarks</div>
+    <textarea id="f-notes" style="width:100%;padding:8px 10px;border:1px solid var(--border2);border-radius:var(--r);background:var(--bg);color:var(--text);font-size:13px;font-family:inherit;outline:none;min-height:80px;resize:vertical">${esc(e.notes)}</textarea>
+  </div>`;
+}
+
+function collectForm() {
+  const fields = ['emp_id','full_name','designation','department','employment_type','status',
+    'date_of_joining','probation_end_date','dob','gender','blood_group','mobile','email',
+    'current_address','permanent_address','aadhar','pan','uan','esic',
+    'bank_name','bank_account','bank_ifsc','bank_holder_name',
+    'emergency_name','emergency_relation','emergency_phone',
+    'doc_aadhar','doc_pan','doc_photo','doc_bank','doc_certificates','notes'];
+  const out = {};
+  fields.forEach(f => {
+    const el = document.getElementById('f-' + f);
+    out[f] = el ? (el.value.trim() || null) : null;
+  });
+  return out;
+}
+
+// ── ONBOARDING ─────────────────────────────────────────────────────
+function populateObSelect() {
+  const sel = document.getElementById('obEmpSel');
+  const prev = sel.value;
+  sel.innerHTML = '<option value="">— Choose an employee —</option>' +
+    employees.filter(e => e.status === 'active' || e.status === 'probation')
+      .map(e => `<option value="${e.id}"${e.id==prev?' selected':''}>${e.full_name}${e.emp_id?' ('+e.emp_id+')':''}</option>`).join('');
+  if (prev && sel.value === prev) loadOnboarding();
+}
+
+async function loadOnboarding() {
+  const empId = document.getElementById('obEmpSel').value;
+  const area  = document.getElementById('obContent');
+  if (!empId) { area.innerHTML = ''; return; }
+
+  const { data: tasks } = await sb.from('hr_onboarding').select('*').eq('emp_id', empId).order('sort_order');
+  if (!tasks || !tasks.length) { area.innerHTML = '<div class="empty">No onboarding checklist found for this employee.</div>'; return; }
+
+  const done  = tasks.filter(t => t.done).length;
+  const total = tasks.length;
+  const pct   = Math.round(done / total * 100);
+
+  area.innerHTML = `
+    <div class="fsec">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+        <div class="fsec-title" style="margin-bottom:0">Onboarding Checklist</div>
+        <span style="font-size:13px;font-weight:600;color:${pct===100?'var(--green)':'var(--amber)'}">${done}/${total} done (${pct}%)</span>
+      </div>
+      <div class="checklist">
+        ${tasks.map(t => `
+          <div class="chk-item${t.done?' done':''}" id="chk-${t.id}">
+            <input type="checkbox" ${t.done?'checked':''} onchange="toggleTask(${t.id}, this.checked)">
+            <span class="chk-label${t.done?' done':''}">${t.task}</span>
+            ${t.done && t.done_at ? `<span class="chk-date">${t.done_at.slice(0,10)}</span>` : ''}
+          </div>`).join('')}
+      </div>
+    </div>`;
+}
+
+async function toggleTask(id, done) {
+  const now = done ? new Date().toISOString() : null;
+  const { error } = await sb.from('hr_onboarding').update({ done, done_at: now }).eq('id', id);
+  if (error) { showAlert('Failed to update: ' + error.message, 'err'); return; }
+  const row = document.getElementById('chk-' + id);
+  if (row) {
+    row.classList.toggle('done', done);
+    row.querySelector('.chk-label').classList.toggle('done', done);
+  }
+  loadOnboarding();
+}
+
+// ── HELPERS ────────────────────────────────────────────────────────
+function initials(name) {
+  if (!name) return '?';
+  return name.split(' ').map(w => w[0]||'').join('').slice(0,2).toUpperCase();
+}
+function cap(s) { return s ? s.charAt(0).toUpperCase() + s.slice(1) : ''; }
+function esc(v) { return (v||'').toString().replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+function showAlert(msg, type) {
+  const b = document.getElementById('abar');
+  b.textContent = msg;
+  b.className = 'abar ' + (type === 'ok' ? 'abar-ok' : 'abar-err');
+  b.style.display = 'block';
+  clearTimeout(b._t);
+  b._t = setTimeout(() => { b.style.display = 'none'; }, 4000);
+}
+</script>
+</body>
+</html>

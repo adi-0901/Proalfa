@@ -21,6 +21,12 @@ const tools = [
     href: "/staff/attendance.html",
     access: "Management",
   },
+  {
+    title: "HR Dashboard",
+    description: "Employee KYC, documents, onboarding checklists, and records. Management access only.",
+    href: "/staff/hr.html",
+    access: "Management",
+  },
 ]
 
 const StaffPage = () => {
