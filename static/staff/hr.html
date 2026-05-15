@@ -187,6 +187,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Helvetica
     <button class="tab" onclick="switchTab('employees',this)">Employees</button>
     <button class="tab" onclick="switchTab('add',this)">＋ Add Employee</button>
     <button class="tab" onclick="switchTab('onboarding',this)">Onboarding</button>
+    <button class="tab" onclick="switchTab('attendance',this)">Attendance & Salary</button>
   </div>
 
   <!-- OVERVIEW -->
@@ -265,6 +266,12 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Helvetica
   </div>
 </div>
 
+  <!-- ATTENDANCE (iframe) -->
+  <div class="panel" id="panel-attendance" style="margin:-24px -20px">
+    <iframe id="attFrame" src="" style="width:100%;height:calc(100vh - 112px);border:none;display:block"></iframe>
+  </div>
+</div>
+
 <div class="footer">HR Dashboard · Proalfa Dynamic · Management access only</div>
 
 <script>
@@ -306,6 +313,7 @@ const DEFAULT_TASKS = [
 function doLogin() {
   if (document.getElementById('lpass').value === APP_PASS) {
     sessionStorage.setItem('hr_auth','1');
+    sessionStorage.setItem('pal_auth','1');
     document.getElementById('loginOverlay').style.display = 'none';
     document.getElementById('mainApp').style.display = 'block';
     initApp();
@@ -317,11 +325,13 @@ function doLogin() {
 }
 function doLogout() {
   sessionStorage.removeItem('hr_auth');
+  sessionStorage.removeItem('pal_auth');
   employees = [];
   document.getElementById('loginOverlay').style.display = 'flex';
   document.getElementById('mainApp').style.display = 'none';
 }
 if (sessionStorage.getItem('hr_auth')) {
+  sessionStorage.setItem('pal_auth','1');
   document.getElementById('loginOverlay').style.display = 'none';
   document.getElementById('mainApp').style.display = 'block';
   initApp();
@@ -346,6 +356,10 @@ function switchTab(name, el) {
   if (name === 'employees') { showList(); renderList(); }
   if (name === 'add') buildAddForm();
   if (name === 'onboarding') populateObSelect();
+  if (name === 'attendance') {
+    const f = document.getElementById('attFrame');
+    if (!f.src || f.src === window.location.href) f.src = '/staff/attendance.html';
+  }
 }
 
 // ── OVERVIEW ─────────────────────────────────────────────────────

@@ -16,14 +16,8 @@ const tools = [
     access: "All Staff",
   },
   {
-    title: "Attendance Dashboard",
-    description: "View and manage staff attendance records. Management access only.",
-    href: "/staff/attendance.html",
-    access: "Management",
-  },
-  {
     title: "HR Dashboard",
-    description: "Employee KYC, documents, onboarding checklists, and records. Management access only.",
+    description: "Employee KYC, documents, onboarding, attendance and salary. Management access only.",
     href: "/staff/hr.html",
     access: "Management",
   },
