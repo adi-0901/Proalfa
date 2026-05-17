@@ -153,6 +153,59 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Helvetica
   .detail-actions { width:100%;justify-content:flex-start; }
   .fgrid { grid-template-columns:1fr; }
 }
+/* ── Expenses module ── */
+.exp-stats { display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-bottom:20px; }
+.exp-stat { background:var(--card);border:1px solid var(--border);border-radius:var(--r2);padding:16px 18px; }
+.exp-stat-label { font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text2);margin-bottom:6px; }
+.exp-stat-value { font-size:24px;font-weight:700;line-height:1.1; }
+.exp-stat-sub { font-size:11px;color:var(--text2);margin-top:4px; }
+.exp-stat.danger .exp-stat-value { color:var(--red); }
+.exp-stat.warn   .exp-stat-value { color:var(--amber); }
+.exp-stat.ok     .exp-stat-value { color:var(--green); }
+.exp-stat.blue   .exp-stat-value { color:var(--blue); }
+
+.exp-charts { display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px; }
+@media(max-width:700px) { .exp-charts { grid-template-columns:1fr; } }
+.exp-chart-card { background:var(--card);border:1px solid var(--border);border-radius:var(--r2);padding:18px 20px; }
+.exp-chart-title { font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text2);margin-bottom:14px; }
+.cat-row { margin-bottom:9px; }
+.cat-row-top { display:flex;justify-content:space-between;align-items:baseline;margin-bottom:3px; }
+.cat-name { font-size:12px;font-weight:500; }
+.cat-amt { font-size:12px;font-weight:700; }
+.cat-pct { font-size:10px;color:var(--text2); }
+.cat-track { background:var(--card2);border-radius:4px;height:6px;overflow:hidden; }
+.cat-fill { height:6px;border-radius:4px;transition:width .4s; }
+.mode-row { display:flex;align-items:center;gap:10px;margin-bottom:7px;font-size:12px; }
+.mode-dot { width:10px;height:10px;border-radius:50%;flex-shrink:0; }
+.mode-name { flex:1; }
+.mode-amt { font-weight:600; }
+.mode-pct { color:var(--text2);font-size:11px;min-width:34px;text-align:right; }
+.payee-row { display:flex;align-items:center;gap:10px;padding:7px 0;border-bottom:1px solid var(--border);font-size:12px; }
+.payee-row:last-child { border:none; }
+.payee-rank { width:18px;height:18px;border-radius:50%;background:var(--card2);font-size:10px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0; }
+.payee-name { flex:1;font-weight:500; }
+.payee-amt { font-weight:700; }
+.payee-ct { color:var(--text2);font-size:11px; }
+
+.exp-form-card { background:var(--card);border:1px solid var(--border);border-radius:var(--r2);padding:20px;margin-bottom:20px; }
+.exp-form-title { font-size:13px;font-weight:700;margin-bottom:16px;display:flex;align-items:center;gap:8px; }
+
+.exp-badge { padding:2px 8px;border-radius:20px;font-size:11px;font-weight:600; }
+.badge-nobill  { background:var(--red-bg);color:var(--red); }
+.badge-bill    { background:var(--green-bg);color:var(--green); }
+.badge-pending { background:var(--amber-bg);color:var(--amber); }
+
+.exp-tbl { width:100%;border-collapse:collapse;font-size:13px; }
+.exp-tbl th { font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--text2);padding:8px 10px;text-align:left;border-bottom:2px solid var(--border2); }
+.exp-tbl td { padding:10px 10px;border-bottom:1px solid var(--border);vertical-align:top; }
+.exp-tbl tr:last-child td { border-bottom:none; }
+.exp-tbl tr:hover td { background:var(--card2); }
+.exp-amount { font-weight:700;font-variant-numeric:tabular-nums; }
+.exp-del { background:none;border:none;color:var(--text2);cursor:pointer;font-size:14px;padding:2px 6px;border-radius:4px; }
+.exp-del:hover { color:var(--red);background:var(--red-bg); }
+.exp-filter-row { display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:14px; }
+.exp-filter-row select { padding:7px 10px;border:1px solid var(--border2);border-radius:var(--r);background:var(--card);color:var(--text);font-size:12px;outline:none; }
+
 </style>
 </head>
 <body>
@@ -190,6 +243,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Helvetica
     <button class="tab" onclick="switchTab('leaves',this)">Leave Tracker</button>
     <button class="tab" onclick="switchTab('hiring',this)">Hiring Pipeline</button>
     <button class="tab" onclick="switchTab('attendance',this)">Attendance & Salary</button>
+    <button class="tab" onclick="switchTab('expenses',this)">💰 Expenses</button>
   </div>
 
   <!-- OVERVIEW -->
@@ -439,6 +493,153 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Helvetica
   </div>
 </div>
 
+  <!-- EXPENSES -->
+  <div class="panel" id="panel-expenses">
+
+    <!-- Top bar: month + actions -->
+    <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;margin-bottom:20px">
+      <div style="display:flex;align-items:center;gap:10px">
+        <span style="font-size:12px;font-weight:600;color:var(--text2)">Month</span>
+        <select id="exp-month" onchange="renderExpenses()" style="padding:7px 10px;border:1px solid var(--border2);border-radius:var(--r);background:var(--card);color:var(--text);font-size:13px;outline:none"></select>
+      </div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <button class="btn btn-sm" onclick="downloadExpenseReport()">📄 Monthly Report</button>
+        <button class="btn btn-sm" onclick="exportExpensesCSV()">⬇ Export CSV</button>
+      </div>
+    </div>
+
+    <!-- Stats -->
+    <div class="exp-stats" id="exp-stats"></div>
+
+    <!-- Charts row -->
+    <div class="exp-charts" id="exp-charts"></div>
+
+    <!-- New Entry Form -->
+    <div class="exp-form-card">
+      <div class="exp-form-title">＋ Record Expense / Purchase</div>
+      <div class="fgrid" style="margin-bottom:10px">
+        <div class="fg">
+          <label>Date</label>
+          <input type="date" id="ex-date">
+        </div>
+        <div class="fg">
+          <label>Category</label>
+          <select id="ex-cat">
+            <option value="Labour Payment">Labour Payment</option>
+            <option value="Material Purchase">Material Purchase</option>
+            <option value="Contractor Payment">Contractor Payment</option>
+            <option value="Transport">Transport</option>
+            <option value="Site Expenses">Site Expenses</option>
+            <option value="Office &amp; Admin">Office &amp; Admin</option>
+            <option value="Advance to Staff">Advance to Staff</option>
+            <option value="Utilities">Utilities</option>
+            <option value="Repairs &amp; Maintenance">Repairs &amp; Maintenance</option>
+            <option value="Petty Cash">Petty Cash</option>
+            <option value="Other">Other</option>
+          </select>
+        </div>
+        <div class="fg">
+          <label>Payee Name</label>
+          <input type="text" id="ex-payee" placeholder="Who received the money">
+        </div>
+      </div>
+      <div class="fgrid" style="margin-bottom:10px">
+        <div class="fg fg-full">
+          <label>Description / Reason</label>
+          <input type="text" id="ex-desc" placeholder="What was this payment for? Be specific — you'll need this during audit">
+        </div>
+      </div>
+      <div class="fgrid" style="margin-bottom:10px">
+        <div class="fg">
+          <label>Amount (₹)</label>
+          <input type="number" id="ex-amount" placeholder="0.00" min="0" step="0.01">
+        </div>
+        <div class="fg">
+          <label>Payment Mode</label>
+          <select id="ex-mode">
+            <option value="Cash">Cash</option>
+            <option value="UPI">UPI</option>
+            <option value="Bank Transfer">Bank Transfer (NEFT/RTGS)</option>
+            <option value="Cheque">Cheque</option>
+            <option value="IMPS">IMPS</option>
+          </select>
+        </div>
+        <div class="fg">
+          <label>Reference No.</label>
+          <input type="text" id="ex-ref" placeholder="UPI Ref / Cheque No. / Txn ID">
+        </div>
+      </div>
+      <div class="fgrid" style="margin-bottom:10px">
+        <div class="fg">
+          <label>Bill Status</label>
+          <select id="ex-bill-status" onchange="onExpBillChange()">
+            <option value="No Bill">No Bill (cash, no receipt)</option>
+            <option value="Bill Received">Bill Received</option>
+            <option value="Bill Pending">Bill Pending</option>
+          </select>
+        </div>
+        <div class="fg" id="ex-bill-no-wrap" style="display:none">
+          <label>Bill / Invoice No.</label>
+          <input type="text" id="ex-bill-no" placeholder="e.g. INV-2526-001">
+        </div>
+        <div class="fg" id="ex-gst-wrap" style="display:none">
+          <label>GST Amount in Bill (₹)</label>
+          <input type="number" id="ex-gst" placeholder="0.00" min="0" step="0.01">
+        </div>
+      </div>
+      <div class="fgrid" style="margin-bottom:16px">
+        <div class="fg">
+          <label>Entry By</label>
+          <input type="text" id="ex-entryby" placeholder="Your name">
+        </div>
+        <div class="fg">
+          <label>Remarks</label>
+          <input type="text" id="ex-remarks" placeholder="Optional additional notes">
+        </div>
+      </div>
+      <div style="display:flex;gap:8px">
+        <button class="btn btn-primary" onclick="saveExpense()">✓ Save Entry</button>
+        <button class="btn" onclick="clearExpenseForm()">Clear</button>
+      </div>
+    </div>
+
+    <!-- Ledger -->
+    <div style="background:var(--card);border:1px solid var(--border);border-radius:var(--r2);padding:20px">
+      <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;margin-bottom:14px">
+        <div style="font-size:13px;font-weight:700">All Entries — <span id="exp-ledger-month"></span></div>
+        <div class="exp-filter-row" style="margin:0">
+          <select id="exp-filter-cat" onchange="renderExpenseLedger()">
+            <option value="">All Categories</option>
+            <option>Labour Payment</option><option>Material Purchase</option>
+            <option>Contractor Payment</option><option>Transport</option>
+            <option>Site Expenses</option><option>Office &amp; Admin</option>
+            <option>Advance to Staff</option><option>Utilities</option>
+            <option>Repairs &amp; Maintenance</option><option>Petty Cash</option><option>Other</option>
+          </select>
+          <select id="exp-filter-mode" onchange="renderExpenseLedger()">
+            <option value="">All Modes</option>
+            <option>Cash</option><option>UPI</option>
+            <option>Bank Transfer</option><option>Cheque</option><option>IMPS</option>
+          </select>
+          <select id="exp-filter-bill" onchange="renderExpenseLedger()">
+            <option value="">All Bill Status</option>
+            <option>No Bill</option><option>Bill Received</option><option>Bill Pending</option>
+          </select>
+        </div>
+      </div>
+      <div style="overflow-x:auto">
+        <table class="exp-tbl">
+          <thead><tr>
+            <th>Date</th><th>Category</th><th>Payee</th><th>Description</th>
+            <th style="text-align:right">Amount (₹)</th><th>Mode</th><th>Bill</th><th>Ref No.</th><th>By</th><th></th>
+          </tr></thead>
+          <tbody id="exp-ledger-body"></tbody>
+        </table>
+      </div>
+      <div id="exp-ledger-footer" style="margin-top:12px;font-size:12px;color:var(--text2);text-align:right"></div>
+    </div>
+  </div>
+
 <div class="footer">HR Dashboard · Proalfa Dynamic · Management access only</div>
 
 <script>
@@ -451,6 +652,7 @@ const sb = createClient(SB_URL, SB_KEY);
 
 let employees = [];
 let currentId = null;
+let expenses  = [];
 
 const DEPTS = ["Civil","Structural / PEB","MEP","Procurement","Accounts","HR / Admin","Site","Management"];
 const EMP_TYPES = ["permanent","contract","daily_wage","trainee"];
@@ -494,6 +696,7 @@ function doLogout() {
   sessionStorage.removeItem('hr_auth');
   sessionStorage.removeItem('pal_auth');
   employees = [];
+  expenses  = [];
   document.getElementById('loginOverlay').style.display = 'flex';
   document.getElementById('mainApp').style.display = 'none';
 }
@@ -529,6 +732,7 @@ function switchTab(name, el) {
   }
   if (name === 'leaves')  initLeaves();
   if (name === 'hiring')  initHiring();
+  if (name === 'expenses') initExpenses();
 }
 
 // ── OVERVIEW ─────────────────────────────────────────────────────
@@ -1190,6 +1394,269 @@ async function syncToAttendance(hrEmp) {
 async function removeFromAttendance(empId) {
   if (!empId) return;
   await sb.from('employees').delete().eq('emp_id', empId);
+}
+
+// ── EXPENSES ──────────────────────────────────────────────────────
+const EXP_CATS = ['Labour & Wages','Material Purchase','Transport & Freight',
+  'Site Expenses','Office & Admin','Fuel','Tools & Equipment',
+  'Professional Fees','Utilities','Miscellaneous'];
+
+const CAT_COLORS = {
+  'Labour & Wages':'#4c9af5','Material Purchase':'#f5a623',
+  'Transport & Freight':'#7ed321','Site Expenses':'#d0021b',
+  'Office & Admin':'#9b59b6','Fuel':'#e67e22',
+  'Tools & Equipment':'#1abc9c','Professional Fees':'#e91e63',
+  'Utilities':'#00bcd4','Miscellaneous':'#78909c'
+};
+
+const MODE_COLORS = {
+  'Cash':'#f5a623','Bank Transfer':'#4c9af5','UPI':'#7ed321',
+  'Cheque':'#9b59b6','Credit Card':'#e67e22'
+};
+
+function buildMonthOptions() {
+  const sel = document.getElementById('exp-month');
+  if (!sel) return;
+  sel.innerHTML = '';
+  const now = new Date();
+  for (let i = 0; i < 13; i++) {
+    const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+    const val = d.toISOString().slice(0,7);
+    const label = d.toLocaleString('en-IN', { month: 'long', year: 'numeric' });
+    const opt = document.createElement('option');
+    opt.value = val; opt.textContent = label;
+    if (i === 0) opt.selected = true;
+    sel.appendChild(opt);
+  }
+}
+
+async function initExpenses() {
+  buildMonthOptions();
+  const d = document.getElementById('ex-date');
+  if (d) d.value = new Date().toISOString().slice(0,10);
+  const { data, error } = await sb.from('hr_expenses').select('*').order('date', { ascending: false });
+  if (error) { showAlert('Failed to load expenses: ' + error.message, 'err'); return; }
+  expenses = data || [];
+  renderExpenses();
+}
+
+function renderExpenses() {
+  const month = document.getElementById('exp-month')?.value || new Date().toISOString().slice(0,7);
+  const monthExp = expenses.filter(e => (e.date||'').startsWith(month));
+  renderExpenseStats(monthExp);
+  renderExpenseCharts(monthExp);
+  renderExpenseLedger();
+}
+
+function renderExpenseStats(monthExp) {
+  const total   = monthExp.reduce((s,e) => s + parseFloat(e.amount||0), 0);
+  const noBill  = monthExp.filter(e => e.bill_status === 'No Bill').reduce((s,e) => s + parseFloat(e.amount||0), 0);
+  const pending = monthExp.filter(e => e.bill_status === 'Bill Pending').reduce((s,e) => s + parseFloat(e.amount||0), 0);
+  const gstRec  = monthExp.reduce((s,e) => s + parseFloat(e.gst_amount||0), 0);
+  const fmt = n => '₹' + Math.round(n).toLocaleString('en-IN');
+  const el = document.getElementById('exp-stats');
+  if (!el) return;
+  el.innerHTML = `
+    <div class="exp-stat ${noBill>0?'danger':'ok'}">
+      <div class="exp-stat-label">Total Spend</div>
+      <div class="exp-stat-value">${fmt(total)}</div>
+      <div class="exp-stat-sub">${monthExp.length} entries</div>
+    </div>
+    <div class="exp-stat ${noBill>0?'danger':'ok'}">
+      <div class="exp-stat-label">No-Bill Cash</div>
+      <div class="exp-stat-value">${fmt(noBill)}</div>
+      <div class="exp-stat-sub">unreceipted</div>
+    </div>
+    <div class="exp-stat ${pending>0?'warn':'ok'}">
+      <div class="exp-stat-label">Bill Pending</div>
+      <div class="exp-stat-value">${fmt(pending)}</div>
+      <div class="exp-stat-sub">awaiting receipt</div>
+    </div>
+    <div class="exp-stat blue">
+      <div class="exp-stat-label">GST Recoverable</div>
+      <div class="exp-stat-value">${fmt(gstRec)}</div>
+      <div class="exp-stat-sub">input tax credit</div>
+    </div>`;
+}
+
+function renderExpenseCharts(monthExp) {
+  const el = document.getElementById('exp-charts');
+  if (!el) return;
+  // Category breakdown
+  const byCat = {};
+  monthExp.forEach(e => { byCat[e.category] = (byCat[e.category]||0) + parseFloat(e.amount||0); });
+  const catTotal = Object.values(byCat).reduce((s,v) => s+v, 0) || 1;
+  const catRows = Object.entries(byCat).sort((a,b) => b[1]-a[1]).map(([cat,amt]) => `
+    <div class="cat-row">
+      <div style="display:flex;justify-content:space-between;margin-bottom:4px">
+        <span style="font-size:12px">${cat}</span>
+        <span style="font-size:12px;font-weight:700">₹${Math.round(amt).toLocaleString('en-IN')}</span>
+      </div>
+      <div style="height:6px;background:var(--border2);border-radius:3px">
+        <div style="height:6px;border-radius:3px;background:${CAT_COLORS[cat]||'#4c9af5'};width:${Math.round(amt/catTotal*100)}%"></div>
+      </div>
+    </div>`).join('');
+  // Mode breakdown
+  const byMode = {};
+  monthExp.forEach(e => { byMode[e.payment_mode] = (byMode[e.payment_mode]||0) + parseFloat(e.amount||0); });
+  const modeRows = Object.entries(byMode).sort((a,b) => b[1]-a[1]).map(([mode,amt]) => `
+    <div class="mode-row">
+      <span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:${MODE_COLORS[mode]||'#4c9af5'};margin-right:8px;flex-shrink:0"></span>
+      <span style="flex:1;font-size:13px">${mode}</span>
+      <span style="font-size:13px;font-weight:700">₹${Math.round(amt).toLocaleString('en-IN')}</span>
+    </div>`).join('');
+  el.innerHTML = `
+    <div class="exp-chart-card">
+      <div class="exp-chart-title">By Category</div>
+      ${catRows || '<div style="color:var(--text2);font-size:13px">No data</div>'}
+    </div>
+    <div class="exp-chart-card">
+      <div class="exp-chart-title">By Payment Mode</div>
+      ${modeRows || '<div style="color:var(--text2);font-size:13px">No data</div>'}
+    </div>`;
+}
+
+function renderExpenseLedger() {
+  const month = document.getElementById('exp-month')?.value || new Date().toISOString().slice(0,7);
+  const catF  = document.getElementById('exp-filter-cat')?.value  || '';
+  const modeF = document.getElementById('exp-filter-mode')?.value || '';
+  const billF = document.getElementById('exp-filter-bill')?.value || '';
+  let rows = expenses.filter(e => (e.date||'').startsWith(month));
+  if (catF)  rows = rows.filter(e => e.category === catF);
+  if (modeF) rows = rows.filter(e => e.payment_mode === modeF);
+  if (billF) rows = rows.filter(e => e.bill_status === billF);
+  const el = document.getElementById('exp-ledger');
+  const monthEl = document.getElementById('exp-ledger-month');
+  if (monthEl) {
+    const d = new Date(month + '-01');
+    monthEl.textContent = d.toLocaleString('en-IN', { month: 'long', year: 'numeric' });
+  }
+  if (!el) return;
+  if (!rows.length) { el.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:24px;color:var(--text2)">No entries for this period</td></tr>'; return; }
+  const billColor = s => s==='No Bill'?'var(--red)':s==='Bill Pending'?'var(--amber)':'var(--green)';
+  el.innerHTML = rows.map(e => `
+    <tr>
+      <td>${e.date}</td>
+      <td>${e.category}</td>
+      <td>${e.payee}</td>
+      <td>${e.payment_mode}</td>
+      <td><span class="exp-badge" style="background:${billColor(e.bill_status)}22;color:${billColor(e.bill_status)}">${e.bill_status}</span></td>
+      <td class="exp-amount" style="text-align:right">₹${parseFloat(e.amount||0).toLocaleString('en-IN',{minimumFractionDigits:0})}</td>
+      <td><button class="exp-del" onclick="deleteExpense(${e.id})" title="Delete">🗑</button></td>
+    </tr>
+    ${e.description ? `<tr><td colspan="7" style="padding:0 10px 8px;font-size:11px;color:var(--text2)">${e.description}${e.bill_no?' · Bill: '+e.bill_no:''}</td></tr>` : ''}`).join('');
+}
+
+function onExpBillChange() {
+  const v = document.getElementById('ex-bill-status').value;
+  document.getElementById('ex-bill-no-wrap').style.display = (v==='Bill Received'||v==='Bill Pending') ? '' : 'none';
+  document.getElementById('ex-gst-wrap').style.display = v==='Bill Received' ? '' : 'none';
+}
+
+async function saveExpense() {
+  const date     = document.getElementById('ex-date').value;
+  const category = document.getElementById('ex-cat').value;
+  const payee    = document.getElementById('ex-payee').value.trim();
+  const amount   = parseFloat(document.getElementById('ex-amount').value);
+  const mode     = document.getElementById('ex-mode').value;
+  const bill     = document.getElementById('ex-bill-status').value;
+  const billNo   = document.getElementById('ex-bill-no').value.trim();
+  const gst      = parseFloat(document.getElementById('ex-gst').value) || 0;
+  const desc     = document.getElementById('ex-desc').value.trim();
+  const ref      = document.getElementById('ex-ref').value.trim();
+  const entryBy  = document.getElementById('ex-entryby').value.trim();
+  const remarks  = document.getElementById('ex-remarks').value.trim();
+  if (!date||!payee||!amount) { showAlert('Date, payee and amount are required', 'err'); return; }
+  const row = { date, category, payee, amount, payment_mode:mode, bill_status:bill,
+    bill_no:billNo||null, gst_amount:gst||null, description:desc||null,
+    reference_no:ref||null, entry_by:entryBy||null, remarks:remarks||null };
+  const { data, error } = await sb.from('hr_expenses').insert([row]).select();
+  if (error) { showAlert('Save failed: ' + error.message, 'err'); return; }
+  expenses.unshift(data[0]);
+  clearExpenseForm();
+  renderExpenses();
+  showAlert('Expense saved', 'ok');
+}
+
+function clearExpenseForm() {
+  document.getElementById('ex-date').value = new Date().toISOString().slice(0,10);
+  document.getElementById('ex-payee').value = '';
+  document.getElementById('ex-amount').value = '';
+  document.getElementById('ex-bill-no').value = '';
+  document.getElementById('ex-gst').value = '';
+  document.getElementById('ex-desc').value = '';
+  document.getElementById('ex-ref').value = '';
+  document.getElementById('ex-entryby').value = '';
+  document.getElementById('ex-remarks').value = '';
+  document.getElementById('ex-bill-status').value = 'No Bill';
+  document.getElementById('ex-bill-no-wrap').style.display = 'none';
+  document.getElementById('ex-gst-wrap').style.display = 'none';
+}
+
+async function deleteExpense(id) {
+  if (!confirm('Delete this expense entry?')) return;
+  const { error } = await sb.from('hr_expenses').delete().eq('id', id);
+  if (error) { showAlert('Delete failed: ' + error.message, 'err'); return; }
+  expenses = expenses.filter(e => e.id !== id);
+  renderExpenses();
+}
+
+function exportExpensesCSV() {
+  const month = document.getElementById('exp-month')?.value || new Date().toISOString().slice(0,7);
+  const rows = expenses.filter(e => (e.date||'').startsWith(month));
+  const headers = ['Date','Category','Payee','Payment Mode','Bill Status','Bill No','Amount','GST Amount','Description'];
+  const csv = [headers.join(','), ...rows.map(e => [
+    e.date, `"${e.category}"`, `"${e.payee}"`, e.payment_mode, e.bill_status,
+    e.bill_no||'', e.amount, e.gst_amount||0, `"${(e.description||'').replace(/"/g,'""')}"`
+  ].join(','))].join('\n');
+  const a = document.createElement('a');
+  a.href = 'data:text/csv;charset=utf-8,' + encodeURIComponent(csv);
+  a.download = `expenses-${month}.csv`;
+  a.click();
+}
+
+function downloadExpenseReport() {
+  const month = document.getElementById('exp-month')?.value || new Date().toISOString().slice(0,7);
+  const monthExp = expenses.filter(e => (e.date||'').startsWith(month));
+  const d = new Date(month + '-01');
+  const monthLabel = d.toLocaleString('en-IN', { month: 'long', year: 'numeric' });
+  const total  = monthExp.reduce((s,e) => s+parseFloat(e.amount||0),0);
+  const noBill = monthExp.filter(e=>e.bill_status==='No Bill').reduce((s,e)=>s+parseFloat(e.amount||0),0);
+  const pending= monthExp.filter(e=>e.bill_status==='Bill Pending').reduce((s,e)=>s+parseFloat(e.amount||0),0);
+  const gstRec = monthExp.reduce((s,e)=>s+parseFloat(e.gst_amount||0),0);
+  const fmt = n => '₹' + Math.round(n).toLocaleString('en-IN');
+  const byCat = {};
+  monthExp.forEach(e => { byCat[e.category]=(byCat[e.category]||0)+parseFloat(e.amount||0); });
+  const catTable = Object.entries(byCat).sort((a,b)=>b[1]-a[1]).map(([c,a])=>
+    `<tr><td>${c}</td><td style="text-align:right">${fmt(a)}</td></tr>`).join('');
+  const ledger = monthExp.map(e =>
+    `<tr><td>${e.date}</td><td>${e.category}</td><td>${e.payee}</td><td>${e.payment_mode}</td><td style="color:${e.bill_status==='No Bill'?'#c00':e.bill_status==='Bill Pending'?'#e67e22':'#27ae60'}">${e.bill_status}</td><td style="text-align:right">${fmt(parseFloat(e.amount||0))}</td><td style="font-size:11px">${e.description||''}</td></tr>`).join('');
+  const w = window.open('','_blank','width=900,height=700');
+  w.document.write(`<!DOCTYPE html><html><head><meta charset="utf-8"><title>Expense Report — ${monthLabel}</title>
+  <style>body{font-family:Arial,sans-serif;font-size:13px;padding:32px;color:#111}
+  h1{font-size:20px;margin:0}h2{font-size:14px;margin:20px 0 8px;border-bottom:1px solid #ddd;padding-bottom:4px}
+  .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin:16px 0}
+  .stat{border:1px solid #ddd;border-radius:6px;padding:12px 16px}
+  .stat-l{font-size:10px;text-transform:uppercase;letter-spacing:.06em;color:#888;margin-bottom:4px}
+  .stat-v{font-size:20px;font-weight:700}
+  table{border-collapse:collapse;width:100%}th,td{border:1px solid #ddd;padding:6px 10px;text-align:left}
+  th{background:#f5f5f5;font-size:11px;text-transform:uppercase;letter-spacing:.05em}
+  @media print{button{display:none}}</style></head><body>
+  <h1>Proalfa Dynamic — Expense Report</h1>
+  <div style="color:#555;margin:4px 0 16px">${monthLabel}</div>
+  <div class="stats">
+    <div class="stat"><div class="stat-l">Total Spend</div><div class="stat-v">${fmt(total)}</div></div>
+    <div class="stat"><div class="stat-l">No-Bill Cash</div><div class="stat-v" style="color:#c00">${fmt(noBill)}</div></div>
+    <div class="stat"><div class="stat-l">Bill Pending</div><div class="stat-v" style="color:#e67e22">${fmt(pending)}</div></div>
+    <div class="stat"><div class="stat-l">GST Recoverable</div><div class="stat-v" style="color:#2980b9">${fmt(gstRec)}</div></div>
+  </div>
+  <h2>By Category</h2>
+  <table><tr><th>Category</th><th>Amount</th></tr>${catTable}</table>
+  <h2>All Entries</h2>
+  <table><tr><th>Date</th><th>Category</th><th>Payee</th><th>Mode</th><th>Bill</th><th>Amount</th><th>Description</th></tr>${ledger}</table>
+  <div style="margin-top:24px;text-align:center"><button onclick="window.print()" style="padding:10px 24px;background:#111;color:#fff;border:none;border-radius:4px;cursor:pointer;font-size:13px">Print / Save PDF</button></div>
+  </body></html>`);
+  w.document.close();
 }
 
 // ── HELPERS ───────────────────────────────────────────────────────
