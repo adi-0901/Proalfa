@@ -31,6 +31,13 @@ const tools = [
     access: "All Staff",
     icon: "📋",
   },
+  {
+    title: "Finance Dashboard",
+    description: "Receivables, payables, working capital, cash flow forecast and P&L synced from TallyPrime.",
+    href: "/staff/finance.html",
+    access: "Management",
+    icon: "💹",
+  },
 ]
 
 const StaffPage = () => {
