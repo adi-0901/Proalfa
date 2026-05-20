@@ -743,7 +743,7 @@ function renderOverview() {
     DOC_FIELDS.some(d => (e[d.key] || 'pending') === 'pending') &&
     (e.status === 'active' || e.status === 'probation')
   ).length;
-  const thisMonth = new Date().toISOString().slice(0,7);
+  const _nt=new Date(); const thisMonth = _nt.getFullYear()+'-'+String(_nt.getMonth()+1).padStart(2,'0');
   const newJoined = employees.filter(e => (e.date_of_joining||'').slice(0,7) === thisMonth).length;
 
   document.getElementById('st-active').textContent = active;
@@ -1094,8 +1094,9 @@ function toggleLeaveForm() {
   f.style.display = show ? 'block' : 'none';
   btn.textContent = show ? '✕ Cancel' : '＋ New Request';
   if (show) {
-    document.getElementById('lv-from').value = new Date().toISOString().slice(0,10);
-    document.getElementById('lv-to').value   = new Date().toISOString().slice(0,10);
+    const _lvd=new Date(); const _lvds=_lvd.getFullYear()+'-'+String(_lvd.getMonth()+1).padStart(2,'0')+'-'+String(_lvd.getDate()).padStart(2,'0');
+    document.getElementById('lv-from').value = _lvds;
+    document.getElementById('lv-to').value   = _lvds;
   }
 }
 
@@ -1421,7 +1422,7 @@ function buildMonthOptions() {
   const now = new Date();
   for (let i = 0; i < 13; i++) {
     const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
-    const val = d.toISOString().slice(0,7);
+    const val = d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0');
     const label = d.toLocaleString('en-IN', { month: 'long', year: 'numeric' });
     const opt = document.createElement('option');
     opt.value = val; opt.textContent = label;
@@ -1433,7 +1434,7 @@ function buildMonthOptions() {
 async function initExpenses() {
   buildMonthOptions();
   const d = document.getElementById('ex-date');
-  if (d) d.value = new Date().toISOString().slice(0,10);
+  if (d) { const _n=new Date(); d.value=_n.getFullYear()+'-'+String(_n.getMonth()+1).padStart(2,'0')+'-'+String(_n.getDate()).padStart(2,'0'); }
   const { data, error } = await sb.from('hr_expenses').select('*').order('date', { ascending: false });
   if (error) { showAlert('Failed to load expenses: ' + error.message, 'err'); return; }
   expenses = data || [];
@@ -1441,7 +1442,8 @@ async function initExpenses() {
 }
 
 function renderExpenses() {
-  const month = document.getElementById('exp-month')?.value || new Date().toISOString().slice(0,7);
+  const _nd=new Date(); const _dm=_nd.getFullYear()+'-'+String(_nd.getMonth()+1).padStart(2,'0');
+  const month = document.getElementById('exp-month')?.value || _dm;
   const monthExp = expenses.filter(e => (e.date||'').startsWith(month));
   renderExpenseStats(monthExp);
   renderExpenseCharts(monthExp);
@@ -1517,7 +1519,8 @@ function renderExpenseCharts(monthExp) {
 }
 
 function renderExpenseLedger() {
-  const month = document.getElementById('exp-month')?.value || new Date().toISOString().slice(0,7);
+  const _nld=new Date(); const _dlm=_nld.getFullYear()+'-'+String(_nld.getMonth()+1).padStart(2,'0');
+  const month = document.getElementById('exp-month')?.value || _dlm;
   const catF  = document.getElementById('exp-filter-cat')?.value  || '';
   const modeF = document.getElementById('exp-filter-mode')?.value || '';
   const billF = document.getElementById('exp-filter-bill')?.value || '';
@@ -1579,7 +1582,7 @@ async function saveExpense() {
 }
 
 function clearExpenseForm() {
-  document.getElementById('ex-date').value = new Date().toISOString().slice(0,10);
+  { const _cf=new Date(); document.getElementById('ex-date').value=_cf.getFullYear()+'-'+String(_cf.getMonth()+1).padStart(2,'0')+'-'+String(_cf.getDate()).padStart(2,'0'); }
   document.getElementById('ex-payee').value = '';
   document.getElementById('ex-amount').value = '';
   document.getElementById('ex-bill-no').value = '';
@@ -1602,7 +1605,8 @@ async function deleteExpense(id) {
 }
 
 function exportExpensesCSV() {
-  const month = document.getElementById('exp-month')?.value || new Date().toISOString().slice(0,7);
+  const _nec=new Date(); const _ecm=_nec.getFullYear()+'-'+String(_nec.getMonth()+1).padStart(2,'0');
+  const month = document.getElementById('exp-month')?.value || _ecm;
   const rows = expenses.filter(e => (e.date||'').startsWith(month));
   const headers = ['Date','Category','Payee','Payment Mode','Bill Status','Bill No','Amount','GST Amount','Description'];
   const csv = [headers.join(','), ...rows.map(e => [
@@ -1616,7 +1620,8 @@ function exportExpensesCSV() {
 }
 
 function downloadExpenseReport() {
-  const month = document.getElementById('exp-month')?.value || new Date().toISOString().slice(0,7);
+  const _ndr=new Date(); const _drm=_ndr.getFullYear()+'-'+String(_ndr.getMonth()+1).padStart(2,'0');
+  const month = document.getElementById('exp-month')?.value || _drm;
   const monthExp = expenses.filter(e => (e.date||'').startsWith(month));
   const d = new Date(month + '-01');
   const monthLabel = d.toLocaleString('en-IN', { month: 'long', year: 'numeric' });
