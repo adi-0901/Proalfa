@@ -378,6 +378,7 @@
     </div>
     <div class="brow">
       <button class="btn btn-p" onclick="addEmployee()">＋ Add Employee</button>
+      <button class="btn" onclick="syncFromHR()" id="syncHRBtn" title="Pull all employees from HR Dashboard">↻ Sync from HR</button>
     </div>
 
     <div class="divider"></div>
@@ -483,10 +484,71 @@ function statusBadge(s){
 async function loadEmployees(){
   const {data,error} = await sb.from('employees').select('*').order('type').order('emp_id');
   if(error){ showAlert('Failed to load employees: '+error.message,'e'); return; }
-  employees = data;
+  employees = data || [];
+  // If employees table is empty, auto-pull from HR Dashboard
+  if(!employees.length){
+    await syncFromHR(true);
+    return;
+  }
   rebuildEmpSelects();
   renderEmployeeList();
   document.getElementById('empCount').textContent = employees.length;
+}
+
+async function syncFromHR(silent=false){
+  const btn = document.getElementById('syncHRBtn');
+  if(btn){ btn.disabled=true; btn.textContent='Syncing…'; }
+  const {data:hrData, error:hrErr} = await sb.from('hr_employees').select('*');
+  if(hrErr){
+    if(btn){ btn.disabled=false; btn.textContent='↻ Sync from HR'; }
+    if(!silent) showAlert('Could not reach HR Dashboard: '+hrErr.message,'e');
+    return;
+  }
+  if(!hrData||!hrData.length){
+    if(btn){ btn.disabled=false; btn.textContent='↻ Sync from HR'; }
+    if(!silent) showAlert('No employees found in HR Dashboard.','w');
+    return;
+  }
+  const rows = hrData
+    .filter(h=>h.emp_id)
+    .map(h=>{
+      const active = h.status==='active'||h.status==='probation';
+      const monthly = parseFloat(h.monthly_salary)||0;
+      const basic   = parseFloat(h.basic_salary)||Math.round(monthly*0.5);
+      return {
+        emp_id:          h.emp_id,
+        name:            h.full_name||h.name||'',
+        designation:     h.designation||'',
+        department:      h.department||'',
+        pan:             h.pan||'',
+        type:            h.attendance_type||'staff',
+        monthly_salary:  monthly,
+        basic_salary:    basic,
+        weekly_off:      h.weekly_off||'thursday',
+        ot_eligible:     (h.attendance_type||'staff')==='worker',
+        pf_applicable:   h.pf_applicable!==false,
+        esic_applicable: h.esic_applicable!==false,
+        pt_applicable:   h.pt_applicable!==false,
+        tds_monthly:     parseFloat(h.tds_monthly)||0,
+        active,
+      };
+    });
+  if(rows.length){
+    const {error:uErr} = await sb.from('employees').upsert(rows,{onConflict:'emp_id'});
+    if(uErr){
+      if(btn){ btn.disabled=false; btn.textContent='↻ Sync from HR'; }
+      if(!silent) showAlert('Sync error: '+uErr.message,'e');
+      return;
+    }
+  }
+  // Reload
+  const {data:fresh} = await sb.from('employees').select('*').order('type').order('emp_id');
+  employees = fresh||rows;
+  rebuildEmpSelects();
+  renderEmployeeList();
+  document.getElementById('empCount').textContent = employees.length;
+  if(btn){ btn.disabled=false; btn.textContent='↻ Sync from HR'; }
+  if(!silent) showAlert(`Synced ${rows.length} employees from HR Dashboard.`,'s');
 }
 
 function rebuildEmpSelects(){
