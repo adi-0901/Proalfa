@@ -978,6 +978,42 @@ function formHTML(e) {
   </div>
 
   <div class="fsec">
+    <div class="fsec-title">Salary Structure &amp; Deductions</div>
+    <div class="fgrid">
+      <div class="fg">
+        <label>Basic Salary (₹)</label>
+        <input type="number" id="f-basic_salary" value="${e.basic_salary||''}" placeholder="Blank = 50% of monthly">
+      </div>
+      <div class="fg">
+        <label>Monthly TDS (₹)</label>
+        <input type="number" id="f-tds_monthly" value="${e.tds_monthly||''}" placeholder="0 if not applicable">
+      </div>
+      <div class="fg">
+        <label>PF / EPF Applicable</label>
+        <select id="f-pf_applicable">
+          <option value="yes"${(e.pf_applicable!==false&&e.pf_applicable!=='no')?' selected':''}>Yes — 12% of Basic</option>
+          <option value="no"${(e.pf_applicable===false||e.pf_applicable==='no')?' selected':''}>No</option>
+        </select>
+      </div>
+      <div class="fg">
+        <label>ESIC Applicable</label>
+        <select id="f-esic_applicable">
+          <option value="yes"${(e.esic_applicable!==false&&e.esic_applicable!=='no')?' selected':''}>Yes — 0.75% of Gross</option>
+          <option value="no"${(e.esic_applicable===false||e.esic_applicable==='no')?' selected':''}>No</option>
+        </select>
+      </div>
+      <div class="fg">
+        <label>Prof. Tax (PT) Applicable</label>
+        <select id="f-pt_applicable">
+          <option value="yes"${(e.pt_applicable!==false&&e.pt_applicable!=='no')?' selected':''}>Yes — ₹200/month</option>
+          <option value="no"${(e.pt_applicable===false||e.pt_applicable==='no')?' selected':''}>No</option>
+        </select>
+      </div>
+    </div>
+    <div style="font-size:11px;color:var(--text2);margin-top:6px">ESIC is auto-disabled on slip if gross earned &gt; ₹21,000. Basic defaults to 50% of monthly if left blank.</div>
+  </div>
+
+  <div class="fsec">
     <div class="fsec-title">Personal Details</div>
     <div class="fgrid">
       <div class="fg"><label>Date of Birth</label><input type="date" id="f-dob" value="${esc(e.dob)}"></div>
@@ -1040,7 +1076,7 @@ function formHTML(e) {
 
 function collectForm() {
   const fields = ['emp_id','full_name','designation','department','employment_type','status',
-    'date_of_joining','probation_end_date','attendance_type','monthly_salary','weekly_off',
+    'date_of_joining','probation_end_date','attendance_type','weekly_off',
     'dob','gender','blood_group','mobile','email',
     'current_address','permanent_address','aadhar','pan','uan','esic',
     'bank_name','bank_account','bank_ifsc','bank_holder_name',
@@ -1050,6 +1086,16 @@ function collectForm() {
   fields.forEach(f => {
     const el = document.getElementById('f-' + f);
     out[f] = el ? (el.value.trim() || null) : null;
+  });
+  // Numeric fields
+  ['monthly_salary','basic_salary','tds_monthly'].forEach(f => {
+    const el = document.getElementById('f-' + f);
+    out[f] = el && el.value ? parseFloat(el.value) : null;
+  });
+  // Boolean fields (yes/no selects)
+  ['pf_applicable','esic_applicable','pt_applicable'].forEach(f => {
+    const el = document.getElementById('f-' + f);
+    out[f] = el ? (el.value === 'yes') : true;
   });
   return out;
 }
@@ -1432,14 +1478,23 @@ function renderCandidates() {
 async function syncToAttendance(hrEmp) {
   if (!hrEmp.emp_id) return;
   const active = hrEmp.status === 'active' || hrEmp.status === 'probation';
+  const monthly = parseFloat(hrEmp.monthly_salary) || 0;
+  const basic   = parseFloat(hrEmp.basic_salary) || Math.round(monthly * 0.5);
   const row = {
-    emp_id:         hrEmp.emp_id,
-    name:           hrEmp.full_name,
-    designation:    hrEmp.designation || '',
-    type:           hrEmp.attendance_type || 'staff',
-    monthly_salary: parseFloat(hrEmp.monthly_salary) || 0,
-    weekly_off:     hrEmp.weekly_off || 'thursday',
-    ot_eligible:    (hrEmp.attendance_type || 'staff') === 'worker',
+    emp_id:          hrEmp.emp_id,
+    name:            hrEmp.full_name,
+    designation:     hrEmp.designation || '',
+    department:      hrEmp.department  || '',
+    pan:             hrEmp.pan         || '',
+    type:            hrEmp.attendance_type || 'staff',
+    monthly_salary:  monthly,
+    basic_salary:    basic,
+    weekly_off:      hrEmp.weekly_off  || 'thursday',
+    ot_eligible:     (hrEmp.attendance_type || 'staff') === 'worker',
+    pf_applicable:   hrEmp.pf_applicable  !== false,
+    esic_applicable: hrEmp.esic_applicable !== false,
+    pt_applicable:   hrEmp.pt_applicable  !== false,
+    tds_monthly:     parseFloat(hrEmp.tds_monthly) || 0,
     active,
   };
   const { error } = await sb.from('employees').upsert(row, { onConflict: 'emp_id' });
