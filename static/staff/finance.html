@@ -501,15 +501,61 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Helvetica
     <div class="modal">
       <div class="modal-head"><h3 id="projModalTitle">Add Project</h3><button class="modal-close" onclick="closeProjModal()">×</button></div>
       <div class="modal-body">
+        <!-- Basic info -->
         <div class="mgrid2">
           <div class="mfg"><label>Project Code</label><input id="pm-code" placeholder="ALFA-2025-001"></div>
           <div class="mfg"><label>Status</label><select id="pm-status"><option>Active</option><option>On Hold</option><option>Completed</option><option>In Dispute</option></select></div>
         </div>
         <div class="mfg"><label>Project Name</label><input id="pm-name" placeholder="e.g. Factory Shed Extension — Nashik"></div>
-        <div class="mgrid2">
-          <div class="mfg"><label>Client Name</label><input id="pm-client"></div>
-          <div class="mfg"><label>Contract Value (₹)</label><input type="number" id="pm-contract" min="0"></div>
+        <div class="mfg"><label>Client Name</label><input id="pm-client"></div>
+
+        <!-- Pricing -->
+        <div style="border-top:1px solid var(--border);margin:12px 0 10px;padding-top:12px">
+          <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--text2);margin-bottom:10px">Pricing / Contract Value</div>
+          <div class="mgrid2" style="margin-bottom:8px">
+            <div class="mfg" style="margin:0">
+              <label>Pricing Type</label>
+              <select id="pm-pricing-type" onchange="onPricingTypeChange()">
+                <option value="lumpsum">Lumpsum</option>
+                <option value="rate_based">Rate-based (qty × ₹/unit)</option>
+              </select>
+            </div>
+            <div class="mfg" id="pm-contract-wrap" style="margin:0">
+              <label>Contract Value (₹)</label>
+              <input type="number" id="pm-contract" min="0" placeholder="Total contract amount">
+            </div>
+          </div>
+          <div id="pm-rate-fields" style="display:none">
+            <div class="mgrid3">
+              <div class="mfg">
+                <label>Quantity</label>
+                <input type="number" id="pm-qty" min="0" placeholder="e.g. 5000" oninput="calcContractValue()">
+              </div>
+              <div class="mfg">
+                <label>Unit</label>
+                <select id="pm-unit" onchange="calcContractValue()">
+                  <option value="kg">kg</option>
+                  <option value="sqft">sqft</option>
+                  <option value="sqm">sqm</option>
+                  <option value="rmt">RMT (running mtr)</option>
+                  <option value="nos">Nos</option>
+                  <option value="ltr">Ltr</option>
+                  <option value="MT">MT (metric ton)</option>
+                </select>
+              </div>
+              <div class="mfg">
+                <label>Rate (₹ / unit)</label>
+                <input type="number" id="pm-rate" min="0" placeholder="e.g. 85" oninput="calcContractValue()">
+              </div>
+            </div>
+            <div style="background:var(--blue-bg);border-radius:var(--r);padding:8px 12px;font-size:13px;margin-bottom:8px">
+              Contract Value = <span id="pm-contract-preview" style="font-weight:700;color:var(--blue)">—</span>
+            </div>
+          </div>
         </div>
+
+        <!-- Advance & billing -->
+        <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--text2);margin-bottom:8px">Advance &amp; Billing</div>
         <div class="mgrid3">
           <div class="mfg"><label>Advance Agreed %</label><input type="number" id="pm-adv-pct" value="30" min="0" max="100"></div>
           <div class="mfg"><label>Advance Received (₹)</label><input type="number" id="pm-adv-recv" min="0"></div>
@@ -517,14 +563,35 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Helvetica
         </div>
         <div class="mgrid3">
           <div class="mfg"><label>Collected to Date (₹)</label><input type="number" id="pm-collected" min="0"></div>
-          <div class="mfg"><label>Material Cost (₹)</label><input type="number" id="pm-mat" min="0"></div>
-          <div class="mfg"><label>Labour Cost (₹)</label><input type="number" id="pm-lab" min="0"></div>
-        </div>
-        <div class="mgrid3">
-          <div class="mfg"><label>Other Cost (₹)</label><input type="number" id="pm-other" min="0"></div>
           <div class="mfg"><label>Start Date</label><input type="date" id="pm-start"></div>
           <div class="mfg"><label>Expected End Date</label><input type="date" id="pm-end"></div>
         </div>
+
+        <!-- Cost breakdown -->
+        <div style="border-top:1px solid var(--border);margin:12px 0 10px;padding-top:12px">
+          <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--text2);margin-bottom:8px">Project Cost Breakdown</div>
+          <div class="mgrid3">
+            <div class="mfg"><label>Raw Material / RM (₹)</label><input type="number" id="pm-cost-rm" min="0" placeholder="Steel, plates, sections…" oninput="calcTotalCost()"></div>
+            <div class="mfg"><label>Labour (₹)</label><input type="number" id="pm-cost-labour" min="0" placeholder="Fabrication, site labour" oninput="calcTotalCost()"></div>
+            <div class="mfg"><label>Consumables (₹)</label><input type="number" id="pm-cost-consumables" min="0" placeholder="Paint, thinner, electrodes, gas…" oninput="calcTotalCost()"></div>
+          </div>
+          <div class="mgrid3">
+            <div class="mfg"><label>Electricity (₹)</label><input type="number" id="pm-cost-electricity" min="0" placeholder="Plasma, H-beam, welding…" oninput="calcTotalCost()"></div>
+            <div class="mfg"><label>Transport (₹)</label><input type="number" id="pm-cost-transport" min="0" placeholder="Inward freight + delivery" oninput="calcTotalCost()"></div>
+            <div class="mfg"><label>Office / Admin (₹)</label><input type="number" id="pm-cost-admin" min="0" placeholder="Salary allocation, overhead" oninput="calcTotalCost()"></div>
+          </div>
+          <div class="mgrid2">
+            <div class="mfg"><label>Other / Misc (₹)</label><input type="number" id="pm-other" min="0" oninput="calcTotalCost()"></div>
+            <div style="display:flex;flex-direction:column;gap:5px">
+              <label style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--text2)">Total Cost (auto)</label>
+              <div id="pm-total-cost-preview" style="padding:8px 10px;border-radius:var(--r);background:var(--red-bg);color:var(--red-text);font-size:14px;font-weight:700">₹0</div>
+            </div>
+          </div>
+          <div id="pm-margin-preview" style="display:none;background:var(--green-bg);border-radius:var(--r);padding:8px 12px;font-size:13px">
+            Gross Margin: <span id="pm-margin-val" style="font-weight:700;color:var(--green)">—</span>
+          </div>
+        </div>
+
         <div class="mfg"><label>Notes</label><textarea id="pm-notes"></textarea></div>
       </div>
       <div class="modal-foot">
@@ -1147,15 +1214,20 @@ async function loadProjects() {
 }
 
 function projComputed(p) {
-  const contract     = parseFloat(p.contract_value)   || 0;
-  const billed       = parseFloat(p.billed_to_date)   || 0;
-  const collected    = parseFloat(p.collected_to_date) || 0;
-  const mat          = parseFloat(p.material_cost)     || 0;
-  const lab          = parseFloat(p.labour_cost)       || 0;
-  const oth          = parseFloat(p.other_cost)        || 0;
-  const advRecv      = parseFloat(p.advance_received)  || 0;
-  const advPct       = parseFloat(p.advance_agreed_pct)|| 30;
-  const totalCost    = mat + lab + oth;
+  const contract     = parseFloat(p.contract_value)    || 0;
+  const billed       = parseFloat(p.billed_to_date)    || 0;
+  const collected    = parseFloat(p.collected_to_date)  || 0;
+  const advRecv      = parseFloat(p.advance_received)   || 0;
+  const advPct       = parseFloat(p.advance_agreed_pct) || 30;
+  // Granular cost heads (new) — fall back to old fields for legacy records
+  const costRm          = parseFloat(p.cost_rm)          || parseFloat(p.material_cost) || 0;
+  const costLabour      = parseFloat(p.cost_labour)      || parseFloat(p.labour_cost)   || 0;
+  const costConsumables = parseFloat(p.cost_consumables) || 0;
+  const costElectricity = parseFloat(p.cost_electricity) || 0;
+  const costTransport   = parseFloat(p.cost_transport)   || 0;
+  const costAdmin       = parseFloat(p.cost_admin)       || 0;
+  const costOther       = parseFloat(p.other_cost)       || 0;
+  const totalCost    = costRm + costLabour + costConsumables + costElectricity + costTransport + costAdmin + costOther;
   const grossMarginAmt = contract - totalCost;
   const grossMarginPct = contract > 0 ? (grossMarginAmt / contract * 100) : 0;
   const outstanding  = billed - collected;
@@ -1163,13 +1235,22 @@ function projComputed(p) {
   const advShortfall = Math.max(0, advDue - advRecv);
   const adjAmt       = parseFloat(p.advance_adjusted) || 0;
   const balToAdj     = Math.max(0, advRecv - adjAmt);
+  // Rate-based pricing display
+  const qty          = parseFloat(p.quantity) || null;
+  const rate         = parseFloat(p.rate_per_unit) || null;
+  const unit         = p.unit_type || '';
+  const pricingLabel = (p.pricing_type === 'rate_based' && qty && rate)
+    ? `${qty.toLocaleString('en-IN')} ${unit} × ₹${rate.toLocaleString('en-IN')}/${unit}`
+    : null;
   // days since last invoice
   const lastInv = vouchers
     .filter(v => v.party_name === p.client_name && (v.voucher_type === 'Sales' || v.voucher_type === 'Sales Invoice'))
     .map(v => new Date(v.voucher_date))
     .sort((a,b) => b - a)[0];
   const daysSinceInv = lastInv ? Math.floor((Date.now() - lastInv) / 864e5) : null;
-  return { contract, billed, collected, mat, lab, oth, totalCost, grossMarginAmt, grossMarginPct, outstanding, advDue, advShortfall, advRecv, adjAmt, balToAdj, daysSinceInv };
+  return { contract, billed, collected, totalCost, grossMarginAmt, grossMarginPct, outstanding,
+           advDue, advShortfall, advRecv, adjAmt, balToAdj, daysSinceInv, pricingLabel,
+           costRm, costLabour, costConsumables, costElectricity, costTransport, costAdmin, costOther };
 }
 
 function renderProjects() {
@@ -1203,16 +1284,27 @@ function renderProjects() {
     const overdue60 = c.outstanding > 0 && c.daysSinceInv !== null && c.daysSinceInv > 60;
     const borderCls = (c.grossMarginPct < 10 || overdue60) ? 'margin-bad' : c.grossMarginPct < 20 ? 'margin-ok' : 'margin-good';
     const statusBadge = { Active:'badge-green', 'On Hold':'badge-amber', Completed:'badge-blue', 'In Dispute':'badge-red' }[p.status] || 'badge-blue';
+    const costRows = [
+      { lbl: 'Raw Material', val: c.costRm },
+      { lbl: 'Labour', val: c.costLabour },
+      { lbl: 'Consumables', val: c.costConsumables },
+      { lbl: 'Electricity', val: c.costElectricity },
+      { lbl: 'Transport', val: c.costTransport },
+      { lbl: 'Office / Admin', val: c.costAdmin },
+      { lbl: 'Other', val: c.costOther },
+    ].filter(r => r.val > 0);
     return `<div class="proj-card ${borderCls}">
       <button class="proj-edit" onclick="openProjModal('${p.id}')">Edit</button>
       <div class="proj-code">${p.project_code || '—'}</div>
       <div class="proj-name">${p.project_name}</div>
       <div class="proj-client">${p.client_name || '—'} &nbsp;<span class="badge ${statusBadge}">${p.status}</span></div>
-      <div class="proj-row"><span class="lbl">Contract Value</span><span class="val">${fmt(c.contract)}</span></div>
-      <div class="proj-row"><span class="lbl">Billed to Date</span><span class="val">${fmt(c.billed)}</span></div>
+      <div class="proj-row"><span class="lbl">Contract Value</span><span class="val">${fmt(c.contract)}${c.pricingLabel ? `<br><span style="font-size:10px;color:var(--text2);font-weight:400">${c.pricingLabel}</span>` : ''}</span></div>
+      <div class="proj-row"><span class="lbl">Billed / Collected</span><span class="val">${fmt(c.billed)} / <span style="color:var(--green)">${fmt(c.collected)}</span></span></div>
       <div class="proj-row"><span class="lbl">Outstanding</span><span class="val" style="color:${c.outstanding>0?'var(--amber)':'var(--green)'}">${fmt(c.outstanding)}</span></div>
-      <div class="proj-row"><span class="lbl">Total Cost</span><span class="val">${fmt(c.totalCost)}</span></div>
-      <div class="proj-row"><span class="lbl">Gross Margin</span><span class="val" style="color:${c.grossMarginPct>=20?'var(--green)':c.grossMarginPct>=10?'var(--amber)':'var(--red)'}">${fmt(c.grossMarginAmt)} (${c.grossMarginPct.toFixed(1)}%)</span></div>
+      <div style="margin:8px 0 4px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--text2)">Cost Breakdown</div>
+      ${costRows.map(r=>`<div class="proj-row" style="font-size:12px"><span class="lbl">${r.lbl}</span><span class="val" style="color:var(--red)">${fmt(r.val)}</span></div>`).join('')}
+      <div class="proj-row" style="border-top:1px solid var(--border2);margin-top:4px;padding-top:6px"><span class="lbl" style="font-weight:600">Total Cost</span><span class="val" style="color:var(--red)">${fmt(c.totalCost)}</span></div>
+      <div class="proj-row"><span class="lbl" style="font-weight:600">Gross Margin</span><span class="val" style="color:${c.grossMarginPct>=20?'var(--green)':c.grossMarginPct>=10?'var(--amber)':'var(--red)'}">${fmt(c.grossMarginAmt)} &nbsp;<span style="font-size:11px">(${c.grossMarginPct.toFixed(1)}%)</span></span></div>
       <div class="proj-row"><span class="lbl">Advance Shortfall</span><span class="val" style="color:${c.advShortfall>0?'var(--red)':'var(--green)'}">${c.advShortfall>0?fmt(c.advShortfall):'Fully received'}</span></div>
       ${c.daysSinceInv !== null ? `<div class="proj-row"><span class="lbl">Last Invoice</span><span class="val" style="color:${c.daysSinceInv>60?'var(--red)':c.daysSinceInv>30?'var(--amber)':'var(--text)'}">${c.daysSinceInv}d ago</span></div>` : ''}
       ${c.advRecv < c.contract * 0.25 ? '<div class="proj-warn">⚠ Advance below 25% — mobilise only after collection</div>' : ''}
@@ -1280,17 +1372,77 @@ async function saveAdvField(id, field, value) {
   else { const p = projects.find(x => x.id === id); if (p) p[field] = value; }
 }
 
+// ── Project modal helpers ─────────────────────────────────────────────────────
+function onPricingTypeChange() {
+  const type = document.getElementById('pm-pricing-type').value;
+  const rateFields = document.getElementById('pm-rate-fields');
+  const contractWrap = document.getElementById('pm-contract-wrap');
+  if (type === 'rate_based') {
+    rateFields.style.display = 'block';
+    contractWrap.style.display = 'none';
+    calcContractValue();
+  } else {
+    rateFields.style.display = 'none';
+    contractWrap.style.display = 'block';
+    calcTotalCost();
+  }
+}
+
+function calcContractValue() {
+  const qty  = parseFloat(document.getElementById('pm-qty').value)  || 0;
+  const rate = parseFloat(document.getElementById('pm-rate').value) || 0;
+  const unit = document.getElementById('pm-unit').value;
+  const val  = qty * rate;
+  document.getElementById('pm-contract-preview').textContent = val > 0
+    ? `${qty.toLocaleString('en-IN')} ${unit} × ₹${rate.toLocaleString('en-IN')} = ₹${Math.round(val).toLocaleString('en-IN')}`
+    : '—';
+  document.getElementById('pm-contract').value = val > 0 ? val : '';
+  calcTotalCost();
+}
+
+function calcTotalCost() {
+  const ids = ['pm-cost-rm','pm-cost-labour','pm-cost-consumables','pm-cost-electricity','pm-cost-transport','pm-cost-admin','pm-other'];
+  const total = ids.reduce((s,id) => s + (parseFloat(document.getElementById(id)?.value)||0), 0);
+  document.getElementById('pm-total-cost-preview').textContent = '₹' + Math.round(total).toLocaleString('en-IN');
+  const contract = parseFloat(document.getElementById('pm-contract').value) || 0;
+  const margin   = contract - total;
+  const pct      = contract > 0 ? (margin / contract * 100) : 0;
+  const mp = document.getElementById('pm-margin-preview');
+  const mv = document.getElementById('pm-margin-val');
+  if (contract > 0) {
+    mp.style.display = 'block';
+    mp.style.background = pct >= 20 ? 'var(--green-bg)' : pct >= 10 ? 'var(--amber-bg)' : 'var(--red-bg)';
+    mv.style.color = pct >= 20 ? 'var(--green)' : pct >= 10 ? 'var(--amber)' : 'var(--red)';
+    mv.textContent = `₹${Math.round(margin).toLocaleString('en-IN')} (${pct.toFixed(1)}%)`;
+  } else {
+    mp.style.display = 'none';
+  }
+}
+
 function openProjModal(id) {
   editingProjId = id || null;
   const p = id ? projects.find(x => x.id === id) : {};
   document.getElementById('projModalTitle').textContent = id ? 'Edit Project' : 'Add Project';
-  const set = (elId, val) => { const el = document.getElementById(elId); if (el) el.value = val || ''; };
+  const set = (elId, val) => { const el = document.getElementById(elId); if (el) el.value = val ?? ''; };
   set('pm-code', p?.project_code); set('pm-name', p?.project_name); set('pm-client', p?.client_name);
-  set('pm-status', p?.status || 'Active'); set('pm-contract', p?.contract_value);
+  set('pm-status', p?.status || 'Active');
   set('pm-adv-pct', p?.advance_agreed_pct || 30); set('pm-adv-recv', p?.advance_received);
   set('pm-billed', p?.billed_to_date); set('pm-collected', p?.collected_to_date);
-  set('pm-mat', p?.material_cost); set('pm-lab', p?.labour_cost); set('pm-other', p?.other_cost);
   set('pm-start', p?.start_date); set('pm-end', p?.expected_end_date); set('pm-notes', p?.notes);
+  // Pricing
+  const pricingType = p?.pricing_type || 'lumpsum';
+  document.getElementById('pm-pricing-type').value = pricingType;
+  set('pm-contract', p?.contract_value);
+  set('pm-qty', p?.quantity); set('pm-unit', p?.unit_type || 'kg'); set('pm-rate', p?.rate_per_unit);
+  // Cost heads
+  set('pm-cost-rm',          p?.cost_rm          ?? p?.material_cost ?? '');
+  set('pm-cost-labour',      p?.cost_labour      ?? p?.labour_cost   ?? '');
+  set('pm-cost-consumables', p?.cost_consumables ?? '');
+  set('pm-cost-electricity', p?.cost_electricity ?? '');
+  set('pm-cost-transport',   p?.cost_transport   ?? '');
+  set('pm-cost-admin',       p?.cost_admin       ?? '');
+  set('pm-other',            p?.other_cost       ?? '');
+  onPricingTypeChange();
   document.getElementById('projModal').style.display = 'flex';
 }
 function closeProjModal() { document.getElementById('projModal').style.display = 'none'; }
@@ -1298,11 +1450,22 @@ function closeProjModal() { document.getElementById('projModal').style.display =
 async function saveProject() {
   const get = id => document.getElementById(id).value;
   const num = id => parseFloat(document.getElementById(id).value) || null;
+  const pricingType = get('pm-pricing-type');
   const row = {
     project_code: get('pm-code'), project_name: get('pm-name'), client_name: get('pm-client'),
     status: get('pm-status'), contract_value: num('pm-contract'), advance_agreed_pct: num('pm-adv-pct') || 30,
     advance_received: num('pm-adv-recv'), billed_to_date: num('pm-billed'), collected_to_date: num('pm-collected'),
-    material_cost: num('pm-mat'), labour_cost: num('pm-lab'), other_cost: num('pm-other'),
+    pricing_type: pricingType,
+    quantity:      pricingType === 'rate_based' ? num('pm-qty')  : null,
+    unit_type:     pricingType === 'rate_based' ? get('pm-unit') : null,
+    rate_per_unit: pricingType === 'rate_based' ? num('pm-rate') : null,
+    cost_rm:          num('pm-cost-rm'),
+    cost_labour:      num('pm-cost-labour'),
+    cost_consumables: num('pm-cost-consumables'),
+    cost_electricity: num('pm-cost-electricity'),
+    cost_transport:   num('pm-cost-transport'),
+    cost_admin:       num('pm-cost-admin'),
+    other_cost: num('pm-other'),
     start_date: get('pm-start') || null, expected_end_date: get('pm-end') || null, notes: get('pm-notes') || null,
     updated_at: new Date().toISOString(),
   };
