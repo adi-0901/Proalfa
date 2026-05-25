@@ -520,9 +520,18 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Helvetica
                 <option value="rate_based">Rate-based (qty × ₹/unit)</option>
               </select>
             </div>
+            <div class="mfg" style="margin:0">
+              <label>GST Rate</label>
+              <select id="pm-gst-rate" onchange="calcTotalCost()">
+                <option value="18">18% (Fabrication / Structural)</option>
+                <option value="12">12%</option>
+                <option value="28">28%</option>
+                <option value="0">0% / Exempt</option>
+              </select>
+            </div>
             <div class="mfg" id="pm-contract-wrap" style="margin:0">
-              <label>Contract Value (₹)</label>
-              <input type="number" id="pm-contract" min="0" placeholder="Total contract amount">
+              <label>Contract Value incl. GST (₹)</label>
+              <input type="number" id="pm-contract" min="0" placeholder="Total amount client pays" oninput="calcTotalCost()">
             </div>
           </div>
           <div id="pm-rate-fields" style="display:none">
@@ -549,7 +558,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Helvetica
               </div>
             </div>
             <div style="background:var(--blue-bg);border-radius:var(--r);padding:8px 12px;font-size:13px;margin-bottom:8px">
-              Contract Value = <span id="pm-contract-preview" style="font-weight:700;color:var(--blue)">—</span>
+              Contract (incl. GST) = <span id="pm-contract-preview" style="font-weight:700;color:var(--blue)">—</span>
             </div>
           </div>
         </div>
@@ -1214,12 +1223,16 @@ async function loadProjects() {
 }
 
 function projComputed(p) {
-  const contract     = parseFloat(p.contract_value)    || 0;
+  const contractIncl = parseFloat(p.contract_value)    || 0;
+  const gstRate      = parseFloat(p.gst_rate)           || 0;
+  const baseValue    = gstRate > 0 ? contractIncl / (1 + gstRate / 100) : contractIncl;
+  const gstAmt       = contractIncl - baseValue;
+  const contract     = contractIncl; // kept for advance/billing calcs (client owes incl. GST)
   const billed       = parseFloat(p.billed_to_date)    || 0;
   const collected    = parseFloat(p.collected_to_date)  || 0;
   const advRecv      = parseFloat(p.advance_received)   || 0;
   const advPct       = parseFloat(p.advance_agreed_pct) || 30;
-  // Granular cost heads (new) — fall back to old fields for legacy records
+  // Granular cost heads — fall back to old fields for legacy records
   const costRm          = parseFloat(p.cost_rm)          || parseFloat(p.material_cost) || 0;
   const costLabour      = parseFloat(p.cost_labour)      || parseFloat(p.labour_cost)   || 0;
   const costConsumables = parseFloat(p.cost_consumables) || 0;
@@ -1227,9 +1240,10 @@ function projComputed(p) {
   const costTransport   = parseFloat(p.cost_transport)   || 0;
   const costAdmin       = parseFloat(p.cost_admin)       || 0;
   const costOther       = parseFloat(p.other_cost)       || 0;
-  const totalCost    = costRm + costLabour + costConsumables + costElectricity + costTransport + costAdmin + costOther;
-  const grossMarginAmt = contract - totalCost;
-  const grossMarginPct = contract > 0 ? (grossMarginAmt / contract * 100) : 0;
+  const totalCost      = costRm + costLabour + costConsumables + costElectricity + costTransport + costAdmin + costOther;
+  // Margin on base value (excl. GST) — GST is a pass-through
+  const grossMarginAmt = baseValue - totalCost;
+  const grossMarginPct = baseValue > 0 ? (grossMarginAmt / baseValue * 100) : 0;
   const outstanding  = billed - collected;
   const advDue       = contract * advPct / 100;
   const advShortfall = Math.max(0, advDue - advRecv);
@@ -1248,8 +1262,9 @@ function projComputed(p) {
     .map(v => new Date(v.voucher_date))
     .sort((a,b) => b - a)[0];
   const daysSinceInv = lastInv ? Math.floor((Date.now() - lastInv) / 864e5) : null;
-  return { contract, billed, collected, totalCost, grossMarginAmt, grossMarginPct, outstanding,
-           advDue, advShortfall, advRecv, adjAmt, balToAdj, daysSinceInv, pricingLabel,
+  return { contract, contractIncl, baseValue, gstAmt, gstRate, billed, collected, totalCost,
+           grossMarginAmt, grossMarginPct, outstanding, advDue, advShortfall, advRecv,
+           adjAmt, balToAdj, daysSinceInv, pricingLabel,
            costRm, costLabour, costConsumables, costElectricity, costTransport, costAdmin, costOther };
 }
 
@@ -1298,7 +1313,8 @@ function renderProjects() {
       <div class="proj-code">${p.project_code || '—'}</div>
       <div class="proj-name">${p.project_name}</div>
       <div class="proj-client">${p.client_name || '—'} &nbsp;<span class="badge ${statusBadge}">${p.status}</span></div>
-      <div class="proj-row"><span class="lbl">Contract Value</span><span class="val">${fmt(c.contract)}${c.pricingLabel ? `<br><span style="font-size:10px;color:var(--text2);font-weight:400">${c.pricingLabel}</span>` : ''}</span></div>
+      <div class="proj-row"><span class="lbl">Contract (incl. GST)</span><span class="val">${fmt(c.contractIncl)}${c.pricingLabel ? `<br><span style="font-size:10px;color:var(--text2);font-weight:400">${c.pricingLabel}</span>` : ''}</span></div>
+      ${c.gstRate > 0 ? `<div class="proj-row" style="font-size:12px"><span class="lbl" style="color:var(--text2)">Base Value (excl. GST ${c.gstRate}%)</span><span class="val" style="color:var(--text2)">${fmt(c.baseValue)}</span></div>` : ''}
       <div class="proj-row"><span class="lbl">Billed / Collected</span><span class="val">${fmt(c.billed)} / <span style="color:var(--green)">${fmt(c.collected)}</span></span></div>
       <div class="proj-row"><span class="lbl">Outstanding</span><span class="val" style="color:${c.outstanding>0?'var(--amber)':'var(--green)'}">${fmt(c.outstanding)}</span></div>
       <div style="margin:8px 0 4px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--text2)">Cost Breakdown</div>
@@ -1402,18 +1418,27 @@ function calcContractValue() {
 
 function calcTotalCost() {
   const ids = ['pm-cost-rm','pm-cost-labour','pm-cost-consumables','pm-cost-electricity','pm-cost-transport','pm-cost-admin','pm-other'];
-  const total = ids.reduce((s,id) => s + (parseFloat(document.getElementById(id)?.value)||0), 0);
+  const total      = ids.reduce((s,id) => s + (parseFloat(document.getElementById(id)?.value)||0), 0);
+  const contractIncl = parseFloat(document.getElementById('pm-contract').value) || 0;
+  const gstRate    = parseFloat(document.getElementById('pm-gst-rate').value) || 0;
+  const baseValue  = gstRate > 0 ? contractIncl / (1 + gstRate / 100) : contractIncl;
+  const gstAmt     = contractIncl - baseValue;
+  const margin     = baseValue - total;
+  const pct        = baseValue > 0 ? (margin / baseValue * 100) : 0;
+
   document.getElementById('pm-total-cost-preview').textContent = '₹' + Math.round(total).toLocaleString('en-IN');
-  const contract = parseFloat(document.getElementById('pm-contract').value) || 0;
-  const margin   = contract - total;
-  const pct      = contract > 0 ? (margin / contract * 100) : 0;
+
   const mp = document.getElementById('pm-margin-preview');
   const mv = document.getElementById('pm-margin-val');
-  if (contract > 0) {
+  if (contractIncl > 0) {
     mp.style.display = 'block';
-    mp.style.background = pct >= 20 ? 'var(--green-bg)' : pct >= 10 ? 'var(--amber-bg)' : 'var(--red-bg)';
-    mv.style.color = pct >= 20 ? 'var(--green)' : pct >= 10 ? 'var(--amber)' : 'var(--red)';
-    mv.textContent = `₹${Math.round(margin).toLocaleString('en-IN')} (${pct.toFixed(1)}%)`;
+    mp.style.background = 'var(--card2)';
+    mv.style.color = 'var(--text)';
+    mv.innerHTML = gstRate > 0
+      ? `Base: <strong>₹${Math.round(baseValue).toLocaleString('en-IN')}</strong> &nbsp;+&nbsp; GST ${gstRate}%: ₹${Math.round(gstAmt).toLocaleString('en-IN')}
+         <br>Gross Margin (on base): <strong style="color:${pct>=20?'var(--green)':pct>=10?'var(--amber)':'var(--red)'}">₹${Math.round(margin).toLocaleString('en-IN')} (${pct.toFixed(1)}%)</strong>`
+      : `<strong style="color:${pct>=20?'var(--green)':pct>=10?'var(--amber)':'var(--red)'}">₹${Math.round(margin).toLocaleString('en-IN')} (${pct.toFixed(1)}%)</strong>`;
+    mp.style.border = `1px solid ${pct>=20?'var(--green)':pct>=10?'var(--amber)':'var(--red)'}`;
   } else {
     mp.style.display = 'none';
   }
@@ -1439,6 +1464,7 @@ function openProjModal(id) {
   }
   set('pm-name', p?.project_name); set('pm-client', p?.client_name);
   set('pm-status', p?.status || 'Active');
+  document.getElementById('pm-gst-rate').value = String(p?.gst_rate ?? 18);
   set('pm-adv-pct', p?.advance_agreed_pct || 30); set('pm-adv-recv', p?.advance_received);
   set('pm-billed', p?.billed_to_date); set('pm-collected', p?.collected_to_date);
   set('pm-start', p?.start_date); set('pm-end', p?.expected_end_date); set('pm-notes', p?.notes);
@@ -1466,7 +1492,9 @@ async function saveProject() {
   const pricingType = get('pm-pricing-type');
   const row = {
     project_code: get('pm-code'), project_name: get('pm-name'), client_name: get('pm-client'),
-    status: get('pm-status'), contract_value: num('pm-contract'), advance_agreed_pct: num('pm-adv-pct') || 30,
+    status: get('pm-status'), contract_value: num('pm-contract'),
+    gst_rate: parseFloat(get('pm-gst-rate')) || 0,
+    advance_agreed_pct: num('pm-adv-pct') || 30,
     advance_received: num('pm-adv-recv'), billed_to_date: num('pm-billed'), collected_to_date: num('pm-collected'),
     pricing_type: pricingType,
     quantity:      pricingType === 'rate_based' ? num('pm-qty')  : null,
