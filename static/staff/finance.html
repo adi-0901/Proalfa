@@ -503,7 +503,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Helvetica
       <div class="modal-body">
         <!-- Basic info -->
         <div class="mgrid2">
-          <div class="mfg"><label>Project Code</label><input id="pm-code" placeholder="ALFA-2025-001"></div>
+          <div class="mfg"><label>Project Code</label><input id="pm-code" readonly style="opacity:.7;cursor:default;background:var(--card2)"></div>
           <div class="mfg"><label>Status</label><select id="pm-status"><option>Active</option><option>On Hold</option><option>Completed</option><option>In Dispute</option></select></div>
         </div>
         <div class="mfg"><label>Project Name</label><input id="pm-name" placeholder="e.g. Factory Shed Extension — Nashik"></div>
@@ -1424,7 +1424,20 @@ function openProjModal(id) {
   const p = id ? projects.find(x => x.id === id) : {};
   document.getElementById('projModalTitle').textContent = id ? 'Edit Project' : 'Add Project';
   const set = (elId, val) => { const el = document.getElementById(elId); if (el) el.value = val ?? ''; };
-  set('pm-code', p?.project_code); set('pm-name', p?.project_name); set('pm-client', p?.client_name);
+  // Auto-generate code for new projects
+  if (!id) {
+    const year = new Date().getFullYear();
+    const prefix = `ALFA-${year}-`;
+    const existing = projects
+      .map(x => x.project_code || '')
+      .filter(c => c.startsWith(prefix))
+      .map(c => parseInt(c.replace(prefix, '')) || 0);
+    const next = (existing.length ? Math.max(...existing) : 0) + 1;
+    document.getElementById('pm-code').value = prefix + String(next).padStart(3, '0');
+  } else {
+    set('pm-code', p?.project_code);
+  }
+  set('pm-name', p?.project_name); set('pm-client', p?.client_name);
   set('pm-status', p?.status || 'Active');
   set('pm-adv-pct', p?.advance_agreed_pct || 30); set('pm-adv-recv', p?.advance_received);
   set('pm-billed', p?.billed_to_date); set('pm-collected', p?.collected_to_date);
