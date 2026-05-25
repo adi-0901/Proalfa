@@ -719,8 +719,12 @@ async function generateSalary(){
     const otHrs     = recs.reduce((s,r)=>s+(r.ot_hours||0),0);
     const otPay     = emp.ot_eligible ? Math.round(otHrs * (perDay/8)) : 0;
     const grossWithOt = gross + otPay;
+    // EPF wage basis — capped at ₹15,000 basic if statutory cap, else full earned basic
+    const epfBasis = emp.pf_applicable
+      ? (emp.epf_wage_cap === 'actual' ? earnedBasic : Math.min(earnedBasic, 15000))
+      : 0;
     // Deductions
-    const pf    = emp.pf_applicable  ? Math.round(earnedBasic * 0.12) : 0;
+    const pf    = emp.pf_applicable  ? Math.round(epfBasis * 0.12) : 0;
     const esic  = (emp.esic_applicable && grossWithOt<=21000) ? Math.round(grossWithOt * 0.0075) : 0;
     const pt    = emp.pt_applicable   ? 200 : 0;
     const tds   = parseFloat(emp.tds_monthly)||0;  // default; editable in table
@@ -729,8 +733,8 @@ async function generateSalary(){
     const net   = grossWithOt - totalDed;
 
     // Employer-side compliance contributions
-    const erPf   = emp.pf_applicable  ? Math.round(earnedBasic * 0.12) : 0;   // Employer EPF @ 12%
-    const erEsic = (emp.esic_applicable && grossWithOt<=21000) ? Math.round(grossWithOt * 0.0325) : 0; // Employer ESIC @ 3.25%
+    const erPf   = emp.pf_applicable  ? Math.round(epfBasis * 0.12) : 0;
+    const erEsic = (emp.esic_applicable && grossWithOt<=21000) ? Math.round(grossWithOt * 0.0325) : 0;
 
     const row = {emp,cal,woDays,working,present,half,plUsed,unpaidAbsent,perDay,
                  basic,special,earnedBasic,earnedSpecial,gross,otHrs,otPay,grossWithOt,

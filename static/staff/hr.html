@@ -988,14 +988,30 @@ function formHTML(e) {
         <input type="number" id="f-basic_salary" value="${e.basic_salary||''}" placeholder="Blank = 50% of monthly">
       </div>
       <div class="fg">
-        <label>Monthly TDS (₹)</label>
+        <label>Monthly TDS / Sec 192 (₹)</label>
         <input type="number" id="f-tds_monthly" value="${e.tds_monthly||''}" placeholder="0 if not applicable">
       </div>
       <div class="fg">
-        <label>PF / EPF Applicable</label>
+        <label>Income Tax Regime</label>
+        <select id="f-tax_regime">
+          <option value="new"${(e.tax_regime==='new'||!e.tax_regime)?' selected':''}>New Regime (default)</option>
+          <option value="old"${e.tax_regime==='old'?' selected':''}>Old Regime (with exemptions)</option>
+        </select>
+      </div>
+    </div>
+    <div class="fgrid" style="margin-top:8px">
+      <div class="fg">
+        <label>EPF / PF Applicable</label>
         <select id="f-pf_applicable">
           <option value="yes"${(e.pf_applicable!==false&&e.pf_applicable!=='no')?' selected':''}>Yes — 12% of Basic</option>
           <option value="no"${(e.pf_applicable===false||e.pf_applicable==='no')?' selected':''}>No</option>
+        </select>
+      </div>
+      <div class="fg">
+        <label>EPF Wage Cap</label>
+        <select id="f-epf_wage_cap">
+          <option value="capped"${(e.epf_wage_cap==='capped'||!e.epf_wage_cap)?' selected':''}>Cap at ₹15,000 basic (statutory)</option>
+          <option value="actual"${e.epf_wage_cap==='actual'?' selected':''}>Full actual basic</option>
         </select>
       </div>
       <div class="fg">
@@ -1013,7 +1029,7 @@ function formHTML(e) {
         </select>
       </div>
     </div>
-    <div style="font-size:11px;color:var(--text2);margin-top:6px">ESIC is auto-disabled on slip if gross earned &gt; ₹21,000. Basic defaults to 50% of monthly if left blank.</div>
+    <div style="font-size:11px;color:var(--text2);margin-top:6px">ESIC is auto-disabled on slip if gross earned &gt; ₹21,000. Basic defaults to 50% of monthly if left blank. EPF capped at ₹15,000 basic unless overridden.</div>
   </div>
 
   <div class="fsec">
@@ -1040,8 +1056,8 @@ function formHTML(e) {
     <div class="fgrid">
       <div class="fg"><label>Aadhar Number</label><input id="f-aadhar" value="${esc(e.aadhar)}" placeholder="XXXX XXXX XXXX"></div>
       <div class="fg"><label>PAN Number</label><input id="f-pan" value="${esc(e.pan)}" placeholder="ABCDE1234F"></div>
-      <div class="fg"><label>UAN (PF)</label><input id="f-uan" value="${esc(e.uan)}" placeholder="Universal Account Number"></div>
-      <div class="fg"><label>ESIC Number</label><input id="f-esic" value="${esc(e.esic)}"></div>
+      <div class="fg"><label>UAN (EPF)</label><input id="f-uan" value="${esc(e.uan)}" placeholder="Universal Account Number"></div>
+      <div class="fg"><label>ESIC IP Number</label><input id="f-esic" value="${esc(e.esic)}" placeholder="Insurance Person Number"></div>
     </div>
   </div>
 
@@ -1099,6 +1115,11 @@ function collectForm() {
   ['pf_applicable','esic_applicable','pt_applicable'].forEach(f => {
     const el = document.getElementById('f-' + f);
     out[f] = el ? (el.value === 'yes') : true;
+  });
+  // String selects
+  ['tax_regime','epf_wage_cap'].forEach(f => {
+    const el = document.getElementById('f-' + f);
+    out[f] = el ? el.value : null;
   });
   return out;
 }
@@ -1498,6 +1519,10 @@ async function syncToAttendance(hrEmp) {
     esic_applicable: hrEmp.esic_applicable !== false,
     pt_applicable:   hrEmp.pt_applicable  !== false,
     tds_monthly:     parseFloat(hrEmp.tds_monthly) || 0,
+    tax_regime:      hrEmp.tax_regime  || 'new',
+    epf_wage_cap:    hrEmp.epf_wage_cap || 'capped',
+    uan:             hrEmp.uan  || null,
+    esic_ip:         hrEmp.esic || null,
     active,
   };
   const { error } = await sb.from('employees').upsert(row, { onConflict: 'emp_id' });
