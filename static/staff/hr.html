@@ -534,6 +534,8 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Helvetica
           <select id="ex-cat">
             <option value="Labour Payment">Labour Payment</option>
             <option value="Material Purchase">Material Purchase</option>
+            <option value="Factory / Production">Factory / Production</option>
+            <option value="Fuel &amp; Vehicle">Fuel &amp; Vehicle</option>
             <option value="Contractor Payment">Contractor Payment</option>
             <option value="Transport">Transport</option>
             <option value="Site Expenses">Site Expenses</option>
@@ -663,6 +665,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Helvetica
           <select id="exp-filter-cat" onchange="renderExpenseLedger()">
             <option value="">All Categories</option>
             <option>Labour Payment</option><option>Material Purchase</option>
+            <option>Factory / Production</option><option>Fuel &amp; Vehicle</option>
             <option>Contractor Payment</option><option>Transport</option>
             <option>Site Expenses</option><option>Office &amp; Admin</option>
             <option>Advance to Staff</option><option>Utilities</option>
@@ -1507,16 +1510,16 @@ async function removeFromAttendance(empId) {
 }
 
 // ── EXPENSES ──────────────────────────────────────────────────────
-const EXP_CATS = ['Labour & Wages','Material Purchase','Transport & Freight',
-  'Site Expenses','Office & Admin','Fuel','Tools & Equipment',
+const EXP_CATS = ['Labour & Wages','Material Purchase','Factory / Production','Fuel & Vehicle',
+  'Transport & Freight','Site Expenses','Office & Admin','Tools & Equipment',
   'Professional Fees','Utilities','Miscellaneous'];
 
 const CAT_COLORS = {
   'Labour & Wages':'#4c9af5','Material Purchase':'#f5a623',
+  'Factory / Production':'#e74c3c','Fuel & Vehicle':'#e67e22',
   'Transport & Freight':'#7ed321','Site Expenses':'#d0021b',
-  'Office & Admin':'#9b59b6','Fuel':'#e67e22',
-  'Tools & Equipment':'#1abc9c','Professional Fees':'#e91e63',
-  'Utilities':'#00bcd4','Miscellaneous':'#78909c'
+  'Office & Admin':'#9b59b6','Tools & Equipment':'#1abc9c',
+  'Professional Fees':'#e91e63','Utilities':'#00bcd4','Miscellaneous':'#78909c'
 };
 
 const MODE_COLORS = {
