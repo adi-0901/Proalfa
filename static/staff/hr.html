@@ -542,6 +542,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Helvetica
             <option value="Office &amp; Admin">Office &amp; Admin</option>
             <option value="Advance to Staff">Advance to Staff</option>
             <option value="Utilities">Utilities</option>
+            <option value="Asset Purchase">Asset Purchase</option>
             <option value="Repairs &amp; Maintenance">Repairs &amp; Maintenance</option>
             <option value="Petty Cash">Petty Cash</option>
             <option value="Other">Other</option>
@@ -669,7 +670,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Helvetica
             <option>Contractor Payment</option><option>Transport</option>
             <option>Site Expenses</option><option>Office &amp; Admin</option>
             <option>Advance to Staff</option><option>Utilities</option>
-            <option>Repairs &amp; Maintenance</option><option>Petty Cash</option><option>Other</option>
+            <option>Asset Purchase</option><option>Repairs &amp; Maintenance</option><option>Petty Cash</option><option>Other</option>
           </select>
           <select id="exp-filter-mode" onchange="renderExpenseLedger()">
             <option value="">All Modes</option>
@@ -1537,14 +1538,14 @@ async function removeFromAttendance(empId) {
 // ── EXPENSES ──────────────────────────────────────────────────────
 const EXP_CATS = ['Labour & Wages','Material Purchase','Factory / Production','Fuel & Vehicle',
   'Transport & Freight','Site Expenses','Office & Admin','Tools & Equipment',
-  'Professional Fees','Utilities','Miscellaneous'];
+  'Asset Purchase','Professional Fees','Utilities','Miscellaneous'];
 
 const CAT_COLORS = {
   'Labour & Wages':'#4c9af5','Material Purchase':'#f5a623',
   'Factory / Production':'#e74c3c','Fuel & Vehicle':'#e67e22',
   'Transport & Freight':'#7ed321','Site Expenses':'#d0021b',
   'Office & Admin':'#9b59b6','Tools & Equipment':'#1abc9c',
-  'Professional Fees':'#e91e63','Utilities':'#00bcd4','Miscellaneous':'#78909c'
+  'Asset Purchase':'#5c6bc0','Professional Fees':'#e91e63','Utilities':'#00bcd4','Miscellaneous':'#78909c'
 };
 
 const MODE_COLORS = {
