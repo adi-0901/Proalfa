@@ -728,9 +728,13 @@ async function generateSalary(){
     const totalDed = pf + esic + pt + tds + advAmt;
     const net   = grossWithOt - totalDed;
 
+    // Employer-side compliance contributions
+    const erPf   = emp.pf_applicable  ? Math.round(earnedBasic * 0.12) : 0;   // Employer EPF @ 12%
+    const erEsic = (emp.esic_applicable && grossWithOt<=21000) ? Math.round(grossWithOt * 0.0325) : 0; // Employer ESIC @ 3.25%
+
     const row = {emp,cal,woDays,working,present,half,plUsed,unpaidAbsent,perDay,
                  basic,special,earnedBasic,earnedSpecial,gross,otHrs,otPay,grossWithOt,
-                 pf,esic,pt,tds,advAmt,totalDed,net,m,y,fyLabel};
+                 pf,esic,pt,tds,advAmt,totalDed,net,erPf,erEsic,m,y,fyLabel};
     emp.type==='staff' ? staffRows.push(row) : workerRows.push(row);
   });
 
@@ -815,7 +819,121 @@ async function generateSalary(){
         ${MONTHS[m]} ${y} · ${cal} cal days · Staff: ${fmtINR(totS.net)} · Workers: ${fmtINR(totW.net)}
       </div>
       <div style="font-size:18px;font-weight:700;color:var(--green)">Grand Total: ${fmtINR(grandNet)}</div>
-    </div>`;
+    </div>
+
+    ${(()=>{
+      const allR = _lastSalaryRows;
+      const compRows = allR.filter(r=>r.pf||r.esic||r.pt||r.tds);
+      if(!compRows.length) return '';
+
+      const nextMonth = m===12?1:m+1;
+      const nextYear  = m===12?y+1:y;
+      const pad2 = n=>String(n).padStart(2,'0');
+      const due15 = `15 ${MONTHS[nextMonth]} ${nextYear}`;
+      const due7  = `07 ${MONTHS[nextMonth]} ${nextYear}`;
+
+      const totComp = allR.reduce((s,r)=>({
+        empPf:s.empPf+r.pf, erPf:s.erPf+r.erPf,
+        empEsic:s.empEsic+r.esic, erEsic:s.erEsic+r.erEsic,
+        pt:s.pt+r.pt, tds:s.tds+r.tds
+      }),{empPf:0,erPf:0,empEsic:0,erEsic:0,pt:0,tds:0});
+
+      const epfChallan  = totComp.empPf + totComp.erPf;
+      const esicChallan = totComp.empEsic + totComp.erEsic;
+      const ptTotal     = totComp.pt;
+      const tdsTotal    = totComp.tds;
+      const grandComp   = epfChallan + esicChallan + ptTotal + tdsTotal;
+
+      const compRowsHtml = allR.map((r,i)=>{
+        const epf  = r.pf + r.erPf;
+        const esic = r.esic + r.erEsic;
+        const total = epf + esic + r.pt + r.tds;
+        if(!total) return '';
+        return `<tr>
+          <td style="color:var(--muted);font-size:12px">${i+1}</td>
+          <td style="font-weight:500">${r.emp.name}</td>
+          <td style="font-size:11px;color:var(--muted)">${r.emp.designation||'—'}</td>
+          ${r.pf||r.erPf?`<td style="text-align:right;font-size:12px">
+            <span style="color:var(--red)">${r.pf?fmtINR(r.pf):'-'}</span>
+            <span style="color:var(--muted);font-size:10px"> + </span>
+            <span style="color:var(--amber)">${r.erPf?fmtINR(r.erPf):'-'}</span>
+            <span style="color:var(--muted);font-size:10px"> = </span>
+            <strong>${fmtINR(epf)}</strong>
+          </td>`:`<td style="text-align:center;color:var(--muted);font-size:12px">N/A</td>`}
+          ${r.esic||r.erEsic?`<td style="text-align:right;font-size:12px">
+            <span style="color:var(--red)">${r.esic?fmtINR(r.esic):'-'}</span>
+            <span style="color:var(--muted);font-size:10px"> + </span>
+            <span style="color:var(--amber)">${r.erEsic?fmtINR(r.erEsic):'-'}</span>
+            <span style="color:var(--muted);font-size:10px"> = </span>
+            <strong>${fmtINR(esic)}</strong>
+          </td>`:`<td style="text-align:center;color:var(--muted);font-size:12px">N/A</td>`}
+          <td style="text-align:right;font-size:12px">${r.pt?fmtINR(r.pt):'—'}</td>
+          <td style="text-align:right;font-size:12px">${r.tds?fmtINR(r.tds):'—'}</td>
+          <td style="text-align:right;font-weight:700;color:var(--blue)">${fmtINR(total)}</td>
+        </tr>`;
+      }).join('');
+
+      return `
+      <div style="margin-top:24px">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;flex-wrap:wrap;gap:8px">
+          <div class="slabel" style="margin:0">Monthly Compliance Summary</div>
+          <div style="font-size:11px;color:var(--muted)">
+            <span style="color:var(--red)">■</span> Employee &nbsp;
+            <span style="color:var(--amber)">■</span> Employer (your contribution)
+          </div>
+        </div>
+
+        <!-- Per-employee breakdown -->
+        <div class="twrap">
+          <table>
+            <thead><tr>
+              <th>Sr</th><th>Name</th><th>Designation</th>
+              <th style="text-align:right">EPF Challan<br><span style="font-weight:400;font-size:10px">(Emp 12% + Er 12%)</span></th>
+              <th style="text-align:right">ESIC Challan<br><span style="font-weight:400;font-size:10px">(Emp 0.75% + Er 3.25%)</span></th>
+              <th style="text-align:right">Prof. Tax</th>
+              <th style="text-align:right">TDS (Sec 192)</th>
+              <th style="text-align:right">Total Due</th>
+            </tr></thead>
+            <tbody>
+              ${compRowsHtml}
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Challan summary cards -->
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:10px;margin-top:14px">
+          ${epfChallan?`<div style="background:var(--blue-bg);border:0.5px solid var(--blue);border-radius:var(--r);padding:12px 14px">
+            <div style="font-size:10px;font-weight:600;color:var(--blue-text);text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px">EPF Challan</div>
+            <div style="font-size:18px;font-weight:700;color:var(--blue-text)">${fmtINR(epfChallan)}</div>
+            <div style="font-size:10px;color:var(--blue);margin-top:4px">Emp: ${fmtINR(totComp.empPf)} + Er: ${fmtINR(totComp.erPf)}</div>
+            <div style="font-size:10px;color:var(--muted);margin-top:2px">Due by ${due15} · ECR on EPFO portal</div>
+          </div>`:''}
+          ${esicChallan?`<div style="background:var(--green-bg);border:0.5px solid var(--green);border-radius:var(--r);padding:12px 14px">
+            <div style="font-size:10px;font-weight:600;color:var(--green-text);text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px">ESIC Challan</div>
+            <div style="font-size:18px;font-weight:700;color:var(--green-text)">${fmtINR(esicChallan)}</div>
+            <div style="font-size:10px;color:var(--green);margin-top:4px">Emp: ${fmtINR(totComp.empEsic)} + Er: ${fmtINR(totComp.erEsic)}</div>
+            <div style="font-size:10px;color:var(--muted);margin-top:2px">Due by ${due15} · ESIC portal</div>
+          </div>`:''}
+          ${ptTotal?`<div style="background:var(--amber-bg);border:0.5px solid var(--amber);border-radius:var(--r);padding:12px 14px">
+            <div style="font-size:10px;font-weight:600;color:var(--amber-text);text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px">Prof. Tax (PT)</div>
+            <div style="font-size:18px;font-weight:700;color:var(--amber-text)">${fmtINR(ptTotal)}</div>
+            <div style="font-size:10px;color:var(--amber);margin-top:4px">${ptTotal/200} employee${ptTotal/200!==1?'s':''} × ₹200</div>
+            <div style="font-size:10px;color:var(--muted);margin-top:2px">Due by ${due7} · Mahavat / State portal</div>
+          </div>`:''}
+          ${tdsTotal?`<div style="background:var(--red-bg);border:0.5px solid var(--red);border-radius:var(--r);padding:12px 14px">
+            <div style="font-size:10px;font-weight:600;color:var(--red-text);text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px">TDS on Salary (Sec 192)</div>
+            <div style="font-size:18px;font-weight:700;color:var(--red-text)">${fmtINR(tdsTotal)}</div>
+            <div style="font-size:10px;color:var(--red);margin-top:4px">Across ${allR.filter(r=>r.tds>0).length} employee${allR.filter(r=>r.tds>0).length!==1?'s':''}</div>
+            <div style="font-size:10px;color:var(--muted);margin-top:2px">Due by ${due7} · TRACES / Challan 281</div>
+          </div>`:''}
+          <div style="background:var(--card2);border:0.5px solid var(--border2);border-radius:var(--r);padding:12px 14px">
+            <div style="font-size:10px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px">Total Compliance</div>
+            <div style="font-size:18px;font-weight:700">${fmtINR(grandComp)}</div>
+            <div style="font-size:10px;color:var(--muted);margin-top:4px">To be deposited this month</div>
+          </div>
+        </div>
+      </div>`;
+    })()}
 
   document.getElementById('slipBtn').style.display='';
   document.getElementById('markAllBtn').style.display='';
