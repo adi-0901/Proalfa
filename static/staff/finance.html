@@ -1427,13 +1427,13 @@ function openProjModal(id) {
   // Auto-generate code for new projects
   if (!id) {
     const year = new Date().getFullYear();
-    const prefix = `ALFA-${year}-`;
+    const prefix = `PD-${year}-`;
     const existing = projects
       .map(x => x.project_code || '')
       .filter(c => c.startsWith(prefix))
       .map(c => parseInt(c.replace(prefix, '')) || 0);
     const next = (existing.length ? Math.max(...existing) : 0) + 1;
-    document.getElementById('pm-code').value = prefix + String(next).padStart(3, '0');
+    document.getElementById('pm-code').value = prefix + String(next).padStart(2, '0');
   } else {
     set('pm-code', p?.project_code);
   }
