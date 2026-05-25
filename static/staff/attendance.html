@@ -276,7 +276,9 @@
           <option value="2025">2025</option><option value="2026" selected>2026</option>
         </select>
         <button class="btn btn-p" onclick="generateSalary()">⚙ Generate Sheet</button>
+        <button class="btn" id="markAllBtn" style="display:none" onclick="markAllPaid()">✓ Mark All Paid</button>
         <button class="btn" id="slipBtn" style="display:none" onclick="generateSlips()">🖨 Salary Slips</button>
+        <button class="btn" id="postFinBtn" style="display:none;color:#0F6E56;border-color:#0F6E5644" onclick="postSalaryToFinancials()">↗ Post to Financials</button>
       </div>
     </div>
 
@@ -757,6 +759,7 @@ async function generateSalary(){
         <th style="text-align:right">PT</th><th style="text-align:right">TDS ✎</th>
         <th style="text-align:right">Adv.</th>
         <th style="text-align:right;color:var(--green-text)">Net Pay</th>
+        <th style="text-align:center">Paid?</th>
       </tr></thead>
       <tbody>
         ${rows.map((r,i)=>`<tr>
@@ -772,6 +775,10 @@ async function generateSalary(){
           <td style="text-align:right;font-weight:600">${fmtINR(r.grossWithOt)}</td>
           ${ded(r)}
           <td style="text-align:right;font-weight:700;color:var(--green)" id="net-${r.emp.emp_id}">${fmtINR(r.net)}</td>
+          <td style="text-align:center">
+            <input type="checkbox" id="paid-${r.emp.emp_id}" onchange="onPaidToggle()"
+              style="width:16px;height:16px;cursor:pointer;accent-color:var(--green)">
+          </td>
         </tr>`).join('')}
         <tr style="background:var(--card2);font-weight:700;font-size:12px">
           <td colspan="${isWorker?7:5}" style="text-align:right;color:var(--muted)">TOTAL</td>
@@ -783,6 +790,7 @@ async function generateSalary(){
           <td style="text-align:right;color:var(--red)">${tot.tds?fmtINR(tot.tds):'—'}</td>
           <td style="text-align:right;color:var(--red)">${tot.adv?fmtINR(tot.adv):'—'}</td>
           <td style="text-align:right;color:var(--green)">${fmtINR(tot.net)}</td>
+          <td></td>
         </tr>
       </tbody>
     </table></div>`;
@@ -810,6 +818,8 @@ async function generateSalary(){
     </div>`;
 
   document.getElementById('slipBtn').style.display='';
+  document.getElementById('markAllBtn').style.display='';
+  document.getElementById('postFinBtn').style.display='';
 
   // Save to DB (without TDS edits — those get saved when slips generated)
   const allRows2=[...staffRows,...workerRows];
@@ -839,6 +849,87 @@ function updateTds(empId, val){
   if(el) el.textContent = fmtINR(row.net);
 }
 
+// ── Salary paid tracking ──────────────────────────────────────
+function getPaidIds(){
+  return _lastSalaryRows
+    .filter(r=>{ const el=document.getElementById('paid-'+r.emp.emp_id); return el&&el.checked; })
+    .map(r=>r.emp.emp_id);
+}
+
+function onPaidToggle(){
+  const paidIds = getPaidIds();
+  const btn = document.getElementById('postFinBtn');
+  if(btn) btn.textContent = paidIds.length
+    ? `↗ Post to Financials (${paidIds.length})`
+    : '↗ Post to Financials';
+}
+
+function markAllPaid(){
+  _lastSalaryRows.forEach(r=>{
+    const el=document.getElementById('paid-'+r.emp.emp_id);
+    if(el) el.checked=true;
+  });
+  onPaidToggle();
+}
+
+async function postSalaryToFinancials(){
+  const m = parseInt(document.getElementById('salMonth').value);
+  const y = parseInt(document.getElementById('salYear').value);
+  const paidRows = _lastSalaryRows.filter(r=>{
+    const el=document.getElementById('paid-'+r.emp.emp_id);
+    return el&&el.checked;
+  });
+  if(!paidRows.length){ showAlert('Tick at least one employee as Paid first.','w'); return; }
+
+  const dateStr = `${y}-${String(m).padStart(2,'0')}-${String(new Date(y,m-1+1,0).getDate()).padStart(2,'0')}`;
+  const totalNet = paidRows.reduce((s,r)=>s+r.net,0);
+
+  // One combined salary entry
+  const entry = {
+    date:        dateStr,
+    category:    'Labour & Wages',
+    payee:       `Salary — ${MONTHS[m]} ${y} (${paidRows.length} employee${paidRows.length!==1?'s':''})`,
+    amount:      totalNet,
+    payment_mode:'Bank Transfer',
+    bill_status: 'Bill Received',
+    description: paidRows.map(r=>`${r.emp.name}: ${fmtINR(r.net)}`).join(' | '),
+    entry_by:    'Salary Module',
+    tds_applicable: false,
+  };
+
+  const entriesToInsert = [entry];
+
+  // TDS entry (Sec 192 — Salary) for any employees with TDS deducted
+  const tdsRows = paidRows.filter(r=>r.tds>0);
+  if(tdsRows.length){
+    const totalTds = tdsRows.reduce((s,r)=>s+r.tds,0);
+    entriesToInsert.push({
+      date:           dateStr,
+      category:       'Labour & Wages',
+      payee:          `TDS on Salary (Sec 192) — ${MONTHS[m]} ${y}`,
+      amount:         totalTds,
+      payment_mode:   'Bank Transfer',
+      bill_status:    'Bill Received',
+      description:    tdsRows.map(r=>`${r.emp.name} (${r.emp.pan||'PAN N/A'}): ₹${r.tds}`).join(' | '),
+      entry_by:       'Salary Module',
+      tds_applicable: true,
+      tds_section:    '192',
+      tds_amount:     totalTds,
+      payee_pan:      null,
+    });
+  }
+
+  const {error} = await sb.from('hr_expenses').insert(entriesToInsert);
+  if(error){ showAlert('Post failed: '+error.message,'e'); return; }
+
+  // Mark salary_records as paid
+  for(const r of paidRows){
+    await sb.from('salary_records').update({paid:true}).eq('emp_id',r.emp.emp_id).eq('month',m).eq('year',y);
+  }
+
+  showAlert(`Posted ${fmtINR(totalNet)} to Financials for ${paidRows.length} employee${paidRows.length!==1?'s':''}.`,'s');
+}
+
 // ── Amount in words (Indian system) ──────────────────────────
 function numToWords(n){
   n = Math.round(n);
@@ -863,6 +954,12 @@ function numToWords(n){
 // ── Salary Slips — Apple design ───────────────────────────────
 function generateSlips(){
   if(!_lastSalaryRows.length){ alert('Generate salary sheet first.'); return; }
+  const paidIds = getPaidIds();
+  const sourceRows = paidIds.length
+    ? _lastSalaryRows.filter(r=>paidIds.includes(r.emp.emp_id))
+    : _lastSalaryRows;
+  if(!sourceRows.length){ showAlert('Tick at least one employee as Paid to generate slips.','w'); return; }
+
   const m   = parseInt(document.getElementById('salMonth').value);
   const y   = parseInt(document.getElementById('salYear').value);
   const cal = daysInMonth(m,y);
@@ -872,7 +969,7 @@ function generateSlips(){
 
   const INR = n => Math.round(n).toLocaleString('en-IN');
 
-  const slips = _lastSalaryRows.map(r=>{
+  const slips = sourceRows.map(r=>{
     const gross = r.grossWithOt;
     const net   = r.net;
     const workingDays = r.present + (r.half ? r.half * 0.5 : 0);
@@ -1110,7 +1207,7 @@ function generateSlips(){
   <style>${css}</style>
   </head><body>
   <div class="toolbar">
-    <div class="toolbar-info">${_lastSalaryRows.length} slip${_lastSalaryRows.length!==1?'s':''} &nbsp;·&nbsp; ${monthLabel} &nbsp;·&nbsp; Proalfa Dynamic Pvt. Ltd.</div>
+    <div class="toolbar-info">${sourceRows.length} slip${sourceRows.length!==1?'s':''} &nbsp;·&nbsp; ${monthLabel} &nbsp;·&nbsp; Proalfa Dynamic Pvt. Ltd.</div>
     <button class="print-btn" onclick="window.print()">Print / Save PDF</button>
   </div>
   ${slips}
