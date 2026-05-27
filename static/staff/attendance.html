@@ -424,7 +424,7 @@
         <thead><tr>
           <th>ID</th><th>Name</th><th>Designation</th><th>Type</th>
           <th style="text-align:right">Monthly (₹)</th>
-          <th>Weekly Off</th><th>OT Eligible</th><th>Status</th>
+          <th>Weekly Off</th><th>OT Eligible</th><th>Status</th><th></th>
         </tr></thead>
         <tbody id="empBody"><tr><td colspan="8" class="loading">Loading…</td></tr></tbody>
       </table>
@@ -581,7 +581,7 @@ function rebuildEmpSelects(){
 
 function renderEmployeeList(){
   const body=document.getElementById('empBody');
-  if(!employees.length){ body.innerHTML='<tr><td colspan="8" class="empty">No employees found.</td></tr>'; return; }
+  if(!employees.length){ body.innerHTML='<tr><td colspan="9" class="empty">No employees found.</td></tr>'; return; }
   body.innerHTML=employees.map(e=>`<tr>
     <td style="color:var(--muted)">${e.emp_id}</td>
     <td style="font-weight:500">${e.name}</td>
@@ -591,7 +591,16 @@ function renderEmployeeList(){
     <td style="color:var(--muted);text-transform:capitalize">${e.weekly_off}</td>
     <td style="text-align:center">${e.ot_eligible?'✅':'—'}</td>
     <td><span class="badge ${e.active?'b-present':'b-absent'}">${e.active?'Active':'Inactive'}</span></td>
+    <td><button type="button" onclick="removeEmployee('${e.emp_id}','${e.name.replace(/'/g,"\\'")}')" style="background:none;border:none;color:var(--red);cursor:pointer;font-size:13px;padding:2px 6px" title="Remove">✕</button></td>
   </tr>`).join('');
+}
+
+async function removeEmployee(emp_id, name){
+  if(!confirm('Remove '+name+' from Attendance & Salary?\n\nThis only removes them from this system — their HR record stays intact.')) return;
+  const {error} = await sb.from('employees').delete().eq('emp_id', emp_id);
+  if(error){ showAlert('Error: '+error.message,'e'); return; }
+  showAlert(name+' removed.');
+  await loadEmployees();
 }
 
 // ── Today's attendance ────────────────────────────────────────
