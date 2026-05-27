@@ -214,7 +214,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Helvetica
   <div class="lcard">
     <h2>Finance Dashboard</h2>
     <p>Proalfa Dynamic — Management Access Only</p>
-    <input type="password" id="lpass" placeholder="Password" onkeydown="if(event.key==='Enter')doLogin()">
+    <input type="text" id="lpass" placeholder="Password" autocomplete="off" onkeydown="if(event.key==='Enter')doLogin()">
     <div class="lerr" id="lerr">Incorrect password.</div>
     <button class="btn btn-primary" style="width:100%" onclick="doLogin()">Sign In</button>
   </div>

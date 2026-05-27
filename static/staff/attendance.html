@@ -136,9 +136,43 @@
 
 <!-- ── CONFIG: paste your Supabase values here ───────────────── -->
 <script>
-  const SUPABASE_URL = "https://gzjzuudhtvljpwcqygtk.supabase.co";
-  const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imd6anp1dWRodHZsanB3Y3F5Z3RrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzgzOTY4NTksImV4cCI6MjA5Mzk3Mjg1OX0.pCBKZwMDvu8UAfKEXL8_hgkuG95A-MtVKK6sM2qFxEs";
-  const APP_PASS     = "ProalfaAdmin@2025";
+  var SUPABASE_URL = "https://gzjzuudhtvljpwcqygtk.supabase.co";
+  var SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imd6anp1dWRodHZsanB3Y3F5Z3RrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzgzOTY4NTksImV4cCI6MjA5Mzk3Mjg1OX0.pCBKZwMDvu8UAfKEXL8_hgkuG95A-MtVKK6sM2qFxEs";
+  var APP_PASS     = "ProalfaAdmin@2025";
+
+  function doLogin(){
+    var v = window._pv || (document.getElementById('lpass')||{}).value || '';
+    v = v.trim();
+    if(v === APP_PASS){
+      window._pv = '';
+      sessionStorage.setItem('pal_auth','1');
+      document.getElementById('loginOverlay').style.display='none';
+      if(typeof initApp === 'function') initApp();
+    } else {
+      var e = document.getElementById('lerr');
+      if(e) e.style.display='block';
+      window._pv = '';
+      var inp = document.getElementById('lpass');
+      if(inp){ inp.value=''; inp.focus(); }
+    }
+  }
+
+  function doLogout(){
+    sessionStorage.removeItem('pal_auth');
+    window._pv = '';
+    var inp = document.getElementById('lpass');
+    if(inp){ inp.value=''; }
+    var e = document.getElementById('lerr');
+    if(e) e.style.display='none';
+    document.getElementById('loginOverlay').style.display='flex';
+  }
+
+  if(sessionStorage.getItem('pal_auth')){
+    document.addEventListener('DOMContentLoaded', function(){
+      document.getElementById('loginOverlay').style.display='none';
+      if(typeof initApp === 'function') initApp();
+    });
+  }
 </script>
 <!-- ──────────────────────────────────────────────────────────── -->
 
@@ -150,9 +184,9 @@
     <p class="lsub">Proalfa Manufacturing — Staff access only</p>
     <div class="lfield">
       <label>Password</label>
-      <input type="password" id="lpass" placeholder="Enter password" onkeydown="if(event.key==='Enter')doLogin()">
+      <input type="password" id="lpass" placeholder="Enter password" autocomplete="current-password" oninput="window._pv=this.value" onkeydown="if(event.key==='Enter')doLogin()">
     </div>
-    <button class="btn btn-p" style="width:100%;padding:10px" onclick="doLogin()">Sign in</button>
+    <button type="button" class="btn btn-p" style="width:100%;padding:10px" onclick="doLogin()">Sign in</button>
     <div class="lerr" id="lerr">Incorrect password.</div>
   </div>
 </div>
@@ -278,7 +312,7 @@
         <button class="btn btn-p" onclick="generateSalary()">⚙ Generate Sheet</button>
         <button class="btn" id="markAllBtn" style="display:none" onclick="markAllPaid()">✓ Mark All Paid</button>
         <button class="btn" id="slipBtn" style="display:none" onclick="generateSlips()">🖨 Salary Slips</button>
-        <button class="btn" id="postFinBtn" style="display:none;color:#0F6E56;border-color:#0F6E5644" onclick="postSalaryToFinancials()">↗ Post to Financials</button>
+        <button class="btn" id="postFinBtn" style="display:none;color:#0F6E56;border-color:#0F6E5644" onclick="postSalaryToFinancials()">Post to Financials</button>
       </div>
     </div>
 
@@ -402,32 +436,8 @@
 <div class="footer">Proalfa Dynamic Pvt Ltd · Attendance &amp; Salary System</div>
 
 <script>
-// ── Auth ──────────────────────────────────────────────────────
-function doLogin(){
-  if(document.getElementById('lpass').value===APP_PASS){
-    sessionStorage.setItem('pal_auth','1');
-    document.getElementById('loginOverlay').style.display='none';
-    initApp();
-  } else {
-    document.getElementById('lerr').style.display='block';
-    document.getElementById('lpass').value='';
-    document.getElementById('lpass').focus();
-  }
-}
-function doLogout(){
-  sessionStorage.removeItem('pal_auth');
-  document.getElementById('lpass').value='';
-  document.getElementById('lerr').style.display='none';
-  document.getElementById('loginOverlay').style.display='flex';
-}
-if(sessionStorage.getItem('pal_auth')){
-  document.getElementById('loginOverlay').style.display='none';
-  initApp();
-}
-
 // ── Supabase client ───────────────────────────────────────────
-const { createClient } = supabase;
-const sb = createClient(SUPABASE_URL, SUPABASE_KEY);
+let sb;
 
 // ── State ─────────────────────────────────────────────────────
 let employees = [];
@@ -437,6 +447,7 @@ const WO_DAY  = { thursday:4, sunday:0 }; // JS getDay() 0=Sun,4=Thu
 
 // ── Init ──────────────────────────────────────────────────────
 async function initApp(){
+  if(!sb){ const {createClient}=supabase; sb=createClient(SUPABASE_URL,SUPABASE_KEY); }
   const today = new Date();
   document.getElementById('todayDate').textContent   = fmtDate(today.toISOString().split('T')[0]);
   document.getElementById('todayLabel').textContent  = `Today: ${fmtDate(today.toISOString().split('T')[0])} · ${today.toLocaleString('en-IN',{weekday:'long'})}`;
@@ -938,6 +949,7 @@ async function generateSalary(){
         </div>
       </div>`;
     })()}
+`;
 
   document.getElementById('slipBtn').style.display='';
   document.getElementById('markAllBtn').style.display='';
@@ -982,8 +994,8 @@ function onPaidToggle(){
   const paidIds = getPaidIds();
   const btn = document.getElementById('postFinBtn');
   if(btn) btn.textContent = paidIds.length
-    ? `↗ Post to Financials (${paidIds.length})`
-    : '↗ Post to Financials';
+    ? `Post to Financials (${paidIds.length})`
+    : 'Post to Financials';
 }
 
 function markAllPaid(){
