@@ -413,7 +413,7 @@
       </div>
     </div>
     <div class="brow">
-      <button class="btn btn-p" onclick="addEmployee()">＋ Add Employee</button>
+      <button type="button" class="btn btn-p" onclick="addEmployee()">＋ Add Employee</button>
       <button class="btn" onclick="syncFromHR()" id="syncHRBtn" title="Pull all employees from HR Dashboard">↻ Sync from HR</button>
     </div>
 
@@ -1428,11 +1428,16 @@ async function addEmployee(){
   const sal    = parseFloat(document.getElementById('e-sal').value);
   const wo     = document.getElementById('e-wo').value;
   if(!emp_id||!name||!sal){ showAlert('Fill in ID, Name, and Salary.','e'); return; }
+  if(employees.some(e=>String(e.emp_id)===String(emp_id))){
+    showAlert('Employee ID '+emp_id+' already exists. Use a different ID.','e'); return;
+  }
   const ot_eligible = type==='worker';
   const {error}=await sb.from('employees').insert({emp_id,name,designation:desig,type,monthly_salary:sal,weekly_off:wo,ot_eligible,active:true});
   if(error){ showAlert('Error: '+error.message,'e'); return; }
   showAlert(name+' added successfully.');
   ['e-id','e-name','e-desig','e-sal'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('e-type').value='worker';
+  document.getElementById('e-wo').value='thursday';
   await loadEmployees();
 }
 
