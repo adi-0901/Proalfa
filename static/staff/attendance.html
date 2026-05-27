@@ -415,6 +415,7 @@
     <div class="brow">
       <button type="button" class="btn btn-p" onclick="addEmployee()">＋ Add Employee</button>
       <button class="btn" onclick="syncFromHR()" id="syncHRBtn" title="Pull all employees from HR Dashboard">↻ Sync from HR</button>
+      <button type="button" class="btn" onclick="printRegistrationForm()" title="Print blank employee registration form">🖨 Print Form</button>
     </div>
 
     <div class="divider"></div>
@@ -1479,6 +1480,153 @@ async function exportSalaryCSV(){
   a.href=URL.createObjectURL(blob);
   a.download=`Proalfa_Salary_${MONTHS[m]}_${y}.csv`;
   a.click();
+}
+
+// ── Print Employee Registration Form ─────────────────────────
+function printRegistrationForm(){
+  const w = window.open('','_blank');
+  w.document.write(`<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Employee Registration Form — Proalfa Dynamic</title>
+<style>
+  *{ box-sizing:border-box; margin:0; padding:0; }
+  body{ font-family: Arial, sans-serif; font-size:13px; color:#111; padding:32px 40px; max-width:720px; margin:0 auto; }
+  .logo-row{ display:flex; align-items:center; justify-content:space-between; border-bottom:2px solid #111; padding-bottom:10px; margin-bottom:6px; }
+  .company{ font-size:18px; font-weight:700; letter-spacing:.02em; }
+  .form-title{ text-align:center; font-size:15px; font-weight:700; text-transform:uppercase; letter-spacing:.08em; margin:14px 0 18px; border:1px solid #111; padding:7px; }
+  .section{ margin-bottom:18px; }
+  .section-title{ font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:.06em; color:#555; border-bottom:1px solid #ccc; padding-bottom:3px; margin-bottom:12px; }
+  .row{ display:grid; gap:16px; margin-bottom:14px; }
+  .row-2{ grid-template-columns:1fr 1fr; }
+  .row-3{ grid-template-columns:1fr 1fr 1fr; }
+  .field label{ display:block; font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:.05em; color:#555; margin-bottom:4px; }
+  .field .line{ border-bottom:1px solid #333; height:24px; }
+  .field .hint{ font-size:9px; color:#888; margin-top:3px; }
+  .checkbox-row{ display:flex; gap:24px; align-items:center; margin-top:4px; }
+  .checkbox-row label{ display:flex; align-items:center; gap:6px; font-size:12px; font-weight:normal; text-transform:none; letter-spacing:0; color:#111; cursor:pointer; }
+  .checkbox-row input{ width:14px; height:14px; }
+  .sig-row{ display:grid; grid-template-columns:2fr 1fr; gap:24px; margin-top:8px; }
+  .sig-box{ border:1px solid #aaa; height:64px; border-radius:3px; }
+  .footer{ margin-top:28px; font-size:9px; color:#aaa; text-align:center; border-top:1px solid #eee; padding-top:8px; }
+  @media print{
+    body{ padding:20px 28px; }
+    .no-print{ display:none; }
+  }
+</style>
+</head>
+<body>
+
+<div class="logo-row">
+  <div class="company">PROALFA DYNAMIC PRIVATE LIMITED</div>
+  <div style="font-size:11px;color:#555;text-align:right">Form No: ________ &nbsp;&nbsp; Date: ________________</div>
+</div>
+<div class="form-title">Employee Registration Form</div>
+
+<div class="section">
+  <div class="section-title">Personal Details</div>
+  <div class="row row-2">
+    <div class="field"><label>Full Name</label><div class="line"></div></div>
+    <div class="field"><label>Employee ID <span style="color:#888">(office use)</span></label><div class="line"></div></div>
+  </div>
+  <div class="row row-2">
+    <div class="field"><label>Designation / Role</label><div class="line"></div></div>
+    <div class="field"><label>Department</label><div class="line"></div></div>
+  </div>
+  <div class="row row-2">
+    <div class="field"><label>Date of Joining</label><div class="line"></div></div>
+    <div class="field"><label>Mobile Number</label><div class="line"></div></div>
+  </div>
+  <div class="row row-2">
+    <div class="field"><label>Date of Birth</label><div class="line"></div></div>
+    <div class="field"><label>Aadhar Number</label><div class="line"></div></div>
+  </div>
+</div>
+
+<div class="section">
+  <div class="section-title">Employment Details</div>
+  <div class="row row-2">
+    <div class="field">
+      <label>Employment Type</label>
+      <div class="checkbox-row" style="margin-top:8px">
+        <label><input type="checkbox"> Worker (OT eligible)</label>
+        <label><input type="checkbox"> Staff (no OT)</label>
+      </div>
+    </div>
+    <div class="field">
+      <label>Weekly Off Day</label>
+      <div class="checkbox-row" style="margin-top:8px">
+        <label><input type="checkbox"> Thursday</label>
+        <label><input type="checkbox"> Sunday</label>
+      </div>
+    </div>
+  </div>
+  <div class="row row-3">
+    <div class="field"><label>Monthly Salary (₹)</label><div class="line"></div></div>
+    <div class="field"><label>Basic Salary (₹)</label><div class="line"></div><div class="hint">Leave blank if same as 50% of monthly</div></div>
+    <div class="field"><label>PAN Number</label><div class="line"></div></div>
+  </div>
+</div>
+
+<div class="section">
+  <div class="section-title">Statutory Applicability</div>
+  <div style="display:flex;gap:32px;flex-wrap:wrap;padding:4px 0">
+    <label style="display:flex;align-items:center;gap:6px;font-size:12px"><input type="checkbox"> PF Applicable</label>
+    <label style="display:flex;align-items:center;gap:6px;font-size:12px"><input type="checkbox"> ESIC Applicable</label>
+    <label style="display:flex;align-items:center;gap:6px;font-size:12px"><input type="checkbox"> Professional Tax</label>
+    <label style="display:flex;align-items:center;gap:6px;font-size:12px"><input type="checkbox"> TDS (Sec 192)</label>
+  </div>
+</div>
+
+<div class="section">
+  <div class="section-title">Bank Details (for salary transfer)</div>
+  <div class="row row-2">
+    <div class="field"><label>Bank Name</label><div class="line"></div></div>
+    <div class="field"><label>Account Number</label><div class="line"></div></div>
+  </div>
+  <div class="row row-2">
+    <div class="field"><label>IFSC Code</label><div class="line"></div></div>
+    <div class="field"><label>Account Holder Name</label><div class="line"></div></div>
+  </div>
+</div>
+
+<div class="section">
+  <div class="section-title">Declaration & Signatures</div>
+  <div style="font-size:11px;color:#444;margin-bottom:12px">
+    I hereby declare that the information provided above is true and correct to the best of my knowledge.
+  </div>
+  <div class="sig-row">
+    <div class="field">
+      <label>Employee Signature</label>
+      <div class="sig-box"></div>
+    </div>
+    <div class="field">
+      <label>Date</label>
+      <div class="sig-box"></div>
+    </div>
+  </div>
+  <div class="sig-row" style="margin-top:14px">
+    <div class="field">
+      <label>Authorised Signatory (HR / Management)</label>
+      <div class="sig-box"></div>
+    </div>
+    <div class="field">
+      <label>Date</label>
+      <div class="sig-box"></div>
+    </div>
+  </div>
+</div>
+
+<div class="footer">Proalfa Dynamic Pvt Ltd &nbsp;·&nbsp; Employee Registration Form &nbsp;·&nbsp; For office use only</div>
+
+<div class="no-print" style="text-align:center;margin-top:20px">
+  <button onclick="window.print()" style="padding:10px 28px;font-size:14px;cursor:pointer;background:#185FA5;color:#fff;border:none;border-radius:6px">Print / Save as PDF</button>
+</div>
+
+</body>
+</html>`);
+  w.document.close();
 }
 </script>
 </body>
