@@ -311,8 +311,8 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Helvetica
   <div class="panel" id="panel-add">
     <div id="addFormWrap"></div>
     <div style="display:flex;gap:8px;margin-top:4px">
-      <button class="btn btn-primary" onclick="addEmployee()">Save Employee</button>
-      <button class="btn" onclick="buildAddForm()">Clear Form</button>
+      <button type="button" class="btn btn-primary" id="saveEmpBtn" onclick="addEmployee()">Save Employee</button>
+      <button type="button" class="btn" onclick="buildAddForm()">Clear Form</button>
     </div>
   </div>
 
@@ -923,13 +923,27 @@ function buildAddForm() {
 }
 
 async function addEmployee() {
+  const btn = document.getElementById('saveEmpBtn');
+  if (btn && btn.disabled) return;
+  if (btn) { btn.disabled = true; btn.textContent = 'Saving…'; }
+
   const data = collectForm();
-  if (!data.full_name) { showAlert('Full name is required.', 'err'); return; }
+  if (!data.full_name) {
+    if (btn) { btn.disabled = false; btn.textContent = 'Save Employee'; }
+    showAlert('Full name is required.', 'err'); return;
+  }
+  if (data.emp_id && employees.some(e => String(e.emp_id) === String(data.emp_id))) {
+    if (btn) { btn.disabled = false; btn.textContent = 'Save Employee'; }
+    showAlert('Employee ID ' + data.emp_id + ' already exists. Use a different ID.', 'err'); return;
+  }
   if (!data.status) data.status = 'probation';
   DOC_FIELDS.forEach(d => { if (!data[d.key]) data[d.key] = 'pending'; });
 
   const { data: row, error } = await sb.from('hr_employees').insert(data).select().single();
-  if (error) { showAlert('Error: ' + error.message, 'err'); return; }
+  if (error) {
+    if (btn) { btn.disabled = false; btn.textContent = 'Save Employee'; }
+    showAlert('Error: ' + error.message, 'err'); return;
+  }
   employees.push(row);
   employees.sort((a,b) => a.full_name.localeCompare(b.full_name));
 
@@ -942,6 +956,8 @@ async function addEmployee() {
 
   renderOverview(); renderList(); populateObSelect();
   buildAddForm();
+  const b = document.getElementById('saveEmpBtn');
+  if (b) { b.disabled = false; b.textContent = 'Save Employee'; }
   showAlert(`${row.full_name} added and synced to Attendance.`, 'ok');
 }
 
