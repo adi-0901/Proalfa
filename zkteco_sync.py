@@ -31,8 +31,10 @@ SUPABASE_URL = "https://gzjzuudhtvljpwcqygtk.supabase.co"
 SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imd6anp1dWRodHZsanB3Y3F5Z3RrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzgzOTY4NTksImV4cCI6MjA5Mzk3Mjg1OX0.pCBKZwMDvu8UAfKEXL8_hgkuG95A-MtVKK6sM2qFxEs"
 
 # Shift window
-LATE_AFTER  = "10:00"   # punch-in after this = late
-SHIFT_END   = "18:00"   # punch-out after this = OT
+LATE_AFTER   = "10:00"   # punch-in after this = late
+SHIFT_END    = "18:00"   # punch-out after this = OT
+HALF_IN_AFTER = "12:00"  # punch-in after this = half day
+HALF_OUT_BEFORE = "15:00" # punch-out before this = half day
 
 # ── CONNECT TO DEVICE ────────────────────────────────────────────────────────
 def get_attendance():
@@ -68,6 +70,19 @@ def calc_ot(co_str):
     h, m = map(int, co_str.split(":"))
     diff_mins = (h * 60 + m) - (se_h * 60 + se_m)
     return round(max(0, diff_mins / 60), 2)
+
+def calc_status(ci_str, co_str):
+    """Return 'half_day' or 'present' based on punch times."""
+    hi_h, hi_m = map(int, HALF_IN_AFTER.split(":"))
+    ho_h, ho_m = map(int, HALF_OUT_BEFORE.split(":"))
+    ci_mins = sum(int(x) * f for x, f in zip(ci_str.split(":"), [60, 1]))
+    if ci_mins > hi_h * 60 + hi_m:
+        return "half_day"
+    if co_str:
+        co_mins = sum(int(x) * f for x, f in zip(co_str.split(":"), [60, 1]))
+        if co_mins < ho_h * 60 + ho_m:
+            return "half_day"
+    return "present"
 
 def process_attendance(raw_logs, from_date):
     late_h, late_m = map(int, LATE_AFTER.split(":"))
@@ -106,7 +121,7 @@ def process_attendance(raw_logs, from_date):
             "date":       log_date.isoformat(),
             "check_in":   ci_str,
             "check_out":  co_str,
-            "status":     "present",
+            "status":     calc_status(ci_str, co_str),
             "late_entry": late,
             "ot_hours":   calc_ot(co_str),
         })
