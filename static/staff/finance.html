@@ -1,0 +1,1908 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Finance Dashboard — Proalfa Dynamic</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --bg: #f5f5f3; --card: #ffffff; --card2: #eeede9;
+  --text: #1a1a18; --text2: #6b6b67; --border: rgba(0,0,0,0.10); --border2: rgba(0,0,0,0.18);
+  --blue: #185FA5; --blue-bg: #E6F1FB; --blue-text: #042C53;
+  --green: #0F6E56; --green-bg: #E1F5EE; --green-text: #04342C;
+  --amber: #854F0B; --amber-bg: #FAEEDA; --amber-text: #412402;
+  --red: #A32D2D; --red-bg: #FCEBEB; --red-text: #501313;
+  --r: 8px; --r2: 12px;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #1a1a18; --card: #232320; --card2: #2c2c28;
+    --text: #f0ede8; --text2: #9a9a96; --border: rgba(255,255,255,0.08); --border2: rgba(255,255,255,0.16);
+    --blue: #378ADD; --blue-bg: #0c2540; --blue-text: #B5D4F4;
+    --green: #1D9E75; --green-bg: #062820; --green-text: #9FE1CB;
+    --amber: #EF9F27; --amber-bg: #2a1a04; --amber-text: #FAC775;
+    --red: #E24B4A; --red-bg: #2c0f0f; --red-text: #F7C1C1;
+  }
+}
+body { font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Helvetica Neue', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; font-size: 14px; }
+
+/* ── Login ── */
+#loginOverlay { position:fixed;inset:0;background:var(--bg);display:flex;align-items:center;justify-content:center;z-index:1000; }
+.lcard { background:var(--card);border:1px solid var(--border2);border-radius:var(--r2);padding:40px;width:340px; }
+.lcard h2 { font-size:18px;font-weight:700;margin-bottom:4px; }
+.lcard p  { color:var(--text2);font-size:12px;margin-bottom:24px; }
+.lcard input[type=password] { width:100%;padding:9px 12px;border:1px solid var(--border2);border-radius:var(--r);background:var(--card2);color:var(--text);font-size:14px;outline:none;margin-bottom:16px;font-family:inherit; }
+.lcard input[type=password]:focus { border-color:var(--blue); }
+.lerr { color:var(--red);font-size:12px;margin-bottom:12px;display:none; }
+
+/* ── App shell ── */
+.topbar { display:flex;justify-content:space-between;align-items:center;padding:14px 24px;border-bottom:1px solid var(--border);background:var(--card);position:sticky;top:0;z-index:100; }
+.topbar-title { font-size:15px;font-weight:700; }
+.topbar-right  { display:flex;align-items:center;gap:12px; }
+.sync-status { font-size:11px;color:var(--text2); }
+.sync-status span { font-weight:600; }
+
+/* ── Tabs ── */
+.tabs { display:flex;gap:2px;padding:0 24px;background:var(--card);border-bottom:1px solid var(--border);overflow-x:auto; }
+.tab  { padding:12px 16px;font-size:13px;font-weight:500;color:var(--text2);border:none;background:none;cursor:pointer;border-bottom:2px solid transparent;white-space:nowrap;transition:color .15s; }
+.tab.active { color:var(--blue);border-bottom-color:var(--blue);font-weight:600; }
+.tab:hover:not(.active) { color:var(--text); }
+
+/* ── Panels ── */
+.panel { display:none;padding:24px; }
+.panel.active { display:block; }
+
+/* ── Alert bar ── */
+.abar { display:none;padding:10px 24px;font-size:13px;font-weight:500; }
+.abar-ok  { background:var(--green-bg);color:var(--green-text); }
+.abar-err { background:var(--red-bg);color:var(--red-text); }
+
+/* ── Buttons ── */
+.btn { padding:8px 16px;border-radius:var(--r);border:1px solid var(--border2);background:var(--card);color:var(--text);font-size:13px;font-weight:500;cursor:pointer;font-family:inherit; }
+.btn:hover { background:var(--card2); }
+.btn-primary { background:var(--blue);border-color:var(--blue);color:#fff; }
+.btn-primary:hover { opacity:.88; }
+.btn-sm { padding:6px 12px;font-size:12px; }
+
+/* ── Stat cards ── */
+.stat-grid { display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:14px;margin-bottom:24px; }
+.stat-card { background:var(--card);border:1px solid var(--border);border-radius:var(--r2);padding:18px 20px; }
+.stat-label { font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text2);margin-bottom:6px; }
+.stat-value { font-size:26px;font-weight:700;line-height:1.1;font-variant-numeric:tabular-nums; }
+.stat-sub   { font-size:11px;color:var(--text2);margin-top:5px; }
+.stat-card.blue  .stat-value { color:var(--blue); }
+.stat-card.green .stat-value { color:var(--green); }
+.stat-card.red   .stat-value { color:var(--red); }
+.stat-card.amber .stat-value { color:var(--amber); }
+
+/* ── Section headers ── */
+.section-title { font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--text2);margin-bottom:12px; }
+
+/* ── Tables ── */
+.fin-tbl { width:100%;border-collapse:collapse;font-size:13px; }
+.fin-tbl th { font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--text2);padding:8px 12px;text-align:left;border-bottom:2px solid var(--border2); }
+.fin-tbl td { padding:10px 12px;border-bottom:1px solid var(--border);vertical-align:middle; }
+.fin-tbl tr:last-child td { border-bottom:none; }
+.fin-tbl tr:hover td { background:var(--card2); }
+.fin-tbl .amt { text-align:right;font-weight:600;font-variant-numeric:tabular-nums; }
+.tbl-card { background:var(--card);border:1px solid var(--border);border-radius:var(--r2);overflow:hidden; }
+.tbl-header { display:flex;justify-content:space-between;align-items:center;padding:14px 16px;border-bottom:1px solid var(--border); }
+.tbl-wrap { overflow-x:auto; }
+
+/* ── Badges ── */
+.badge { display:inline-block;padding:2px 8px;border-radius:20px;font-size:11px;font-weight:600; }
+.badge-green  { background:var(--green-bg);color:var(--green-text); }
+.badge-amber  { background:var(--amber-bg);color:var(--amber-text); }
+.badge-red    { background:var(--red-bg);color:var(--red-text); }
+.badge-blue   { background:var(--blue-bg);color:var(--blue-text); }
+
+/* ── Aging bars ── */
+.aging-grid { display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:20px; }
+.aging-card { background:var(--card);border:1px solid var(--border);border-radius:var(--r2);padding:14px 16px;text-align:center; }
+.aging-label { font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--text2);margin-bottom:6px; }
+.aging-val   { font-size:20px;font-weight:700;font-variant-numeric:tabular-nums; }
+.aging-count { font-size:11px;color:var(--text2);margin-top:3px; }
+@media(max-width:650px) { .aging-grid { grid-template-columns:repeat(2,1fr); } }
+
+/* ── Cash flow forecast ── */
+.cf-row { display:flex;justify-content:space-between;align-items:center;padding:10px 16px;border-bottom:1px solid var(--border); }
+.cf-row:last-child { border-bottom:none; }
+.cf-label { font-size:13px; }
+.cf-val   { font-size:14px;font-weight:600;font-variant-numeric:tabular-nums; }
+.cf-total { background:var(--card2); }
+.cf-total .cf-label { font-weight:700; }
+.cf-total .cf-val   { font-size:16px; }
+
+/* ── P&L ── */
+.pl-section { margin-bottom:16px; }
+.pl-row { display:flex;justify-content:space-between;padding:8px 16px;font-size:13px; }
+.pl-row.indent { padding-left:32px;color:var(--text2); }
+.pl-row.total  { font-weight:700;border-top:1px solid var(--border2);padding-top:10px;margin-top:4px; }
+.pl-row.grand  { font-size:15px;font-weight:700;background:var(--card2);border-radius:var(--r); }
+
+/* ── Sync info banner ── */
+.sync-banner { background:var(--blue-bg);border:1px solid rgba(56,138,221,.2);border-radius:var(--r);padding:10px 14px;margin-bottom:20px;font-size:12px;color:var(--blue-text);display:flex;justify-content:space-between;align-items:center;gap:12px; }
+.sync-banner a { color:var(--blue);text-decoration:underline;cursor:pointer; }
+
+/* ── Period toggle ── */
+.period-toggle { display:flex;gap:4px;background:var(--card2);border-radius:var(--r);padding:3px; }
+.period-btn { padding:5px 14px;font-size:12px;font-weight:600;border-radius:6px;border:none;background:none;color:var(--text2);cursor:pointer; }
+.period-btn.active { background:var(--card);color:var(--blue);box-shadow:0 1px 3px rgba(0,0,0,.12); }
+
+/* ── No data ── */
+.no-data { text-align:center;padding:40px;color:var(--text2);font-size:13px; }
+
+/* ── Modal ── */
+.modal-overlay { position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:500;display:flex;align-items:center;justify-content:center;padding:16px; }
+.modal { background:var(--card);border:1px solid var(--border2);border-radius:var(--r2);width:100%;max-width:640px;max-height:92vh;overflow-y:auto; }
+.modal-head { display:flex;justify-content:space-between;align-items:center;padding:16px 20px;border-bottom:1px solid var(--border);position:sticky;top:0;background:var(--card);z-index:1; }
+.modal-head h3 { font-size:15px;font-weight:700; }
+.modal-close { background:none;border:none;font-size:20px;cursor:pointer;color:var(--text2);line-height:1; }
+.modal-body { padding:20px; }
+.modal-foot { padding:14px 20px;border-top:1px solid var(--border);display:flex;gap:8px;justify-content:flex-end; }
+.mfg { display:flex;flex-direction:column;gap:5px;margin-bottom:12px; }
+.mfg label { font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--text2); }
+.mfg input,.mfg select,.mfg textarea { padding:8px 10px;border:1px solid var(--border2);border-radius:var(--r);background:var(--card2);color:var(--text);font-size:13px;outline:none;font-family:inherit;width:100%; }
+.mfg input:focus,.mfg select:focus,.mfg textarea:focus { border-color:var(--blue);background:var(--card); }
+.mfg textarea { resize:vertical;min-height:64px; }
+.mgrid2 { display:grid;grid-template-columns:1fr 1fr;gap:0 14px; }
+.mgrid3 { display:grid;grid-template-columns:1fr 1fr 1fr;gap:0 14px; }
+
+/* ── Project cards ── */
+.proj-grid { display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:16px;margin-bottom:24px; }
+.proj-card { background:var(--card);border:2px solid var(--border);border-radius:var(--r2);padding:18px;position:relative;cursor:default; }
+.proj-card.margin-good  { border-color:var(--green); }
+.proj-card.margin-ok    { border-color:var(--amber); }
+.proj-card.margin-bad   { border-color:var(--red); }
+.proj-code { font-size:10px;font-weight:700;letter-spacing:.08em;color:var(--text2);text-transform:uppercase; }
+.proj-name { font-size:15px;font-weight:700;margin:3px 0 1px; }
+.proj-client { font-size:12px;color:var(--text2);margin-bottom:12px; }
+.proj-row { display:flex;justify-content:space-between;font-size:12px;padding:4px 0;border-bottom:1px solid var(--border); }
+.proj-row:last-of-type { border:none; }
+.proj-row .lbl { color:var(--text2); }
+.proj-row .val { font-weight:600;font-variant-numeric:tabular-nums; }
+.proj-warn { background:var(--amber-bg);color:var(--amber-text);font-size:11px;font-weight:600;padding:5px 10px;border-radius:var(--r);margin-top:10px; }
+.proj-edit { position:absolute;top:14px;right:14px;background:none;border:1px solid var(--border2);border-radius:var(--r);padding:4px 10px;font-size:11px;cursor:pointer;color:var(--text2);font-family:inherit; }
+.proj-edit:hover { background:var(--card2); }
+
+/* ── Progress bar ── */
+.prog-bar { height:6px;background:var(--card2);border-radius:3px;overflow:hidden;margin-top:8px; }
+.prog-fill { height:100%;border-radius:3px;transition:width .3s; }
+.prog-green { background:var(--green); }
+.prog-amber { background:var(--amber); }
+.prog-red   { background:var(--red); }
+
+/* ── Warning banners ── */
+.warn-banner { display:flex;align-items:flex-start;gap:10px;padding:12px 16px;border-radius:var(--r);margin-bottom:12px;font-size:13px; }
+.warn-banner.red   { background:var(--red-bg);color:var(--red-text);border:1px solid rgba(162,45,45,.2); }
+.warn-banner.amber { background:var(--amber-bg);color:var(--amber-text);border:1px solid rgba(133,79,11,.2); }
+.warn-banner.blue  { background:var(--blue-bg);color:var(--blue-text);border:1px solid rgba(24,95,165,.2); }
+.warn-dismiss { margin-left:auto;background:none;border:none;cursor:pointer;font-size:16px;opacity:.6;color:inherit; }
+
+/* ── Skeleton loader ── */
+.skel { background:linear-gradient(90deg,var(--card2) 25%,var(--border) 50%,var(--card2) 75%);background-size:200% 100%;animation:skel-shine 1.4s infinite;border-radius:var(--r);height:14px;margin:6px 0; }
+@keyframes skel-shine { 0%{background-position:200% 0} 100%{background-position:-200% 0} }
+
+/* ── Chart containers ── */
+.chart-wrap { position:relative;height:220px;margin-top:12px; }
+
+/* ── Inline editable ── */
+.inline-sel { padding:4px 6px;font-size:12px;border:1px solid var(--border2);border-radius:4px;background:var(--card);color:var(--text);font-family:inherit;outline:none; }
+.inline-num { width:90px;padding:4px 6px;font-size:12px;border:1px solid var(--border2);border-radius:4px;background:var(--card);color:var(--text);font-family:inherit;outline:none;text-align:right; }
+
+/* ── Insurance expiry rows ── */
+.exp-ok   { }
+.exp-warn { background:rgba(133,79,11,.06); }
+.exp-crit { background:rgba(162,45,45,.06); }
+
+/* ── Responsive ── */
+@media(max-width:768px){
+  .proj-grid { grid-template-columns:1fr; }
+  .mgrid2,.mgrid3 { grid-template-columns:1fr; }
+  .panel { padding:14px; }
+  #ov-grids { grid-template-columns:1fr!important; }
+}
+</style>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div id="loginOverlay">
+  <div class="lcard">
+    <h2>Finance Dashboard</h2>
+    <p>Proalfa Dynamic — Management Access Only</p>
+    <input type="text" id="lpass" placeholder="Password" autocomplete="off" onkeydown="if(event.key==='Enter')doLogin()">
+    <div class="lerr" id="lerr">Incorrect password.</div>
+    <button class="btn btn-primary" style="width:100%" onclick="doLogin()">Sign In</button>
+  </div>
+</div>
+
+<!-- APP -->
+<div id="mainApp" style="display:none">
+  <div id="abar" class="abar"></div>
+
+  <div class="topbar">
+    <div>
+      <div class="topbar-title">💹 Finance Dashboard</div>
+      <div style="font-size:11px;color:var(--text2);margin-top:2px">Proalfa Dynamic</div>
+    </div>
+    <div class="topbar-right">
+      <div class="sync-status" id="syncStatus">Last sync: —</div>
+      <a href="/staff/" style="font-size:12px;color:var(--text2);text-decoration:none">← Staff Portal</a>
+      <button class="btn btn-sm" onclick="doLogout()">Logout</button>
+    </div>
+  </div>
+
+  <div class="tabs">
+    <button class="tab active" data-tab="overview"   onclick="switchTab('overview',this)">Overview</button>
+    <button class="tab" data-tab="receivables" onclick="switchTab('receivables',this)">Receivables</button>
+    <button class="tab" data-tab="payables"    onclick="switchTab('payables',this)">Payables</button>
+    <button class="tab" data-tab="cashflow"    onclick="switchTab('cashflow',this)">Cash Flow</button>
+    <button class="tab" data-tab="pl"          onclick="switchTab('pl',this)">P&amp;L</button>
+    <button class="tab" data-tab="projects"    onclick="switchTab('projects',this)">Projects</button>
+    <button class="tab" data-tab="credit"      onclick="switchTab('credit',this)">Credit Line</button>
+    <button class="tab" data-tab="insurance"   onclick="switchTab('insurance',this)">Insurance</button>
+  </div>
+
+  <!-- OVERVIEW -->
+  <div class="panel active" id="panel-overview">
+    <div class="sync-banner" id="syncBanner">
+      <span>📡 Data is synced from TallyPrime via <code>tally_sync.py</code>. Run it daily to keep this dashboard current.</span>
+      <span id="syncBannerTime"></span>
+    </div>
+    <div class="stat-grid" id="ov-stats"></div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px" id="ov-grids">
+      <div class="tbl-card">
+        <div class="tbl-header"><span class="section-title" style="margin:0">Top Overdue Receivables</span></div>
+        <div class="tbl-wrap"><table class="fin-tbl"><thead><tr><th>Party</th><th>Due</th><th class="amt">₹ Pending</th></tr></thead><tbody id="ov-debtors"></tbody></table></div>
+      </div>
+      <div class="tbl-card">
+        <div class="tbl-header"><span class="section-title" style="margin:0">Upcoming Payables (30 days)</span></div>
+        <div class="tbl-wrap"><table class="fin-tbl"><thead><tr><th>Party</th><th>Due</th><th class="amt">₹ Amount</th></tr></thead><tbody id="ov-creditors"></tbody></table></div>
+      </div>
+    </div>
+    <div style="margin-top:16px" class="tbl-card">
+      <div class="tbl-header"><span class="section-title" style="margin:0">Recent Vouchers</span></div>
+      <div class="tbl-wrap"><table class="fin-tbl"><thead><tr><th>Date</th><th>Type</th><th>Party</th><th>Narration</th><th class="amt">₹ Amount</th></tr></thead><tbody id="ov-vouchers"></tbody></table></div>
+    </div>
+  </div>
+
+  <!-- RECEIVABLES -->
+  <div class="panel" id="panel-receivables">
+    <div class="aging-grid" id="rcv-aging"></div>
+    <div class="tbl-card">
+      <div class="tbl-header">
+        <span class="section-title" style="margin:0">All Outstanding Receivables</span>
+        <div style="display:flex;gap:8px">
+          <select id="rcv-sort" onchange="renderReceivables()" style="padding:6px 10px;border:1px solid var(--border2);border-radius:var(--r);background:var(--card);color:var(--text);font-size:12px;outline:none">
+            <option value="overdue">Sort: Most Overdue</option>
+            <option value="amount">Sort: Largest First</option>
+            <option value="date">Sort: Newest First</option>
+          </select>
+        </div>
+      </div>
+      <div class="tbl-wrap">
+        <table class="fin-tbl">
+          <thead><tr><th>Party / Client</th><th>Bill No.</th><th>Bill Date</th><th>Due Date</th><th>Status</th><th class="amt">₹ Pending</th></tr></thead>
+          <tbody id="rcv-body"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- PAYABLES -->
+  <div class="panel" id="panel-payables">
+    <div class="stat-grid" id="pay-stats"></div>
+    <div class="tbl-card">
+      <div class="tbl-header">
+        <span class="section-title" style="margin:0">All Outstanding Payables</span>
+        <select id="pay-sort" onchange="renderPayables()" style="padding:6px 10px;border:1px solid var(--border2);border-radius:var(--r);background:var(--card);color:var(--text);font-size:12px;outline:none">
+          <option value="due">Sort: Due Soonest</option>
+          <option value="amount">Sort: Largest First</option>
+        </select>
+      </div>
+      <div class="tbl-wrap">
+        <table class="fin-tbl">
+          <thead><tr><th>Party / Vendor</th><th>Bill No.</th><th>Bill Date</th><th>Due Date</th><th>Status</th><th class="amt">₹ Amount</th></tr></thead>
+          <tbody id="pay-body"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- CASH FLOW -->
+  <div class="panel" id="panel-cashflow">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px">
+      <h2 style="font-size:16px;font-weight:700">Cash Flow Forecast</h2>
+      <div class="period-toggle">
+        <button class="period-btn active" onclick="setCFPeriod(30,this)">30 Days</button>
+        <button class="period-btn" onclick="setCFPeriod(60,this)">60 Days</button>
+        <button class="period-btn" onclick="setCFPeriod(90,this)">90 Days</button>
+      </div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+      <div class="tbl-card">
+        <div style="padding:14px 16px;font-size:13px;font-weight:700;border-bottom:1px solid var(--border)">Forecast Summary</div>
+        <div id="cf-summary"></div>
+      </div>
+      <div class="tbl-card">
+        <div style="padding:14px 16px;font-size:13px;font-weight:700;border-bottom:1px solid var(--border)">Expected Inflows</div>
+        <div class="tbl-wrap"><table class="fin-tbl"><thead><tr><th>Party</th><th>Due</th><th class="amt">₹ Amount</th></tr></thead><tbody id="cf-inflows"></tbody></table></div>
+      </div>
+    </div>
+    <div style="margin-top:16px;display:grid;grid-template-columns:1fr 1fr;gap:16px">
+      <div class="tbl-card">
+        <div style="padding:14px 16px;font-size:13px;font-weight:700;border-bottom:1px solid var(--border)">Expected Outflows</div>
+        <div class="tbl-wrap"><table class="fin-tbl"><thead><tr><th>Item</th><th>Type</th><th class="amt">₹ Amount</th></tr></thead><tbody id="cf-outflows"></tbody></table></div>
+      </div>
+      <div class="tbl-card">
+        <div style="padding:14px 16px;font-size:13px;font-weight:700;border-bottom:1px solid var(--border)">Assumptions</div>
+        <div id="cf-assumptions" style="padding:14px 16px;font-size:12px;color:var(--text2);line-height:1.7"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PROJECTS -->
+  <div class="panel" id="panel-projects">
+    <div id="proj-warnings"></div>
+    <div class="stat-grid" id="proj-stats"></div>
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;flex-wrap:wrap;gap:8px">
+      <div class="section-title" style="margin:0">Active Projects</div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+        <select id="proj-filter" onchange="renderProjects()" style="padding:6px 10px;border:1px solid var(--border2);border-radius:var(--r);background:var(--card);color:var(--text);font-size:12px;outline:none">
+          <option value="">All Statuses</option>
+          <option value="Active">Active</option>
+          <option value="On Hold">On Hold</option>
+          <option value="Completed">Completed</option>
+          <option value="In Dispute">In Dispute</option>
+        </select>
+        <button class="btn btn-primary btn-sm" onclick="openProjModal()">+ Add Project</button>
+      </div>
+    </div>
+    <div class="proj-grid" id="proj-cards"><div class="skel" style="height:200px"></div><div class="skel" style="height:200px"></div></div>
+
+    <div class="tbl-card" style="margin-bottom:20px">
+      <div style="padding:14px 16px;border-bottom:1px solid var(--border)">
+        <div class="section-title" style="margin:0">Margin by Project</div>
+      </div>
+      <div class="chart-wrap" style="padding:0 16px 16px"><canvas id="projMarginChart"></canvas></div>
+    </div>
+
+    <!-- ADVANCE TRACKER -->
+    <div class="warn-banner blue" id="advPolicyBanner">
+      <span>📋 <strong>Company Policy:</strong> Minimum 30% advance before mobilisation. No exceptions.</span>
+      <button class="warn-dismiss" onclick="this.parentElement.style.display='none'">×</button>
+    </div>
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+      <div class="section-title" style="margin:0">Advance Tracker</div>
+    </div>
+    <div class="stat-grid" id="adv-stats"></div>
+    <div class="tbl-card">
+      <div class="tbl-wrap">
+        <table class="fin-tbl">
+          <thead><tr>
+            <th>Project</th><th>Client</th>
+            <th class="amt">Contract (₹)</th>
+            <th class="amt">Adv % Agreed</th>
+            <th class="amt">Adv Due (₹)</th>
+            <th class="amt">Received (₹)</th>
+            <th class="amt">Shortfall (₹)</th>
+            <th>Adj. Status</th>
+            <th class="amt">Adjusted (₹)</th>
+            <th class="amt">Bal. to Adjust</th>
+          </tr></thead>
+          <tbody id="adv-body"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- CREDIT LINE -->
+  <div class="panel" id="panel-credit">
+    <div id="credit-warnings"></div>
+    <div class="stat-grid" id="credit-stats"></div>
+    <div style="display:grid;grid-template-columns:2fr 1fr;gap:16px;margin-bottom:16px" id="credit-top-grid">
+      <div class="tbl-card">
+        <div style="padding:14px 16px;border-bottom:1px solid var(--border)">
+          <div class="section-title" style="margin:0">Utilisation (90 days)</div>
+        </div>
+        <div class="chart-wrap" style="padding:0 16px 16px"><canvas id="creditChart"></canvas></div>
+      </div>
+      <div class="tbl-card">
+        <div style="padding:14px 16px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center">
+          <div class="section-title" style="margin:0">Facilities</div>
+          <button class="btn btn-sm btn-primary" onclick="openFacilityModal()">+ Add</button>
+        </div>
+        <div id="credit-facilities"></div>
+      </div>
+    </div>
+    <div class="tbl-card">
+      <div class="tbl-header">
+        <span class="section-title" style="margin:0">Drawdown Log</span>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <select id="dd-filter" onchange="renderDrawdowns()" style="padding:6px 10px;border:1px solid var(--border2);border-radius:var(--r);background:var(--card);color:var(--text);font-size:12px;outline:none">
+            <option value="">All Status</option>
+            <option value="Open">Open</option>
+            <option value="Partially Repaid">Partially Repaid</option>
+            <option value="Fully Repaid">Fully Repaid</option>
+          </select>
+          <button class="btn btn-sm btn-primary" onclick="openDrawdownModal()">+ Drawdown</button>
+        </div>
+      </div>
+      <div class="tbl-wrap">
+        <table class="fin-tbl">
+          <thead><tr>
+            <th>Date</th><th>Bank</th><th>Purpose</th><th>Project</th>
+            <th class="amt">Drawn (₹)</th><th class="amt">Repaid (₹)</th>
+            <th class="amt">Balance (₹)</th><th>Status</th><th>Repay By</th><th></th>
+          </tr></thead>
+          <tbody id="dd-body"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- INSURANCE -->
+  <div class="panel" id="panel-insurance">
+    <div id="ins-warnings"></div>
+    <div class="stat-grid" id="ins-stats"></div>
+    <div style="display:grid;grid-template-columns:1fr 340px;gap:16px;margin-bottom:16px" id="ins-top-grid">
+      <div class="tbl-card">
+        <div class="tbl-header">
+          <span class="section-title" style="margin:0">All Policies</span>
+          <div style="display:flex;gap:8px;flex-wrap:wrap">
+            <select id="ins-type-filter" onchange="renderInsurance()" style="padding:6px 10px;border:1px solid var(--border2);border-radius:var(--r);background:var(--card);color:var(--text);font-size:12px;outline:none">
+              <option value="">All Types</option>
+              <option>Plant &amp; Machinery</option><option>Building</option><option>Stock</option>
+              <option>Vehicle</option><option>Workmen Compensation</option><option>Group Health</option>
+              <option>Business Interruption</option><option>Trade Credit</option><option>D&amp;O Liability</option><option>Other</option>
+            </select>
+            <select id="ins-status-filter" onchange="renderInsurance()" style="padding:6px 10px;border:1px solid var(--border2);border-radius:var(--r);background:var(--card);color:var(--text);font-size:12px;outline:none">
+              <option value="">All Status</option>
+              <option>Active</option><option>Expired</option><option>Cancelled</option>
+            </select>
+            <button class="btn btn-sm btn-primary" onclick="openInsModal()">+ Add Policy</button>
+          </div>
+        </div>
+        <div class="tbl-wrap">
+          <table class="fin-tbl">
+            <thead><tr>
+              <th>Policy No.</th><th>Insurer</th><th>Type</th><th>Asset Covered</th>
+              <th class="amt">Sum Insured (₹)</th><th class="amt">Premium (₹)</th>
+              <th>Expiry</th><th>Status</th><th></th>
+            </tr></thead>
+            <tbody id="ins-body"></tbody>
+          </table>
+        </div>
+      </div>
+      <div>
+        <div class="tbl-card" style="margin-bottom:14px">
+          <div style="padding:12px 16px;border-bottom:1px solid var(--border)">
+            <div class="section-title" style="margin:0">🏦 Bank Collateral Summary</div>
+            <div style="font-size:11px;color:var(--text2);margin-top:2px">Present this to your bank RM</div>
+          </div>
+          <div id="ins-collateral" style="padding:14px 16px"></div>
+        </div>
+        <div class="tbl-card">
+          <div style="padding:12px 16px;border-bottom:1px solid var(--border)">
+            <div class="section-title" style="margin:0">⏰ Renewal Alerts</div>
+          </div>
+          <div id="ins-renewals"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PROJECT MODAL -->
+  <div class="modal-overlay" id="projModal" style="display:none" onclick="if(event.target===this)closeProjModal()">
+    <div class="modal">
+      <div class="modal-head"><h3 id="projModalTitle">Add Project</h3><button class="modal-close" onclick="closeProjModal()">×</button></div>
+      <div class="modal-body">
+        <!-- Basic info -->
+        <div class="mgrid2">
+          <div class="mfg"><label>Project Code</label><input id="pm-code" readonly style="opacity:.7;cursor:default;background:var(--card2)"></div>
+          <div class="mfg"><label>Status</label><select id="pm-status"><option>Active</option><option>On Hold</option><option>Completed</option><option>In Dispute</option></select></div>
+        </div>
+        <div class="mfg"><label>Project Name</label><input id="pm-name" placeholder="e.g. Factory Shed Extension — Nashik"></div>
+        <div class="mfg"><label>Client Name</label><input id="pm-client"></div>
+
+        <!-- Pricing -->
+        <div style="border-top:1px solid var(--border);margin:12px 0 10px;padding-top:12px">
+          <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--text2);margin-bottom:10px">Pricing / Contract Value</div>
+          <div class="mgrid2" style="margin-bottom:8px">
+            <div class="mfg" style="margin:0">
+              <label>Pricing Type</label>
+              <select id="pm-pricing-type" onchange="onPricingTypeChange()">
+                <option value="lumpsum">Lumpsum</option>
+                <option value="rate_based">Rate-based (qty × ₹/unit)</option>
+              </select>
+            </div>
+            <div class="mfg" style="margin:0">
+              <label>GST Rate</label>
+              <select id="pm-gst-rate" onchange="calcTotalCost()">
+                <option value="18">18% (Fabrication / Structural)</option>
+                <option value="12">12%</option>
+                <option value="28">28%</option>
+                <option value="0">0% / Exempt</option>
+              </select>
+            </div>
+            <div class="mfg" id="pm-contract-wrap" style="margin:0">
+              <label>Contract Value incl. GST (₹)</label>
+              <input type="number" id="pm-contract" min="0" placeholder="Total amount client pays" oninput="calcTotalCost()">
+            </div>
+          </div>
+          <div id="pm-rate-fields" style="display:none">
+            <div class="mgrid3">
+              <div class="mfg">
+                <label>Quantity</label>
+                <input type="number" id="pm-qty" min="0" placeholder="e.g. 5000" oninput="calcContractValue()">
+              </div>
+              <div class="mfg">
+                <label>Unit</label>
+                <select id="pm-unit" onchange="calcContractValue()">
+                  <option value="kg">kg</option>
+                  <option value="sqft">sqft</option>
+                  <option value="sqm">sqm</option>
+                  <option value="rmt">RMT (running mtr)</option>
+                  <option value="nos">Nos</option>
+                  <option value="ltr">Ltr</option>
+                  <option value="MT">MT (metric ton)</option>
+                </select>
+              </div>
+              <div class="mfg">
+                <label>Rate (₹ / unit)</label>
+                <input type="number" id="pm-rate" min="0" placeholder="e.g. 85" oninput="calcContractValue()">
+              </div>
+            </div>
+            <div style="background:var(--blue-bg);border-radius:var(--r);padding:8px 12px;font-size:13px;margin-bottom:8px">
+              Contract (incl. GST) = <span id="pm-contract-preview" style="font-weight:700;color:var(--blue)">—</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Advance & billing -->
+        <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--text2);margin-bottom:8px">Advance &amp; Billing</div>
+        <div class="mgrid3">
+          <div class="mfg"><label>Advance Agreed %</label><input type="number" id="pm-adv-pct" value="30" min="0" max="100"></div>
+          <div class="mfg"><label>Advance Received (₹)</label><input type="number" id="pm-adv-recv" min="0"></div>
+          <div class="mfg"><label>Billed to Date (₹)</label><input type="number" id="pm-billed" min="0"></div>
+        </div>
+        <div class="mgrid3">
+          <div class="mfg"><label>Collected to Date (₹)</label><input type="number" id="pm-collected" min="0"></div>
+          <div class="mfg"><label>Start Date</label><input type="date" id="pm-start"></div>
+          <div class="mfg"><label>Expected End Date</label><input type="date" id="pm-end"></div>
+        </div>
+
+        <!-- Cost breakdown -->
+        <div style="border-top:1px solid var(--border);margin:12px 0 10px;padding-top:12px">
+          <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--text2);margin-bottom:8px">Project Cost Breakdown</div>
+          <div class="mgrid3">
+            <div class="mfg"><label>Raw Material / RM (₹)</label><input type="number" id="pm-cost-rm" min="0" placeholder="Steel, plates, sections…" oninput="calcTotalCost()"></div>
+            <div class="mfg"><label>Labour (₹)</label><input type="number" id="pm-cost-labour" min="0" placeholder="Fabrication, site labour" oninput="calcTotalCost()"></div>
+            <div class="mfg"><label>Consumables (₹)</label><input type="number" id="pm-cost-consumables" min="0" placeholder="Paint, thinner, electrodes, gas…" oninput="calcTotalCost()"></div>
+          </div>
+          <div class="mgrid3">
+            <div class="mfg"><label>Electricity (₹)</label><input type="number" id="pm-cost-electricity" min="0" placeholder="Plasma, H-beam, welding…" oninput="calcTotalCost()"></div>
+            <div class="mfg"><label>Transport (₹)</label><input type="number" id="pm-cost-transport" min="0" placeholder="Inward freight + delivery" oninput="calcTotalCost()"></div>
+            <div class="mfg"><label>Office / Admin (₹)</label><input type="number" id="pm-cost-admin" min="0" placeholder="Salary allocation, overhead" oninput="calcTotalCost()"></div>
+          </div>
+          <div class="mgrid2">
+            <div class="mfg"><label>Other / Misc (₹)</label><input type="number" id="pm-other" min="0" oninput="calcTotalCost()"></div>
+            <div style="display:flex;flex-direction:column;gap:5px">
+              <label style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--text2)">Total Cost (auto)</label>
+              <div id="pm-total-cost-preview" style="padding:8px 10px;border-radius:var(--r);background:var(--red-bg);color:var(--red-text);font-size:14px;font-weight:700">₹0</div>
+            </div>
+          </div>
+          <div id="pm-margin-preview" style="display:none;background:var(--green-bg);border-radius:var(--r);padding:8px 12px;font-size:13px">
+            Gross Margin: <span id="pm-margin-val" style="font-weight:700;color:var(--green)">—</span>
+          </div>
+        </div>
+
+        <div class="mfg"><label>Notes</label><textarea id="pm-notes"></textarea></div>
+      </div>
+      <div class="modal-foot">
+        <button class="btn" onclick="closeProjModal()">Cancel</button>
+        <button class="btn btn-primary" onclick="saveProject()">Save Project</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- FACILITY MODAL -->
+  <div class="modal-overlay" id="facilityModal" style="display:none" onclick="if(event.target===this)closeFacilityModal()">
+    <div class="modal">
+      <div class="modal-head"><h3>Add / Edit Credit Facility</h3><button class="modal-close" onclick="closeFacilityModal()">×</button></div>
+      <div class="modal-body">
+        <div class="mgrid2">
+          <div class="mfg"><label>Bank Name</label><input id="fm-bank"></div>
+          <div class="mfg"><label>Facility Type</label><select id="fm-type"><option>Cash Credit</option><option>Overdraft</option><option>Term Loan</option><option>LC</option><option>BG</option></select></div>
+        </div>
+        <div class="mgrid2">
+          <div class="mfg"><label>Account (last 4 digits)</label><input id="fm-acct" maxlength="4" placeholder="XXXX"></div>
+          <div class="mfg"><label>Sanctioned Limit (₹)</label><input type="number" id="fm-limit" min="0"></div>
+        </div>
+        <div class="mgrid3">
+          <div class="mfg"><label>Interest Rate %</label><input type="number" id="fm-rate" step="0.01"></div>
+          <div class="mfg"><label>Renewal Date</label><input type="date" id="fm-renewal"></div>
+          <div class="mfg"><label>Active</label><select id="fm-active"><option value="true">Yes</option><option value="false">No</option></select></div>
+        </div>
+        <div class="mgrid2">
+          <div class="mfg"><label>RM Name</label><input id="fm-rm-name"></div>
+          <div class="mfg"><label>RM Phone</label><input id="fm-rm-phone"></div>
+        </div>
+      </div>
+      <div class="modal-foot">
+        <button class="btn" onclick="closeFacilityModal()">Cancel</button>
+        <button class="btn btn-primary" onclick="saveFacility()">Save</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- DRAWDOWN MODAL -->
+  <div class="modal-overlay" id="drawdownModal" style="display:none" onclick="if(event.target===this)closeDrawdownModal()">
+    <div class="modal">
+      <div class="modal-head"><h3 id="ddModalTitle">Record Drawdown</h3><button class="modal-close" onclick="closeDrawdownModal()">×</button></div>
+      <div class="modal-body">
+        <div class="mgrid2">
+          <div class="mfg"><label>Facility</label><select id="dd-facility"></select></div>
+          <div class="mfg"><label>Draw Date</label><input type="date" id="dd-date"></div>
+        </div>
+        <div class="mgrid2">
+          <div class="mfg"><label>Amount Drawn (₹)</label><input type="number" id="dd-amount" min="0"></div>
+          <div class="mfg"><label>Purpose</label><select id="dd-purpose"><option>Procurement</option><option>Vendor Payment</option><option>Bridge</option><option>Other</option></select></div>
+        </div>
+        <div class="mgrid2">
+          <div class="mfg"><label>Linked Project (optional)</label><select id="dd-project"><option value="">— None —</option></select></div>
+          <div class="mfg"><label>Expected Repayment Date</label><input type="date" id="dd-repay-date"></div>
+        </div>
+        <div class="mfg"><label>Notes</label><textarea id="dd-notes"></textarea></div>
+        <div id="dd-repay-section" style="display:none;border-top:1px solid var(--border);padding-top:12px;margin-top:4px">
+          <div class="mgrid2">
+            <div class="mfg"><label>Amount Repaid (₹)</label><input type="number" id="dd-repaid" min="0"></div>
+            <div class="mfg"><label>Repaid On</label><input type="date" id="dd-repaid-on"></div>
+          </div>
+        </div>
+      </div>
+      <div class="modal-foot">
+        <button class="btn" onclick="closeDrawdownModal()">Cancel</button>
+        <button class="btn btn-primary" onclick="saveDrawdown()">Save</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- INSURANCE MODAL -->
+  <div class="modal-overlay" id="insModal" style="display:none" onclick="if(event.target===this)closeInsModal()">
+    <div class="modal">
+      <div class="modal-head"><h3 id="insModalTitle">Add Policy</h3><button class="modal-close" onclick="closeInsModal()">×</button></div>
+      <div class="modal-body">
+        <div class="mgrid2">
+          <div class="mfg"><label>Policy Number</label><input id="im-policy-no"></div>
+          <div class="mfg"><label>Status</label><select id="im-status"><option>Active</option><option>Expired</option><option>Cancelled</option></select></div>
+        </div>
+        <div class="mgrid2">
+          <div class="mfg"><label>Insurer Name</label><input id="im-insurer"></div>
+          <div class="mfg"><label>Policy Type</label><select id="im-type">
+            <option>Plant &amp; Machinery</option><option>Building</option><option>Stock</option>
+            <option>Vehicle</option><option>Workmen Compensation</option><option>Group Health</option>
+            <option>Business Interruption</option><option>Trade Credit</option>
+            <option>Political Risk</option><option>D&amp;O Liability</option><option>Other</option>
+          </select></div>
+        </div>
+        <div class="mfg"><label>Asset Covered</label><input id="im-asset" placeholder="e.g. Factory machinery at Ranjangaon unit"></div>
+        <div class="mgrid3">
+          <div class="mfg"><label>Sum Insured (₹)</label><input type="number" id="im-sum" min="0"></div>
+          <div class="mfg"><label>Premium Amount (₹)</label><input type="number" id="im-premium" min="0"></div>
+          <div class="mfg"><label>Premium Frequency</label><select id="im-freq"><option>Annual</option><option>Quarterly</option><option>Monthly</option></select></div>
+        </div>
+        <div class="mgrid2">
+          <div class="mfg"><label>Policy Start Date</label><input type="date" id="im-start"></div>
+          <div class="mfg"><label>Policy Expiry Date</label><input type="date" id="im-expiry"></div>
+        </div>
+        <div class="mgrid2">
+          <div class="mfg"><label>Broker Name</label><input id="im-broker"></div>
+          <div class="mfg"><label>Broker Phone</label><input id="im-broker-phone"></div>
+        </div>
+        <div class="mgrid2">
+          <div class="mfg"><label>Bank Assigned?</label><select id="im-bank-assigned"><option value="false">No</option><option value="true">Yes</option></select></div>
+          <div class="mfg"><label>Assigned Bank</label><input id="im-assigned-bank"></div>
+        </div>
+      </div>
+      <div class="modal-foot">
+        <button class="btn" onclick="closeInsModal()">Cancel</button>
+        <button class="btn btn-primary" onclick="saveInsurance()">Save Policy</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- P&L -->
+  <div class="panel" id="panel-pl">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px">
+      <h2 style="font-size:16px;font-weight:700">Profit & Loss</h2>
+      <select id="pl-month" onchange="renderPL()" style="padding:8px 12px;border:1px solid var(--border2);border-radius:var(--r);background:var(--card);color:var(--text);font-size:13px;outline:none"></select>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+      <div class="tbl-card" id="pl-card">
+        <div style="padding:14px 16px;font-size:13px;font-weight:700;border-bottom:1px solid var(--border)">Summary</div>
+        <div id="pl-body"></div>
+      </div>
+      <div>
+        <div class="stat-grid" style="grid-template-columns:1fr 1fr" id="pl-stats"></div>
+        <div class="tbl-card" style="margin-top:0">
+          <div style="padding:14px 16px;font-size:13px;font-weight:700;border-bottom:1px solid var(--border)">Expense Breakdown</div>
+          <div class="tbl-wrap"><table class="fin-tbl"><thead><tr><th>Category</th><th class="amt">₹ Amount</th></tr></thead><tbody id="pl-exp-body"></tbody></table></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+const SB_URL = "https://gzjzuudhtvljpwcqygtk.supabase.co";
+const SB_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imd6anp1dWRodHZsanB3Y3F5Z3RrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzgzOTY4NTksImV4cCI6MjA5Mzk3Mjg1OX0.pCBKZwMDvu8UAfKEXL8_hgkuG95A-MtVKK6sM2qFxEs";
+const APP_PASS = "ProalfaAdmin@2025";
+const { createClient } = supabase;
+const sb = createClient(SB_URL, SB_KEY);
+
+let debtors        = [];
+let creditors      = [];
+let vouchers       = [];
+let balances       = [];
+let employees      = [];
+let expenses       = [];
+let syncLog        = null;
+let cfDays         = 30;
+let projects       = [];
+let creditFacilities = [];
+let creditDrawdowns  = [];
+let insurancePolicies = [];
+let editingProjId    = null;
+let editingFacId     = null;
+let editingDdId      = null;
+let editingInsId     = null;
+let projMarginChart  = null;
+let creditLineChart  = null;
+
+const fmt = n => '₹' + Math.round(n).toLocaleString('en-IN');
+const fmtD = n => n.toLocaleString('en-IN', { minimumFractionDigits: 0, maximumFractionDigits: 0 });
+
+// ── AUTH ────────────────────────────────────────────────────────────────────────
+function doLogin() {
+  if (document.getElementById('lpass').value === APP_PASS) {
+    sessionStorage.setItem('fin_auth','1');
+    document.getElementById('loginOverlay').style.display = 'none';
+    document.getElementById('mainApp').style.display = 'block';
+    initApp();
+  } else {
+    document.getElementById('lerr').style.display = 'block';
+    document.getElementById('lpass').value = '';
+    document.getElementById('lpass').focus();
+  }
+}
+function doLogout() {
+  sessionStorage.removeItem('fin_auth');
+  document.getElementById('loginOverlay').style.display = 'flex';
+  document.getElementById('mainApp').style.display = 'none';
+}
+if (sessionStorage.getItem('fin_auth')) {
+  document.getElementById('loginOverlay').style.display = 'none';
+  document.getElementById('mainApp').style.display = 'block';
+  initApp();
+}
+
+// ── INIT ────────────────────────────────────────────────────────────────────────
+async function initApp() {
+  showAlert('Loading data…', 'ok');
+  const [
+    { data: dRows },
+    { data: cRows },
+    { data: vRows },
+    { data: bRows },
+    { data: eRows },
+    { data: expRows },
+    { data: logRows },
+  ] = await Promise.all([
+    sb.from('fin_outstanding_debtors').select('*').order('days_overdue', { ascending: false }),
+    sb.from('fin_outstanding_creditors').select('*').order('due_date', { ascending: true }),
+    sb.from('fin_vouchers').select('*').order('voucher_date', { ascending: false }),
+    sb.from('fin_bank_balances').select('*'),
+    sb.from('hr_employees').select('emp_id,full_name,monthly_salary,status').eq('status','active'),
+    sb.from('hr_expenses').select('*').order('date', { ascending: false }),
+    sb.from('fin_sync_log').select('*').order('synced_at', { ascending: false }).limit(1),
+  ]);
+  debtors   = dRows   || [];
+  creditors = cRows   || [];
+  vouchers  = vRows   || [];
+  balances  = bRows   || [];
+  employees = eRows   || [];
+  expenses  = expRows || [];
+  syncLog   = (logRows && logRows[0]) || null;
+
+  buildPLMonths();
+  updateSyncStatus();
+  renderOverview();
+  hideAlert();
+  // restore last tab
+  const lastTab = sessionStorage.getItem('fin_tab');
+  if (lastTab) {
+    const btn = document.querySelector(`.tab[data-tab="${lastTab}"]`);
+    if (btn) switchTab(lastTab, btn);
+  }
+}
+
+function updateSyncStatus() {
+  if (!syncLog) return;
+  const d = new Date(syncLog.synced_at);
+  const label = d.toLocaleDateString('en-IN', { day:'numeric', month:'short', year:'numeric' })
+    + ' ' + d.toLocaleTimeString('en-IN', { hour:'2-digit', minute:'2-digit' });
+  document.getElementById('syncStatus').innerHTML = `Last sync: <span>${label}</span>`;
+  document.getElementById('syncBannerTime').textContent = `Last synced: ${label}`;
+}
+
+// ── TABS ────────────────────────────────────────────────────────────────────────
+function switchTab(name, el) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  el.classList.add('active');
+  document.getElementById('panel-' + name).classList.add('active');
+  sessionStorage.setItem('fin_tab', name);
+  if (name === 'receivables') renderReceivables();
+  if (name === 'payables')    renderPayables();
+  if (name === 'cashflow')    renderCashFlow();
+  if (name === 'pl')          renderPL();
+  if (name === 'projects')    loadProjects();
+  if (name === 'credit')      loadCredit();
+  if (name === 'insurance')   loadInsurance();
+}
+
+// ── OVERVIEW ────────────────────────────────────────────────────────────────────
+function renderOverview() {
+  const totalCash = balances.reduce((s, b) => s + parseFloat(b.balance || 0), 0);
+  const totalRcv  = debtors.reduce((s, d) => s + parseFloat(d.pending_amount || 0), 0);
+  const totalPay  = creditors.reduce((s, c) => s + parseFloat(c.pending_amount || 0), 0);
+  const wc        = totalCash + totalRcv - totalPay;
+  const overdueRcv = debtors.filter(d => d.days_overdue > 30).reduce((s,d) => s + parseFloat(d.pending_amount||0), 0);
+
+  document.getElementById('ov-stats').innerHTML = `
+    <div class="stat-card blue">
+      <div class="stat-label">Cash &amp; Bank</div>
+      <div class="stat-value">${fmt(totalCash)}</div>
+      <div class="stat-sub">${balances.length} account${balances.length !== 1 ? 's' : ''}</div>
+    </div>
+    <div class="stat-card ${totalRcv > 0 ? 'amber' : 'green'}">
+      <div class="stat-label">Total Receivables</div>
+      <div class="stat-value">${fmt(totalRcv)}</div>
+      <div class="stat-sub">${debtors.length} outstanding bill${debtors.length !== 1 ? 's' : ''}</div>
+    </div>
+    <div class="stat-card ${totalPay > 0 ? 'red' : 'green'}">
+      <div class="stat-label">Total Payables</div>
+      <div class="stat-value">${fmt(totalPay)}</div>
+      <div class="stat-sub">${creditors.length} outstanding bill${creditors.length !== 1 ? 's' : ''}</div>
+    </div>
+    <div class="stat-card ${wc >= 0 ? 'green' : 'red'}">
+      <div class="stat-label">Working Capital</div>
+      <div class="stat-value">${fmt(wc)}</div>
+      <div class="stat-sub">Cash + Receivables − Payables</div>
+    </div>
+    ${overdueRcv > 0 ? `
+    <div class="stat-card red">
+      <div class="stat-label">Overdue &gt;30 Days</div>
+      <div class="stat-value">${fmt(overdueRcv)}</div>
+      <div class="stat-sub">${debtors.filter(d=>d.days_overdue>30).length} bills overdue</div>
+    </div>` : ''}`;
+
+  // Top overdue debtors
+  const topDebtors = [...debtors].sort((a,b) => b.days_overdue - a.days_overdue).slice(0,7);
+  document.getElementById('ov-debtors').innerHTML = topDebtors.length
+    ? topDebtors.map(d => `<tr>
+        <td>${d.party_name || '—'}</td>
+        <td><span class="badge ${d.days_overdue > 60 ? 'badge-red' : d.days_overdue > 30 ? 'badge-amber' : 'badge-green'}">${d.days_overdue > 0 ? d.days_overdue + 'd overdue' : 'Current'}</span></td>
+        <td class="amt">${fmt(d.pending_amount)}</td>
+      </tr>`).join('')
+    : '<tr><td colspan="3" class="no-data">No outstanding receivables</td></tr>';
+
+  // Upcoming creditors (due in 30 days)
+  const today = new Date();
+  const in30  = new Date(today.getTime() + 30 * 864e5);
+  const upCred = creditors.filter(c => c.due_date && new Date(c.due_date) <= in30)
+    .sort((a,b) => new Date(a.due_date) - new Date(b.due_date)).slice(0,7);
+  document.getElementById('ov-creditors').innerHTML = upCred.length
+    ? upCred.map(c => {
+        const dueD = new Date(c.due_date);
+        const days = Math.ceil((dueD - today) / 864e5);
+        return `<tr>
+          <td>${c.party_name || '—'}</td>
+          <td><span class="badge ${days <= 0 ? 'badge-red' : days <= 7 ? 'badge-amber' : 'badge-blue'}">${days <= 0 ? Math.abs(days) + 'd overdue' : 'In ' + days + 'd'}</span></td>
+          <td class="amt">${fmt(c.pending_amount)}</td>
+        </tr>`;
+      }).join('')
+    : '<tr><td colspan="3" class="no-data">No payables due in 30 days</td></tr>';
+
+  // Recent vouchers
+  document.getElementById('ov-vouchers').innerHTML = vouchers.slice(0,10).map(v =>
+    `<tr>
+      <td style="white-space:nowrap">${v.voucher_date || ''}</td>
+      <td><span class="badge ${vchBadgeClass(v.voucher_type)}">${v.voucher_type}</span></td>
+      <td>${v.party_name || '—'}</td>
+      <td style="max-width:260px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--text2)">${v.narration || ''}</td>
+      <td class="amt">${fmt(v.amount)}</td>
+    </tr>`).join('') || '<tr><td colspan="5" class="no-data">No vouchers synced yet</td></tr>';
+}
+
+function vchBadgeClass(type) {
+  if (!type) return 'badge-blue';
+  if (type === 'Sales' || type === 'Receipt') return 'badge-green';
+  if (type === 'Purchase' || type === 'Payment') return 'badge-red';
+  return 'badge-blue';
+}
+
+// ── RECEIVABLES ─────────────────────────────────────────────────────────────────
+function renderReceivables() {
+  // Aging buckets
+  const buckets = [
+    { label: 'Current (0–30d)', min: 0,  max: 30,  cls: 'green' },
+    { label: '31–60 Days',      min: 31, max: 60,  cls: 'amber' },
+    { label: '61–90 Days',      min: 61, max: 90,  cls: 'amber' },
+    { label: '90+ Days',        min: 91, max: 9999, cls: 'red'  },
+  ];
+  document.getElementById('rcv-aging').innerHTML = buckets.map(b => {
+    const rows = debtors.filter(d => d.days_overdue >= b.min && d.days_overdue <= b.max);
+    const total = rows.reduce((s,d) => s + parseFloat(d.pending_amount||0), 0);
+    return `<div class="aging-card">
+      <div class="aging-label">${b.label}</div>
+      <div class="aging-val" style="color:var(--${b.cls})">${fmt(total)}</div>
+      <div class="aging-count">${rows.length} bill${rows.length !== 1 ? 's' : ''}</div>
+    </div>`;
+  }).join('');
+
+  // Table
+  const sort = document.getElementById('rcv-sort').value;
+  let rows = [...debtors];
+  if (sort === 'overdue') rows.sort((a,b) => b.days_overdue - a.days_overdue);
+  if (sort === 'amount')  rows.sort((a,b) => b.pending_amount - a.pending_amount);
+  if (sort === 'date')    rows.sort((a,b) => (b.bill_date||'').localeCompare(a.bill_date||''));
+
+  document.getElementById('rcv-body').innerHTML = rows.length
+    ? rows.map(d => {
+        const overdue = d.days_overdue || 0;
+        const cls = overdue > 90 ? 'badge-red' : overdue > 60 ? 'badge-amber' : overdue > 30 ? 'badge-amber' : 'badge-green';
+        const label = overdue > 0 ? overdue + ' days overdue' : 'Current';
+        return `<tr>
+          <td style="font-weight:500">${d.party_name || '—'}</td>
+          <td style="color:var(--text2)">${d.bill_no || '—'}</td>
+          <td style="white-space:nowrap">${d.bill_date || '—'}</td>
+          <td style="white-space:nowrap">${d.due_date || '—'}</td>
+          <td><span class="badge ${cls}">${label}</span></td>
+          <td class="amt">${fmt(d.pending_amount)}</td>
+        </tr>`;
+      }).join('')
+    : '<tr><td colspan="6" class="no-data">No outstanding receivables. Run tally_sync.py to load data.</td></tr>';
+}
+
+// ── PAYABLES ────────────────────────────────────────────────────────────────────
+function renderPayables() {
+  const today = new Date();
+  const in7   = new Date(today.getTime() + 7 * 864e5);
+  const in30  = new Date(today.getTime() + 30 * 864e5);
+
+  const dueThisWeek  = creditors.filter(c => c.due_date && new Date(c.due_date) <= in7);
+  const dueThisMonth = creditors.filter(c => c.due_date && new Date(c.due_date) <= in30);
+  const overdue      = creditors.filter(c => c.due_date && new Date(c.due_date) < today);
+  const totalPay = creditors.reduce((s,c) => s + parseFloat(c.pending_amount||0), 0);
+
+  document.getElementById('pay-stats').innerHTML = `
+    <div class="stat-card ${overdue.length > 0 ? 'red' : 'green'}">
+      <div class="stat-label">Overdue</div>
+      <div class="stat-value">${fmt(overdue.reduce((s,c)=>s+parseFloat(c.pending_amount||0),0))}</div>
+      <div class="stat-sub">${overdue.length} bill${overdue.length!==1?'s':''}</div>
+    </div>
+    <div class="stat-card ${dueThisWeek.length > 0 ? 'amber' : 'green'}">
+      <div class="stat-label">Due This Week</div>
+      <div class="stat-value">${fmt(dueThisWeek.reduce((s,c)=>s+parseFloat(c.pending_amount||0),0))}</div>
+      <div class="stat-sub">${dueThisWeek.length} bill${dueThisWeek.length!==1?'s':''}</div>
+    </div>
+    <div class="stat-card amber">
+      <div class="stat-label">Due in 30 Days</div>
+      <div class="stat-value">${fmt(dueThisMonth.reduce((s,c)=>s+parseFloat(c.pending_amount||0),0))}</div>
+      <div class="stat-sub">${dueThisMonth.length} bill${dueThisMonth.length!==1?'s':''}</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Total Outstanding</div>
+      <div class="stat-value">${fmt(totalPay)}</div>
+      <div class="stat-sub">${creditors.length} bills</div>
+    </div>`;
+
+  const sort = document.getElementById('pay-sort').value;
+  let rows = [...creditors];
+  if (sort === 'due')    rows.sort((a,b) => (a.due_date||'').localeCompare(b.due_date||''));
+  if (sort === 'amount') rows.sort((a,b) => b.pending_amount - a.pending_amount);
+
+  document.getElementById('pay-body').innerHTML = rows.length
+    ? rows.map(c => {
+        const dueD = c.due_date ? new Date(c.due_date) : null;
+        const days = dueD ? Math.ceil((dueD - today) / 864e5) : null;
+        const cls = days === null ? 'badge-blue' : days < 0 ? 'badge-red' : days <= 7 ? 'badge-amber' : 'badge-green';
+        const label = days === null ? 'No due date' : days < 0 ? Math.abs(days) + 'd overdue' : days === 0 ? 'Due today' : 'Due in ' + days + 'd';
+        return `<tr>
+          <td style="font-weight:500">${c.party_name || '—'}</td>
+          <td style="color:var(--text2)">${c.bill_no || '—'}</td>
+          <td style="white-space:nowrap">${c.bill_date || '—'}</td>
+          <td style="white-space:nowrap">${c.due_date || '—'}</td>
+          <td><span class="badge ${cls}">${label}</span></td>
+          <td class="amt">${fmt(c.pending_amount)}</td>
+        </tr>`;
+      }).join('')
+    : '<tr><td colspan="6" class="no-data">No outstanding payables. Run tally_sync.py to load data.</td></tr>';
+}
+
+// ── CASH FLOW ────────────────────────────────────────────────────────────────────
+function setCFPeriod(days, btn) {
+  cfDays = days;
+  document.querySelectorAll('.period-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  renderCashFlow();
+}
+
+function renderCashFlow() {
+  const today     = new Date();
+  const endDate   = new Date(today.getTime() + cfDays * 864e5);
+  const months    = cfDays / 30;
+
+  // Opening balance
+  const opening = balances.reduce((s,b) => s + parseFloat(b.balance||0), 0);
+
+  // Expected inflows: receivables due within period
+  const inflowRows = debtors
+    .filter(d => d.due_date && new Date(d.due_date) <= endDate)
+    .sort((a,b) => (a.due_date||'').localeCompare(b.due_date||''));
+  const totalInflow = inflowRows.reduce((s,d) => s + parseFloat(d.pending_amount||0), 0);
+
+  // Expected outflows
+  // 1. Payables due within period
+  const payableRows = creditors.filter(c => c.due_date && new Date(c.due_date) <= endDate);
+  const totalPayable = payableRows.reduce((s,c) => s + parseFloat(c.pending_amount||0), 0);
+
+  // 2. Salaries
+  const monthlySalary = employees.reduce((s,e) => s + parseFloat(e.monthly_salary||0), 0);
+  const salaryOutflow = monthlySalary * months;
+
+  // 3. Estimated expenses (avg last 3 months)
+  const threeMonthsAgo = new Date(today);
+  threeMonthsAgo.setMonth(threeMonthsAgo.getMonth() - 3);
+  const recentExp = expenses.filter(e => new Date(e.date) >= threeMonthsAgo);
+  const avgMonthlyExp = recentExp.length > 0
+    ? (recentExp.reduce((s,e) => s + parseFloat(e.amount||0), 0) / 3)
+    : 0;
+  const expOutflow = avgMonthlyExp * months;
+
+  const totalOutflow = totalPayable + salaryOutflow + expOutflow;
+  const closing = opening + totalInflow - totalOutflow;
+
+  document.getElementById('cf-summary').innerHTML = `
+    <div class="cf-row"><span class="cf-label">Opening Balance (Cash &amp; Bank)</span><span class="cf-val" style="color:var(--blue)">${fmt(opening)}</span></div>
+    <div class="cf-row"><span class="cf-label">+ Expected Collections</span><span class="cf-val" style="color:var(--green)">+ ${fmt(totalInflow)}</span></div>
+    <div class="cf-row"><span class="cf-label">− Payables Due</span><span class="cf-val" style="color:var(--red)">− ${fmt(totalPayable)}</span></div>
+    <div class="cf-row"><span class="cf-label">− Staff Salaries (est.)</span><span class="cf-val" style="color:var(--red)">− ${fmt(salaryOutflow)}</span></div>
+    <div class="cf-row"><span class="cf-label">− Running Expenses (est.)</span><span class="cf-val" style="color:var(--red)">− ${fmt(expOutflow)}</span></div>
+    <div class="cf-row cf-total"><span class="cf-label">Closing Position (${cfDays}d)</span><span class="cf-val" style="color:${closing >= 0 ? 'var(--green)' : 'var(--red)'}">${fmt(closing)}</span></div>`;
+
+  document.getElementById('cf-inflows').innerHTML = inflowRows.length
+    ? inflowRows.map(d => `<tr>
+        <td>${d.party_name||'—'}</td>
+        <td style="white-space:nowrap">${d.due_date||'—'}</td>
+        <td class="amt">${fmt(d.pending_amount)}</td>
+      </tr>`).join('')
+    : '<tr><td colspan="3" class="no-data">No receivables due in this period</td></tr>';
+
+  const outflowDetail = [
+    ...payableRows.map(c => ({ item: c.party_name||'Vendor', type: 'Payable', amt: parseFloat(c.pending_amount||0) })),
+    { item: 'Staff Salaries', type: 'Fixed', amt: salaryOutflow },
+    { item: 'Running Expenses (avg)', type: 'Variable', amt: expOutflow },
+  ];
+  document.getElementById('cf-outflows').innerHTML = outflowDetail.map(o =>
+    `<tr>
+      <td>${o.item}</td>
+      <td><span class="badge badge-${o.type==='Payable'?'red':'amber'}">${o.type}</span></td>
+      <td class="amt" style="color:var(--red)">${fmt(o.amt)}</td>
+    </tr>`).join('');
+
+  document.getElementById('cf-assumptions').innerHTML = `
+    <b>How this is calculated:</b><br><br>
+    <b>Inflows</b> = Receivables with due date within ${cfDays} days (from Tally).<br><br>
+    <b>Salary outflow</b> = Active employees' monthly salary × ${months.toFixed(1)} months (from HR Dashboard).<br><br>
+    <b>Expense estimate</b> = Average monthly spend over last 3 months × ${months.toFixed(1)} months (from Expense Tracker).<br><br>
+    <b>Payables</b> = Vendor bills due within ${cfDays} days (from Tally).<br><br>
+    <em>Inflows assume full collection by due date. Actual may vary.</em>`;
+}
+
+// ── P&L ─────────────────────────────────────────────────────────────────────────
+function buildPLMonths() {
+  const sel = document.getElementById('pl-month');
+  const now = new Date();
+  for (let i = 0; i < 13; i++) {
+    const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+    const val = d.toISOString().slice(0,7);
+    const label = d.toLocaleString('en-IN', { month: 'long', year: 'numeric' });
+    const opt = document.createElement('option');
+    opt.value = val; opt.textContent = label;
+    if (i === 0) opt.selected = true;
+    sel.appendChild(opt);
+  }
+}
+
+function renderPL() {
+  const month = document.getElementById('pl-month').value;
+
+  // Revenue: Sales vouchers this month
+  const salesVouchers = vouchers.filter(v =>
+    (v.voucher_date||'').startsWith(month) &&
+    (v.voucher_type === 'Sales' || v.voucher_type === 'Credit Note')
+  );
+  const revenue = salesVouchers.reduce((s,v) => s + parseFloat(v.amount||0), 0);
+
+  // Receipts this month (actual collections)
+  const receipts = vouchers.filter(v =>
+    (v.voucher_date||'').startsWith(month) && v.voucher_type === 'Receipt'
+  ).reduce((s,v) => s + parseFloat(v.amount||0), 0);
+
+  // Purchases (direct material cost) from Tally
+  const purchases = vouchers.filter(v =>
+    (v.voucher_date||'').startsWith(month) && v.voucher_type === 'Purchase'
+  ).reduce((s,v) => s + parseFloat(v.amount||0), 0);
+
+  // Payments to vendors from Tally
+  const payments = vouchers.filter(v =>
+    (v.voucher_date||'').startsWith(month) && v.voucher_type === 'Payment'
+  ).reduce((s,v) => s + parseFloat(v.amount||0), 0);
+
+  // Expenses from expense tracker
+  const monthExp = expenses.filter(e => (e.date||'').startsWith(month));
+  const totalExp = monthExp.reduce((s,e) => s + parseFloat(e.amount||0), 0);
+
+  // Salary (monthly total of active employees)
+  const salaryTotal = employees.reduce((s,e) => s + parseFloat(e.monthly_salary||0), 0);
+
+  // P&L calculation
+  const directCost  = purchases;
+  const grossProfit = revenue - directCost;
+  const overhead    = salaryTotal + totalExp + payments;
+  const netProfit   = grossProfit - overhead;
+  const margin      = revenue > 0 ? (netProfit / revenue * 100) : 0;
+
+  document.getElementById('pl-body').innerHTML = `
+    <div class="pl-row total"><span>Revenue (Billed)</span><span style="color:var(--green)">${fmt(revenue)}</span></div>
+    <div class="pl-row indent"><span>Sales Invoices (${salesVouchers.length})</span><span>${fmt(revenue)}</span></div>
+    <br>
+    <div class="pl-row total"><span>Direct Costs</span><span style="color:var(--red)">− ${fmt(directCost)}</span></div>
+    <div class="pl-row indent"><span>Material Purchases</span><span>${fmt(purchases)}</span></div>
+    <br>
+    <div class="pl-row grand"><span>Gross Profit</span><span style="color:${grossProfit>=0?'var(--green)':'var(--red)'}">${fmt(grossProfit)}</span></div>
+    <br>
+    <div class="pl-row total"><span>Overhead &amp; Operating Costs</span><span style="color:var(--red)">− ${fmt(overhead)}</span></div>
+    <div class="pl-row indent"><span>Staff Salaries</span><span>${fmt(salaryTotal)}</span></div>
+    <div class="pl-row indent"><span>Vendor Payments</span><span>${fmt(payments)}</span></div>
+    <div class="pl-row indent"><span>Other Expenses</span><span>${fmt(totalExp)}</span></div>
+    <br>
+    <div class="pl-row grand" style="background:${netProfit>=0?'var(--green-bg)':'var(--red-bg)'}">
+      <span>Net Profit / Loss</span>
+      <span style="color:${netProfit>=0?'var(--green)':'var(--red)'}">${fmt(netProfit)}</span>
+    </div>`;
+
+  document.getElementById('pl-stats').innerHTML = `
+    <div class="stat-card ${margin >= 15 ? 'green' : margin >= 0 ? 'amber' : 'red'}">
+      <div class="stat-label">Net Margin</div>
+      <div class="stat-value">${margin.toFixed(1)}%</div>
+      <div class="stat-sub">${netProfit >= 0 ? 'Profitable' : 'Loss-making'}</div>
+    </div>
+    <div class="stat-card blue">
+      <div class="stat-label">Collections</div>
+      <div class="stat-value">${fmt(receipts)}</div>
+      <div class="stat-sub">Cash received this month</div>
+    </div>`;
+
+  // Expense breakdown
+  const byCat = {};
+  monthExp.forEach(e => { byCat[e.category] = (byCat[e.category]||0) + parseFloat(e.amount||0); });
+  document.getElementById('pl-exp-body').innerHTML = Object.entries(byCat)
+    .sort((a,b) => b[1]-a[1])
+    .map(([cat,amt]) => `<tr><td>${cat}</td><td class="amt">${fmt(amt)}</td></tr>`).join('')
+    || '<tr><td colspan="2" class="no-data">No expenses recorded this month</td></tr>';
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+// PROJECTS
+// ══════════════════════════════════════════════════════════════════════════════
+async function loadProjects() {
+  document.getElementById('proj-cards').innerHTML = '<div class="skel" style="height:180px"></div><div class="skel" style="height:180px"></div>';
+  const { data, error } = await sb.from('proalfa_projects').select('*').eq('is_deleted', false).order('created_at', { ascending: false });
+  if (error) { showAlert('Projects load failed: ' + error.message, 'err'); return; }
+  projects = data || [];
+  renderProjects();
+  renderAdvanceTracker();
+}
+
+function projComputed(p) {
+  const contractIncl = parseFloat(p.contract_value)    || 0;
+  const gstRate      = parseFloat(p.gst_rate)           || 0;
+  const baseValue    = gstRate > 0 ? contractIncl / (1 + gstRate / 100) : contractIncl;
+  const gstAmt       = contractIncl - baseValue;
+  const contract     = contractIncl; // kept for advance/billing calcs (client owes incl. GST)
+  const billed       = parseFloat(p.billed_to_date)    || 0;
+  const collected    = parseFloat(p.collected_to_date)  || 0;
+  const advRecv      = parseFloat(p.advance_received)   || 0;
+  const advPct       = parseFloat(p.advance_agreed_pct) || 30;
+  // Granular cost heads — fall back to old fields for legacy records
+  const costRm          = parseFloat(p.cost_rm)          || parseFloat(p.material_cost) || 0;
+  const costLabour      = parseFloat(p.cost_labour)      || parseFloat(p.labour_cost)   || 0;
+  const costConsumables = parseFloat(p.cost_consumables) || 0;
+  const costElectricity = parseFloat(p.cost_electricity) || 0;
+  const costTransport   = parseFloat(p.cost_transport)   || 0;
+  const costAdmin       = parseFloat(p.cost_admin)       || 0;
+  const costOther       = parseFloat(p.other_cost)       || 0;
+  const totalCost      = costRm + costLabour + costConsumables + costElectricity + costTransport + costAdmin + costOther;
+  // Margin on base value (excl. GST) — GST is a pass-through
+  const grossMarginAmt = baseValue - totalCost;
+  const grossMarginPct = baseValue > 0 ? (grossMarginAmt / baseValue * 100) : 0;
+  const outstanding  = billed - collected;
+  const advDue       = contract * advPct / 100;
+  const advShortfall = Math.max(0, advDue - advRecv);
+  const adjAmt       = parseFloat(p.advance_adjusted) || 0;
+  const balToAdj     = Math.max(0, advRecv - adjAmt);
+  // Rate-based pricing display
+  const qty          = parseFloat(p.quantity) || null;
+  const rate         = parseFloat(p.rate_per_unit) || null;
+  const unit         = p.unit_type || '';
+  const pricingLabel = (p.pricing_type === 'rate_based' && qty && rate)
+    ? `${qty.toLocaleString('en-IN')} ${unit} × ₹${rate.toLocaleString('en-IN')}/${unit}`
+    : null;
+  // days since last invoice
+  const lastInv = vouchers
+    .filter(v => v.party_name === p.client_name && (v.voucher_type === 'Sales' || v.voucher_type === 'Sales Invoice'))
+    .map(v => new Date(v.voucher_date))
+    .sort((a,b) => b - a)[0];
+  const daysSinceInv = lastInv ? Math.floor((Date.now() - lastInv) / 864e5) : null;
+  return { contract, contractIncl, baseValue, gstAmt, gstRate, billed, collected, totalCost,
+           grossMarginAmt, grossMarginPct, outstanding, advDue, advShortfall, advRecv,
+           adjAmt, balToAdj, daysSinceInv, pricingLabel,
+           costRm, costLabour, costConsumables, costElectricity, costTransport, costAdmin, costOther };
+}
+
+function renderProjects() {
+  const filter = document.getElementById('proj-filter').value;
+  const filtered = filter ? projects.filter(p => p.status === filter) : projects;
+  const allComp  = projects.map(p => ({ p, c: projComputed(p) }));
+  const active   = allComp.filter(x => x.p.status === 'Active');
+  const totalCV  = active.reduce((s,x) => s + x.c.contract, 0);
+  const totalOut = active.reduce((s,x) => s + x.c.outstanding, 0);
+  const blendedMargin = totalCV > 0 ? active.reduce((s,x) => s + x.c.grossMarginAmt, 0) / totalCV * 100 : 0;
+
+  document.getElementById('proj-stats').innerHTML = `
+    <div class="stat-card blue"><div class="stat-label">Active Projects</div><div class="stat-value">${active.length}</div></div>
+    <div class="stat-card"><div class="stat-label">Total Contract Value</div><div class="stat-value" style="font-size:20px">${fmt(totalCV)}</div></div>
+    <div class="stat-card ${totalOut > 0 ? 'amber' : 'green'}"><div class="stat-label">Total Outstanding</div><div class="stat-value" style="font-size:20px">${fmt(totalOut)}</div></div>
+    <div class="stat-card ${blendedMargin >= 20 ? 'green' : blendedMargin >= 10 ? 'amber' : 'red'}"><div class="stat-label">Blended Margin</div><div class="stat-value">${blendedMargin.toFixed(1)}%</div></div>`;
+
+  const warnings = allComp.filter(x => x.p.status === 'Active' && x.c.advRecv < x.c.contract * 0.25);
+  document.getElementById('proj-warnings').innerHTML = warnings.map(x =>
+    `<div class="warn-banner amber">⚠️ <strong>${x.p.project_name}</strong> — Advance received (${fmt(x.c.advRecv)}) is below 25% of contract value. Collect before mobilisation.</div>`
+  ).join('');
+
+  if (!filtered.length) {
+    document.getElementById('proj-cards').innerHTML = '<div class="no-data" style="grid-column:1/-1">No projects found.</div>';
+    return;
+  }
+
+  document.getElementById('proj-cards').innerHTML = filtered.map(p => {
+    const c = projComputed(p);
+    const cls = c.grossMarginPct >= 20 ? 'margin-good' : c.grossMarginPct >= 10 ? 'margin-ok' : 'margin-bad';
+    const overdue60 = c.outstanding > 0 && c.daysSinceInv !== null && c.daysSinceInv > 60;
+    const borderCls = (c.grossMarginPct < 10 || overdue60) ? 'margin-bad' : c.grossMarginPct < 20 ? 'margin-ok' : 'margin-good';
+    const statusBadge = { Active:'badge-green', 'On Hold':'badge-amber', Completed:'badge-blue', 'In Dispute':'badge-red' }[p.status] || 'badge-blue';
+    const costRows = [
+      { lbl: 'Raw Material', val: c.costRm },
+      { lbl: 'Labour', val: c.costLabour },
+      { lbl: 'Consumables', val: c.costConsumables },
+      { lbl: 'Electricity', val: c.costElectricity },
+      { lbl: 'Transport', val: c.costTransport },
+      { lbl: 'Office / Admin', val: c.costAdmin },
+      { lbl: 'Other', val: c.costOther },
+    ].filter(r => r.val > 0);
+    return `<div class="proj-card ${borderCls}">
+      <button class="proj-edit" onclick="openProjModal('${p.id}')">Edit</button>
+      <div class="proj-code">${p.project_code || '—'}</div>
+      <div class="proj-name">${p.project_name}</div>
+      <div class="proj-client">${p.client_name || '—'} &nbsp;<span class="badge ${statusBadge}">${p.status}</span></div>
+      <div class="proj-row"><span class="lbl">Contract (incl. GST)</span><span class="val">${fmt(c.contractIncl)}${c.pricingLabel ? `<br><span style="font-size:10px;color:var(--text2);font-weight:400">${c.pricingLabel}</span>` : ''}</span></div>
+      ${c.gstRate > 0 ? `<div class="proj-row" style="font-size:12px"><span class="lbl" style="color:var(--text2)">Base Value (excl. GST ${c.gstRate}%)</span><span class="val" style="color:var(--text2)">${fmt(c.baseValue)}</span></div>` : ''}
+      <div class="proj-row"><span class="lbl">Billed / Collected</span><span class="val">${fmt(c.billed)} / <span style="color:var(--green)">${fmt(c.collected)}</span></span></div>
+      <div class="proj-row"><span class="lbl">Outstanding</span><span class="val" style="color:${c.outstanding>0?'var(--amber)':'var(--green)'}">${fmt(c.outstanding)}</span></div>
+      <div style="margin:8px 0 4px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--text2)">Cost Breakdown</div>
+      ${costRows.map(r=>`<div class="proj-row" style="font-size:12px"><span class="lbl">${r.lbl}</span><span class="val" style="color:var(--red)">${fmt(r.val)}</span></div>`).join('')}
+      <div class="proj-row" style="border-top:1px solid var(--border2);margin-top:4px;padding-top:6px"><span class="lbl" style="font-weight:600">Total Cost</span><span class="val" style="color:var(--red)">${fmt(c.totalCost)}</span></div>
+      <div class="proj-row"><span class="lbl" style="font-weight:600">Gross Margin</span><span class="val" style="color:${c.grossMarginPct>=20?'var(--green)':c.grossMarginPct>=10?'var(--amber)':'var(--red)'}">${fmt(c.grossMarginAmt)} &nbsp;<span style="font-size:11px">(${c.grossMarginPct.toFixed(1)}%)</span></span></div>
+      <div class="proj-row"><span class="lbl">Advance Shortfall</span><span class="val" style="color:${c.advShortfall>0?'var(--red)':'var(--green)'}">${c.advShortfall>0?fmt(c.advShortfall):'Fully received'}</span></div>
+      ${c.daysSinceInv !== null ? `<div class="proj-row"><span class="lbl">Last Invoice</span><span class="val" style="color:${c.daysSinceInv>60?'var(--red)':c.daysSinceInv>30?'var(--amber)':'var(--text)'}">${c.daysSinceInv}d ago</span></div>` : ''}
+      ${c.advRecv < c.contract * 0.25 ? '<div class="proj-warn">⚠ Advance below 25% — mobilise only after collection</div>' : ''}
+    </div>`;
+  }).join('');
+
+  // Chart
+  buildProjChart(filtered.map(p => ({ name: p.project_name.slice(0,20), pct: projComputed(p).grossMarginPct })));
+}
+
+function buildProjChart(data) {
+  const ctx = document.getElementById('projMarginChart').getContext('2d');
+  if (projMarginChart) projMarginChart.destroy();
+  projMarginChart = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: data.map(d => d.name),
+      datasets: [{ label: 'Gross Margin %', data: data.map(d => d.pct.toFixed(1)),
+        backgroundColor: data.map(d => d.pct >= 20 ? '#1D9E75' : d.pct >= 10 ? '#EF9F27' : '#E24B4A'),
+        borderRadius: 4 }]
+    },
+    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } },
+      scales: { y: { beginAtZero: true, ticks: { callback: v => v + '%' } } } }
+  });
+}
+
+function renderAdvanceTracker() {
+  const rows = projects.filter(p => p.status === 'Active' || p.status === 'On Hold');
+  const totalDue  = rows.reduce((s,p) => s + projComputed(p).advDue, 0);
+  const totalRecv = rows.reduce((s,p) => s + projComputed(p).advRecv, 0);
+  const gap       = Math.max(0, totalDue - totalRecv);
+  const inadequate = rows.filter(p => projComputed(p).advRecv < projComputed(p).contract * 0.25).length;
+
+  document.getElementById('adv-stats').innerHTML = `
+    <div class="stat-card"><div class="stat-label">Total Advances Due</div><div class="stat-value" style="font-size:20px">${fmt(totalDue)}</div></div>
+    <div class="stat-card green"><div class="stat-label">Total Received</div><div class="stat-value" style="font-size:20px">${fmt(totalRecv)}</div></div>
+    <div class="stat-card ${gap>0?'red':'green'}"><div class="stat-label">Collection Gap</div><div class="stat-value" style="font-size:20px">${fmt(gap)}</div></div>
+    <div class="stat-card ${inadequate>0?'amber':'green'}"><div class="stat-label">Below 25% Advance</div><div class="stat-value">${inadequate}</div><div class="stat-sub">active project${inadequate!==1?'s':''}</div></div>`;
+
+  document.getElementById('adv-body').innerHTML = rows.length ? rows.map(p => {
+    const c = projComputed(p);
+    const rowCls = (p.status === 'Active' && c.advRecv < c.contract * 0.25) ? 'style="background:var(--red-bg)"' : '';
+    const adjStatuses = ['Not Started','In Progress','Partially Adjusted','Fully Adjusted'];
+    return `<tr ${rowCls}>
+      <td style="font-weight:500;white-space:nowrap">${p.project_code||'—'}</td>
+      <td>${p.client_name||'—'}</td>
+      <td class="amt">${fmt(c.contract)}</td>
+      <td class="amt">${parseFloat(p.advance_agreed_pct||30)}%</td>
+      <td class="amt">${fmt(c.advDue)}</td>
+      <td class="amt">${fmt(c.advRecv)}</td>
+      <td class="amt" style="color:${c.advShortfall>0?'var(--red)':'var(--green)'}">${c.advShortfall>0?fmt(c.advShortfall):'—'}</td>
+      <td><select class="inline-sel" onchange="saveAdvField('${p.id}','advance_adjustment_status',this.value)">
+        ${adjStatuses.map(s=>`<option${(p.advance_adjustment_status||'Not Started')===s?' selected':''}>${s}</option>`).join('')}
+      </select></td>
+      <td class="amt"><input class="inline-num" type="number" value="${parseFloat(p.advance_adjusted)||0}" min="0"
+        onchange="saveAdvField('${p.id}','advance_adjusted',parseFloat(this.value)||0)"></td>
+      <td class="amt" style="color:${c.balToAdj>0?'var(--amber)':'var(--green)'}">${c.balToAdj>0?fmt(c.balToAdj):'—'}</td>
+    </tr>`;
+  }).join('') : '<tr><td colspan="10" class="no-data">No active projects</td></tr>';
+}
+
+async function saveAdvField(id, field, value) {
+  const { error } = await sb.from('proalfa_projects').update({ [field]: value, updated_at: new Date().toISOString() }).eq('id', id);
+  if (error) showAlert('Save failed: ' + error.message, 'err');
+  else { const p = projects.find(x => x.id === id); if (p) p[field] = value; }
+}
+
+// ── Project modal helpers ─────────────────────────────────────────────────────
+function onPricingTypeChange() {
+  const type = document.getElementById('pm-pricing-type').value;
+  const rateFields = document.getElementById('pm-rate-fields');
+  const contractWrap = document.getElementById('pm-contract-wrap');
+  if (type === 'rate_based') {
+    rateFields.style.display = 'block';
+    contractWrap.style.display = 'none';
+    calcContractValue();
+  } else {
+    rateFields.style.display = 'none';
+    contractWrap.style.display = 'block';
+    calcTotalCost();
+  }
+}
+
+function calcContractValue() {
+  const qty  = parseFloat(document.getElementById('pm-qty').value)  || 0;
+  const rate = parseFloat(document.getElementById('pm-rate').value) || 0;
+  const unit = document.getElementById('pm-unit').value;
+  const val  = qty * rate;
+  document.getElementById('pm-contract-preview').textContent = val > 0
+    ? `${qty.toLocaleString('en-IN')} ${unit} × ₹${rate.toLocaleString('en-IN')} = ₹${Math.round(val).toLocaleString('en-IN')}`
+    : '—';
+  document.getElementById('pm-contract').value = val > 0 ? val : '';
+  calcTotalCost();
+}
+
+function calcTotalCost() {
+  const ids = ['pm-cost-rm','pm-cost-labour','pm-cost-consumables','pm-cost-electricity','pm-cost-transport','pm-cost-admin','pm-other'];
+  const total      = ids.reduce((s,id) => s + (parseFloat(document.getElementById(id)?.value)||0), 0);
+  const contractIncl = parseFloat(document.getElementById('pm-contract').value) || 0;
+  const gstRate    = parseFloat(document.getElementById('pm-gst-rate').value) || 0;
+  const baseValue  = gstRate > 0 ? contractIncl / (1 + gstRate / 100) : contractIncl;
+  const gstAmt     = contractIncl - baseValue;
+  const margin     = baseValue - total;
+  const pct        = baseValue > 0 ? (margin / baseValue * 100) : 0;
+
+  document.getElementById('pm-total-cost-preview').textContent = '₹' + Math.round(total).toLocaleString('en-IN');
+
+  const mp = document.getElementById('pm-margin-preview');
+  const mv = document.getElementById('pm-margin-val');
+  if (contractIncl > 0) {
+    mp.style.display = 'block';
+    mp.style.background = 'var(--card2)';
+    mv.style.color = 'var(--text)';
+    mv.innerHTML = gstRate > 0
+      ? `Base: <strong>₹${Math.round(baseValue).toLocaleString('en-IN')}</strong> &nbsp;+&nbsp; GST ${gstRate}%: ₹${Math.round(gstAmt).toLocaleString('en-IN')}
+         <br>Gross Margin (on base): <strong style="color:${pct>=20?'var(--green)':pct>=10?'var(--amber)':'var(--red)'}">₹${Math.round(margin).toLocaleString('en-IN')} (${pct.toFixed(1)}%)</strong>`
+      : `<strong style="color:${pct>=20?'var(--green)':pct>=10?'var(--amber)':'var(--red)'}">₹${Math.round(margin).toLocaleString('en-IN')} (${pct.toFixed(1)}%)</strong>`;
+    mp.style.border = `1px solid ${pct>=20?'var(--green)':pct>=10?'var(--amber)':'var(--red)'}`;
+  } else {
+    mp.style.display = 'none';
+  }
+}
+
+function openProjModal(id) {
+  editingProjId = id || null;
+  const p = id ? projects.find(x => x.id === id) : {};
+  document.getElementById('projModalTitle').textContent = id ? 'Edit Project' : 'Add Project';
+  const set = (elId, val) => { const el = document.getElementById(elId); if (el) el.value = val ?? ''; };
+  // Auto-generate code for new projects
+  if (!id) {
+    const year = new Date().getFullYear();
+    const prefix = `PD-${year}-`;
+    const existing = projects
+      .map(x => x.project_code || '')
+      .filter(c => c.startsWith(prefix))
+      .map(c => parseInt(c.replace(prefix, '')) || 0);
+    const next = (existing.length ? Math.max(...existing) : 0) + 1;
+    document.getElementById('pm-code').value = prefix + String(next).padStart(2, '0');
+  } else {
+    set('pm-code', p?.project_code);
+  }
+  set('pm-name', p?.project_name); set('pm-client', p?.client_name);
+  set('pm-status', p?.status || 'Active');
+  document.getElementById('pm-gst-rate').value = String(p?.gst_rate ?? 18);
+  set('pm-adv-pct', p?.advance_agreed_pct || 30); set('pm-adv-recv', p?.advance_received);
+  set('pm-billed', p?.billed_to_date); set('pm-collected', p?.collected_to_date);
+  set('pm-start', p?.start_date); set('pm-end', p?.expected_end_date); set('pm-notes', p?.notes);
+  // Pricing
+  const pricingType = p?.pricing_type || 'lumpsum';
+  document.getElementById('pm-pricing-type').value = pricingType;
+  set('pm-contract', p?.contract_value);
+  set('pm-qty', p?.quantity); set('pm-unit', p?.unit_type || 'kg'); set('pm-rate', p?.rate_per_unit);
+  // Cost heads
+  set('pm-cost-rm',          p?.cost_rm          ?? p?.material_cost ?? '');
+  set('pm-cost-labour',      p?.cost_labour      ?? p?.labour_cost   ?? '');
+  set('pm-cost-consumables', p?.cost_consumables ?? '');
+  set('pm-cost-electricity', p?.cost_electricity ?? '');
+  set('pm-cost-transport',   p?.cost_transport   ?? '');
+  set('pm-cost-admin',       p?.cost_admin       ?? '');
+  set('pm-other',            p?.other_cost       ?? '');
+  onPricingTypeChange();
+  document.getElementById('projModal').style.display = 'flex';
+}
+function closeProjModal() { document.getElementById('projModal').style.display = 'none'; }
+
+async function saveProject() {
+  const get = id => document.getElementById(id).value;
+  const num = id => parseFloat(document.getElementById(id).value) || null;
+  const pricingType = get('pm-pricing-type');
+  const row = {
+    project_code: get('pm-code'), project_name: get('pm-name'), client_name: get('pm-client'),
+    status: get('pm-status'), contract_value: num('pm-contract'),
+    gst_rate: parseFloat(get('pm-gst-rate')) || 0,
+    advance_agreed_pct: num('pm-adv-pct') || 30,
+    advance_received: num('pm-adv-recv'), billed_to_date: num('pm-billed'), collected_to_date: num('pm-collected'),
+    pricing_type: pricingType,
+    quantity:      pricingType === 'rate_based' ? num('pm-qty')  : null,
+    unit_type:     pricingType === 'rate_based' ? get('pm-unit') : null,
+    rate_per_unit: pricingType === 'rate_based' ? num('pm-rate') : null,
+    cost_rm:          num('pm-cost-rm'),
+    cost_labour:      num('pm-cost-labour'),
+    cost_consumables: num('pm-cost-consumables'),
+    cost_electricity: num('pm-cost-electricity'),
+    cost_transport:   num('pm-cost-transport'),
+    cost_admin:       num('pm-cost-admin'),
+    other_cost: num('pm-other'),
+    start_date: get('pm-start') || null, expected_end_date: get('pm-end') || null, notes: get('pm-notes') || null,
+    updated_at: new Date().toISOString(),
+  };
+  if (!row.project_name) { showAlert('Project name is required', 'err'); return; }
+  let error;
+  if (editingProjId) {
+    ({ error } = await sb.from('proalfa_projects').update(row).eq('id', editingProjId));
+  } else {
+    row.is_deleted = false; row.created_at = new Date().toISOString();
+    ({ error } = await sb.from('proalfa_projects').insert([row]));
+  }
+  if (error) { showAlert('Save failed: ' + error.message, 'err'); return; }
+  closeProjModal();
+  showAlert('Project saved.', 'ok');
+  loadProjects();
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+// CREDIT LINE
+// ══════════════════════════════════════════════════════════════════════════════
+async function loadCredit() {
+  const [{ data: facs, error: e1 }, { data: dds, error: e2 }] = await Promise.all([
+    sb.from('proalfa_credit_facilities').select('*').eq('is_deleted', false),
+    sb.from('proalfa_credit_drawdowns').select('*').eq('is_deleted', false).order('draw_date', { ascending: false }),
+  ]);
+  if (e1 || e2) { showAlert('Credit load failed: ' + (e1||e2).message, 'err'); return; }
+  creditFacilities = facs || [];
+  creditDrawdowns  = dds  || [];
+  renderCredit();
+  renderDrawdowns();
+
+  // Real-time subscription on drawdowns
+  sb.channel('drawdowns').on('postgres_changes', { event: '*', schema: 'public', table: 'proalfa_credit_drawdowns' }, () => loadCredit()).subscribe();
+}
+
+function renderCredit() {
+  const sanctioned = creditFacilities.filter(f => f.is_active).reduce((s,f) => s + parseFloat(f.sanctioned_limit||0), 0);
+  const drawn = creditDrawdowns.filter(d => {
+    const repaid = parseFloat(d.amount_repaid||0);
+    return repaid < parseFloat(d.amount_drawn||0);
+  }).reduce((s,d) => s + parseFloat(d.amount_drawn||0) - parseFloat(d.amount_repaid||0), 0);
+  const available = sanctioned - drawn;
+  const utilPct = sanctioned > 0 ? drawn / sanctioned * 100 : 0;
+  const utilCls = utilPct > 75 ? 'red' : utilPct > 50 ? 'amber' : 'green';
+
+  document.getElementById('credit-stats').innerHTML = `
+    <div class="stat-card blue"><div class="stat-label">Sanctioned Limit</div><div class="stat-value" style="font-size:20px">${fmt(sanctioned)}</div></div>
+    <div class="stat-card ${utilCls}"><div class="stat-label">Currently Drawn</div><div class="stat-value" style="font-size:20px">${fmt(drawn)}</div></div>
+    <div class="stat-card green"><div class="stat-label">Available Balance</div><div class="stat-value" style="font-size:20px">${fmt(available)}</div></div>
+    <div class="stat-card ${utilCls}">
+      <div class="stat-label">Utilisation</div>
+      <div class="stat-value">${utilPct.toFixed(1)}%</div>
+      <div class="prog-bar" style="margin-top:8px"><div class="prog-fill prog-${utilCls}" style="width:${Math.min(utilPct,100)}%"></div></div>
+    </div>`;
+
+  // Warnings
+  const today = new Date();
+  const warns = [];
+  const highUtilDays = creditDrawdowns.filter(d => {
+    const ageDays = Math.floor((today - new Date(d.draw_date)) / 864e5);
+    const balance = parseFloat(d.amount_drawn||0) - parseFloat(d.amount_repaid||0);
+    return balance > 0 && ageDays > 15 && utilPct > 70;
+  });
+  if (highUtilDays.length) warns.push(`<div class="warn-banner red">🔴 Utilisation >70% sustained for over 15 days. Consider repayment to avoid interest costs.</div>`);
+  const open60 = creditDrawdowns.filter(d => {
+    const ageDays = Math.floor((today - new Date(d.draw_date)) / 864e5);
+    const balance = parseFloat(d.amount_drawn||0) - parseFloat(d.amount_repaid||0);
+    return balance > 0 && ageDays > 60;
+  });
+  if (open60.length) warns.push(`<div class="warn-banner red">🔴 ${open60.length} drawdown${open60.length>1?'s':''} open for more than 60 days.</div>`);
+  creditFacilities.forEach(f => {
+    if (!f.renewal_date) return;
+    const days = Math.floor((new Date(f.renewal_date) - today) / 864e5);
+    if (days <= 30) warns.push(`<div class="warn-banner ${days<0?'red':'amber'}">⚠ ${f.bank_name} facility renewal ${days<0?Math.abs(days)+' days overdue':'in '+days+' days'} (${f.renewal_date}).</div>`);
+  });
+  document.getElementById('credit-warnings').innerHTML = warns.join('');
+
+  // Facilities list
+  document.getElementById('credit-facilities').innerHTML = creditFacilities.length
+    ? creditFacilities.map(f => `
+      <div style="padding:12px 16px;border-bottom:1px solid var(--border)">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start">
+          <div>
+            <div style="font-weight:600;font-size:13px">${f.bank_name} <span style="font-size:11px;color:var(--text2)">····${f.account_number_masked||''}</span></div>
+            <div style="font-size:11px;color:var(--text2);margin-top:2px">${f.facility_type||'CC'} · ${f.interest_rate_pct||'—'}% p.a.</div>
+          </div>
+          <button class="btn btn-sm" onclick="openFacilityModal('${f.id}')">Edit</button>
+        </div>
+        <div style="font-size:12px;margin-top:6px">Limit: <strong>${fmt(f.sanctioned_limit)}</strong></div>
+        ${f.renewal_date ? `<div style="font-size:11px;color:var(--text2)">Renewal: ${f.renewal_date}</div>` : ''}
+        ${f.rm_name ? `<div style="font-size:11px;color:var(--text2)">${f.rm_name} · ${f.rm_phone||''}</div>` : ''}
+        <span class="badge ${f.is_active?'badge-green':'badge-red'}" style="margin-top:6px">${f.is_active?'Active':'Inactive'}</span>
+      </div>`).join('')
+    : '<div class="no-data">No facilities added yet.</div>';
+
+  buildCreditChart();
+}
+
+function buildCreditChart() {
+  const ctx = document.getElementById('creditChart').getContext('2d');
+  if (creditLineChart) creditLineChart.destroy();
+  const sanctioned = creditFacilities.filter(f=>f.is_active).reduce((s,f)=>s+parseFloat(f.sanctioned_limit||0),0);
+  const today = new Date();
+  const labels = [], drawnData = [];
+  for (let i = 89; i >= 0; i--) {
+    const d = new Date(today.getTime() - i * 864e5);
+    labels.push(i % 30 === 0 ? d.toLocaleDateString('en-IN',{day:'numeric',month:'short'}) : '');
+    const drawn = creditDrawdowns.filter(dd => new Date(dd.draw_date) <= d).reduce((s,dd) => {
+      const bal = parseFloat(dd.amount_drawn||0) - parseFloat(dd.amount_repaid||0);
+      return s + Math.max(0, bal);
+    }, 0);
+    drawnData.push(drawn);
+  }
+  creditLineChart = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels,
+      datasets: [
+        { label: 'Drawn', data: drawnData, borderColor: '#E24B4A', backgroundColor: 'rgba(226,75,74,.1)', fill: true, tension: 0.3, pointRadius: 0 },
+        { label: 'Sanctioned Limit', data: Array(90).fill(sanctioned), borderColor: '#378ADD', borderDash: [6,3], pointRadius: 0 },
+      ]
+    },
+    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { boxWidth: 12, font: { size: 11 } } } },
+      scales: { y: { ticks: { callback: v => '₹' + (v/1e5).toFixed(0) + 'L' } } } }
+  });
+}
+
+function renderDrawdowns() {
+  const filter = document.getElementById('dd-filter').value;
+  const ddStatus = d => {
+    const drawn = parseFloat(d.amount_drawn||0);
+    const repaid = parseFloat(d.amount_repaid||0);
+    if (repaid >= drawn) return 'Fully Repaid';
+    if (repaid > 0) return 'Partially Repaid';
+    return 'Open';
+  };
+  let rows = [...creditDrawdowns];
+  if (filter) rows = rows.filter(d => ddStatus(d) === filter);
+  const badgeCls = s => s === 'Fully Repaid' ? 'badge-green' : s === 'Partially Repaid' ? 'badge-amber' : 'badge-red';
+  const fac = id => creditFacilities.find(f => f.id === id);
+  document.getElementById('dd-body').innerHTML = rows.length ? rows.map(d => {
+    const f = fac(d.facility_id);
+    const balance = Math.max(0, parseFloat(d.amount_drawn||0) - parseFloat(d.amount_repaid||0));
+    const st = ddStatus(d);
+    const today = new Date();
+    const daysDue = d.expected_repayment_date ? Math.floor((new Date(d.expected_repayment_date)-today)/864e5) : null;
+    return `<tr>
+      <td style="white-space:nowrap">${d.draw_date||'—'}</td>
+      <td>${f?.bank_name||'—'}</td>
+      <td>${d.purpose||'—'}</td>
+      <td>${d.linked_project_code||'—'}</td>
+      <td class="amt">${fmt(d.amount_drawn)}</td>
+      <td class="amt" style="color:var(--green)">${fmt(d.amount_repaid||0)}</td>
+      <td class="amt" style="color:${balance>0?'var(--red)':'var(--green)'}">${fmt(balance)}</td>
+      <td><span class="badge ${badgeCls(st)}">${st}</span></td>
+      <td style="white-space:nowrap;color:${daysDue!==null&&daysDue<0?'var(--red)':daysDue!==null&&daysDue<=7?'var(--amber)':'inherit'}">${d.expected_repayment_date||'—'}</td>
+      <td><button class="btn btn-sm" onclick="openRepaymentModal('${d.id}')">Repay</button></td>
+    </tr>`;
+  }).join('') : '<tr><td colspan="10" class="no-data">No drawdowns recorded</td></tr>';
+}
+
+function openFacilityModal(id) {
+  editingFacId = id || null;
+  const f = id ? creditFacilities.find(x => x.id === id) : {};
+  const set = (elId, val) => { const el = document.getElementById(elId); if (el) el.value = val ?? ''; };
+  set('fm-bank', f?.bank_name); set('fm-type', f?.facility_type || 'Cash Credit');
+  set('fm-acct', f?.account_number_masked); set('fm-limit', f?.sanctioned_limit);
+  set('fm-rate', f?.interest_rate_pct); set('fm-renewal', f?.renewal_date);
+  set('fm-rm-name', f?.rm_name); set('fm-rm-phone', f?.rm_phone);
+  document.getElementById('fm-active').value = String(f?.is_active ?? true);
+  document.getElementById('facilityModal').style.display = 'flex';
+}
+function closeFacilityModal() { document.getElementById('facilityModal').style.display = 'none'; }
+
+async function saveFacility() {
+  const get = id => document.getElementById(id).value;
+  const row = {
+    bank_name: get('fm-bank'), facility_type: get('fm-type'), account_number_masked: get('fm-acct'),
+    sanctioned_limit: parseFloat(get('fm-limit'))||null, interest_rate_pct: parseFloat(get('fm-rate'))||null,
+    renewal_date: get('fm-renewal')||null, rm_name: get('fm-rm-name')||null, rm_phone: get('fm-rm-phone')||null,
+    is_active: get('fm-active') === 'true', updated_at: new Date().toISOString(),
+  };
+  if (!row.bank_name) { showAlert('Bank name required', 'err'); return; }
+  let error;
+  if (editingFacId) {
+    ({ error } = await sb.from('proalfa_credit_facilities').update(row).eq('id', editingFacId));
+  } else {
+    row.is_deleted = false; row.created_at = new Date().toISOString();
+    ({ error } = await sb.from('proalfa_credit_facilities').insert([row]));
+  }
+  if (error) { showAlert('Save failed: ' + error.message, 'err'); return; }
+  closeFacilityModal(); showAlert('Facility saved.', 'ok'); loadCredit();
+}
+
+function openDrawdownModal(id) {
+  editingDdId = id || null;
+  const d = id ? creditDrawdowns.find(x => x.id === id) : {};
+  // Populate facility select
+  const fsel = document.getElementById('dd-facility');
+  fsel.innerHTML = creditFacilities.filter(f=>f.is_active).map(f=>`<option value="${f.id}"${d?.facility_id===f.id?' selected':''}>${f.bank_name} (${f.facility_type})</option>`).join('');
+  // Populate project select
+  const psel = document.getElementById('dd-project');
+  psel.innerHTML = '<option value="">— None —</option>' + projects.map(p=>`<option value="${p.project_code}"${d?.linked_project_code===p.project_code?' selected':''}>${p.project_code} — ${p.project_name}</option>`).join('');
+  const set = (elId, val) => { const el = document.getElementById(elId); if(el) el.value = val||''; };
+  set('dd-date', d?.draw_date); set('dd-amount', d?.amount_drawn); set('dd-purpose', d?.purpose||'Procurement');
+  set('dd-repay-date', d?.expected_repayment_date); set('dd-notes', d?.notes);
+  if (id) { document.getElementById('dd-repay-section').style.display = 'block'; set('dd-repaid', d?.amount_repaid); set('dd-repaid-on', d?.repaid_on); }
+  else { document.getElementById('dd-repay-section').style.display = 'none'; }
+  document.getElementById('ddModalTitle').textContent = id ? 'Edit / Repay Drawdown' : 'Record Drawdown';
+  document.getElementById('drawdownModal').style.display = 'flex';
+}
+function openRepaymentModal(id) { openDrawdownModal(id); }
+function closeDrawdownModal() { document.getElementById('drawdownModal').style.display = 'none'; }
+
+async function saveDrawdown() {
+  const get = id => document.getElementById(id).value;
+  const row = {
+    facility_id: get('dd-facility'), draw_date: get('dd-date'), amount_drawn: parseFloat(get('dd-amount'))||null,
+    purpose: get('dd-purpose'), linked_project_code: get('dd-project')||null,
+    expected_repayment_date: get('dd-repay-date')||null, notes: get('dd-notes')||null,
+    amount_repaid: parseFloat(get('dd-repaid'))||0,
+    repaid_on: get('dd-repaid-on')||null, updated_at: new Date().toISOString(),
+  };
+  if (!row.facility_id || !row.amount_drawn) { showAlert('Facility and amount required', 'err'); return; }
+  let error;
+  if (editingDdId) {
+    ({ error } = await sb.from('proalfa_credit_drawdowns').update(row).eq('id', editingDdId));
+  } else {
+    row.is_deleted = false; row.created_at = new Date().toISOString();
+    ({ error } = await sb.from('proalfa_credit_drawdowns').insert([row]));
+  }
+  if (error) { showAlert('Save failed: ' + error.message, 'err'); return; }
+  closeDrawdownModal(); showAlert('Saved.', 'ok'); loadCredit();
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+// INSURANCE
+// ══════════════════════════════════════════════════════════════════════════════
+async function loadInsurance() {
+  const { data, error } = await sb.from('proalfa_insurance_policies').select('*').eq('is_deleted', false).order('policy_expiry_date');
+  if (error) { showAlert('Insurance load failed: ' + error.message, 'err'); return; }
+  insurancePolicies = data || [];
+  renderInsurance();
+}
+
+function insExpiryInfo(p) {
+  const today = new Date(); today.setHours(0,0,0,0);
+  const exp = p.policy_expiry_date ? new Date(p.policy_expiry_date) : null;
+  const days = exp ? Math.floor((exp - today) / 864e5) : null;
+  const cls = days === null ? '' : days < 0 ? 'exp-crit' : days <= 30 ? 'exp-crit' : days <= 60 ? 'exp-warn' : 'exp-ok';
+  const badgeCls = days === null ? 'badge-blue' : days < 0 ? 'badge-red' : days <= 30 ? 'badge-red' : days <= 60 ? 'badge-amber' : 'badge-green';
+  const label = days === null ? '—' : days < 0 ? Math.abs(days)+'d overdue' : days === 0 ? 'Expires today' : days+'d left';
+  return { days, cls, badgeCls, label };
+}
+
+function renderInsurance() {
+  const typeF   = document.getElementById('ins-type-filter').value;
+  const statusF = document.getElementById('ins-status-filter').value;
+  const today   = new Date(); today.setHours(0,0,0,0);
+
+  let rows = [...insurancePolicies];
+  if (typeF)   rows = rows.filter(p => p.policy_type === typeF);
+  if (statusF) rows = rows.filter(p => p.status === statusF);
+
+  const active = insurancePolicies.filter(p => p.status === 'Active');
+  const totalSum = active.reduce((s,p) => s + parseFloat(p.sum_insured||0), 0);
+  const exp60    = active.filter(p => { const d = insExpiryInfo(p).days; return d !== null && d <= 60; });
+  const due30premium = active.filter(p => {
+    if (!p.policy_expiry_date) return false;
+    const d = insExpiryInfo(p).days;
+    return d !== null && d <= 30 && d >= 0;
+  }).reduce((s,p) => s + parseFloat(p.premium_amount||0), 0);
+
+  document.getElementById('ins-stats').innerHTML = `
+    <div class="stat-card blue"><div class="stat-label">Active Policies</div><div class="stat-value">${active.length}</div></div>
+    <div class="stat-card"><div class="stat-label">Total Sum Insured</div><div class="stat-value" style="font-size:18px">${fmt(totalSum)}</div></div>
+    <div class="stat-card ${due30premium>0?'amber':'green'}"><div class="stat-label">Premiums Due (30d)</div><div class="stat-value" style="font-size:18px">${fmt(due30premium)}</div></div>
+    <div class="stat-card ${exp60.length>0?'red':'green'}"><div class="stat-label">Expiring in 60 Days</div><div class="stat-value">${exp60.length}</div><div class="stat-sub">polic${exp60.length!==1?'ies':'y'}</div></div>`;
+
+  // Warnings
+  const warns = exp60.filter(p=>insExpiryInfo(p).days<30).map(p=>`<div class="warn-banner red">🔴 <strong>${p.policy_type}</strong> (${p.policy_number}) expires ${insExpiryInfo(p).days<0?Math.abs(insExpiryInfo(p).days)+'d ago':'in '+insExpiryInfo(p).days+'d'} — ${p.insurer_name}</div>`);
+  document.getElementById('ins-warnings').innerHTML = warns.join('');
+
+  const statusBadge = s => s === 'Active' ? 'badge-green' : s === 'Expired' ? 'badge-red' : 'badge-amber';
+  document.getElementById('ins-body').innerHTML = rows.length ? rows.map(p => {
+    const { cls, badgeCls, label } = insExpiryInfo(p);
+    return `<tr class="${cls}">
+      <td style="font-size:11px;color:var(--text2)">${p.policy_number||'—'}</td>
+      <td style="font-weight:500">${p.insurer_name||'—'}</td>
+      <td><span class="badge badge-blue" style="font-size:10px">${p.policy_type||'—'}</span></td>
+      <td style="max-width:180px;font-size:12px">${p.asset_covered||'—'}</td>
+      <td class="amt">${fmt(p.sum_insured)}</td>
+      <td class="amt" style="font-size:12px">${fmt(p.premium_amount)} / ${(p.premium_frequency||'Annual').slice(0,3)}</td>
+      <td style="white-space:nowrap"><span class="badge ${badgeCls}">${label}</span><div style="font-size:10px;color:var(--text2)">${p.policy_expiry_date||''}</div></td>
+      <td><span class="badge ${statusBadge(p.status)}">${p.status}</span></td>
+      <td style="white-space:nowrap">
+        <button class="btn btn-sm" onclick="openInsModal('${p.id}')" style="margin-right:4px">Edit</button>
+        ${p.status==='Active'?`<button class="btn btn-sm" style="color:var(--green);border-color:var(--green)" onclick="renewPolicy('${p.id}')">Renew</button>`:''}
+      </td>
+    </tr>`;
+  }).join('') : '<tr><td colspan="9" class="no-data">No policies found.</td></tr>';
+
+  // Collateral
+  const banked = insurancePolicies.filter(p => p.is_bank_assigned && p.status === 'Active');
+  const totalBanked = banked.reduce((s,p) => s + parseFloat(p.sum_insured||0), 0);
+  document.getElementById('ins-collateral').innerHTML = banked.length
+    ? `<div style="font-size:22px;font-weight:700;color:var(--blue);margin-bottom:10px">${fmt(totalBanked)}</div>
+       <div style="font-size:11px;color:var(--text2);margin-bottom:10px">${banked.length} polic${banked.length!==1?'ies':'y'} assigned to bank</div>` +
+       banked.map(p=>`<div style="font-size:12px;padding:6px 0;border-bottom:1px solid var(--border)"><strong>${p.policy_type}</strong> — ${p.insurer_name}<br><span style="color:var(--text2)">${p.assigned_bank||'—'} · ${fmt(p.sum_insured)}</span></div>`).join('')
+    : '<div class="no-data" style="padding:20px">No bank-assigned policies</div>';
+
+  // Renewals panel
+  const renewals = insurancePolicies.filter(p => { const d = insExpiryInfo(p).days; return d !== null && d <= 60 && p.status === 'Active'; })
+    .sort((a,b) => insExpiryInfo(a).days - insExpiryInfo(b).days);
+  document.getElementById('ins-renewals').innerHTML = renewals.length
+    ? renewals.map(p => {
+        const { badgeCls, label } = insExpiryInfo(p);
+        return `<div style="padding:10px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:8px">
+          <div>
+            <div style="font-size:12px;font-weight:600">${p.policy_type}</div>
+            <div style="font-size:11px;color:var(--text2)">${p.insurer_name} · ${p.policy_number}</div>
+          </div>
+          <div style="display:flex;align-items:center;gap:8px">
+            <span class="badge ${badgeCls}">${label}</span>
+            <button class="btn btn-sm" onclick="renewPolicy('${p.id}')">Renew</button>
+          </div>
+        </div>`;
+      }).join('')
+    : '<div class="no-data" style="padding:20px;font-size:12px">No renewals due in 60 days 🎉</div>';
+}
+
+function openInsModal(id) {
+  editingInsId = id || null;
+  const p = id ? insurancePolicies.find(x => x.id === id) : {};
+  document.getElementById('insModalTitle').textContent = id ? 'Edit Policy' : 'Add Policy';
+  const set = (elId, val) => { const el = document.getElementById(elId); if (el) el.value = val ?? ''; };
+  set('im-policy-no', p?.policy_number); set('im-insurer', p?.insurer_name);
+  set('im-type', p?.policy_type || 'Plant & Machinery'); set('im-status', p?.status || 'Active');
+  set('im-asset', p?.asset_covered); set('im-sum', p?.sum_insured); set('im-premium', p?.premium_amount);
+  set('im-freq', p?.premium_frequency || 'Annual'); set('im-start', p?.policy_start_date);
+  set('im-expiry', p?.policy_expiry_date); set('im-broker', p?.broker_name); set('im-broker-phone', p?.broker_phone);
+  document.getElementById('im-bank-assigned').value = String(p?.is_bank_assigned ?? false);
+  set('im-assigned-bank', p?.assigned_bank);
+  document.getElementById('insModal').style.display = 'flex';
+}
+function closeInsModal() { document.getElementById('insModal').style.display = 'none'; }
+
+async function saveInsurance() {
+  const get = id => document.getElementById(id).value;
+  const row = {
+    policy_number: get('im-policy-no'), insurer_name: get('im-insurer'), policy_type: get('im-type'),
+    status: get('im-status'), asset_covered: get('im-asset')||null,
+    sum_insured: parseFloat(get('im-sum'))||null, premium_amount: parseFloat(get('im-premium'))||null,
+    premium_frequency: get('im-freq'), policy_start_date: get('im-start')||null,
+    policy_expiry_date: get('im-expiry')||null, broker_name: get('im-broker')||null,
+    broker_phone: get('im-broker-phone')||null, is_bank_assigned: get('im-bank-assigned') === 'true',
+    assigned_bank: get('im-assigned-bank')||null, updated_at: new Date().toISOString(),
+  };
+  if (!row.policy_number || !row.insurer_name) { showAlert('Policy number and insurer required', 'err'); return; }
+  let error;
+  if (editingInsId) {
+    ({ error } = await sb.from('proalfa_insurance_policies').update(row).eq('id', editingInsId));
+  } else {
+    row.is_deleted = false; row.created_at = new Date().toISOString();
+    ({ error } = await sb.from('proalfa_insurance_policies').insert([row]));
+  }
+  if (error) { showAlert('Save failed: ' + error.message, 'err'); return; }
+  closeInsModal(); showAlert('Policy saved.', 'ok'); loadInsurance();
+}
+
+async function renewPolicy(id) {
+  const old = insurancePolicies.find(p => p.id === id);
+  if (!old) return;
+  // Mark old as Cancelled
+  await sb.from('proalfa_insurance_policies').update({ status: 'Cancelled', updated_at: new Date().toISOString() }).eq('id', id);
+  // Open modal pre-filled for new policy
+  openInsModal();
+  const set = (elId, val) => { const el = document.getElementById(elId); if (el) el.value = val ?? ''; };
+  set('im-insurer', old.insurer_name); set('im-type', old.policy_type); set('im-asset', old.asset_covered);
+  set('im-sum', old.sum_insured); set('im-premium', old.premium_amount); set('im-freq', old.premium_frequency);
+  set('im-broker', old.broker_name); set('im-broker-phone', old.broker_phone);
+  document.getElementById('im-bank-assigned').value = String(old.is_bank_assigned ?? false);
+  set('im-assigned-bank', old.assigned_bank);
+  document.getElementById('insModalTitle').textContent = 'Renew Policy (new record)';
+}
+
+// ── HELPERS ─────────────────────────────────────────────────────────────────────
+function showAlert(msg, type) {
+  const b = document.getElementById('abar');
+  b.textContent = msg;
+  b.className = 'abar ' + (type === 'ok' ? 'abar-ok' : 'abar-err');
+  b.style.display = 'block';
+}
+function hideAlert() {
+  document.getElementById('abar').style.display = 'none';
+}
+</script>
+</body>
+</html>
