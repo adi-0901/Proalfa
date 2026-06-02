@@ -163,10 +163,59 @@ def push_to_supabase(records):
                   f"{[r['emp_id'] for r in skipped]}")
             print("     Enrol these employees in HR first, or set matching User IDs on the device.")
 
+    # Fetch existing attendance records for the sync date range so we can
+    # merge machine punches with approved site-portal punches intelligently.
+    dates = list({r["date"] for r in records})
+    existing_map = {}
+    try:
+        for d in dates:
+            resp = requests.get(
+                f"{SUPABASE_URL}/rest/v1/attendance?date=eq.{d}&select=emp_id,date,check_in,check_out",
+                headers=headers,
+                timeout=10,
+            )
+            if resp.status_code == 200:
+                for row in resp.json():
+                    existing_map[(str(row["emp_id"]), row["date"])] = row
+    except Exception:
+        pass  # if fetch fails, fall back to machine data only
+
+    late_h, late_m = map(int, LATE_AFTER.split(":"))
+    merged = []
+    for r in records:
+        key = (str(r["emp_id"]), r["date"])
+        ex  = existing_map.get(key)
+        ci, co = r["check_in"], r["check_out"]
+
+        if ex and co is None:
+            # Machine only has 1 punch — fill the missing half from existing record
+            ex_ci = ex.get("check_in")
+            ex_co = ex.get("check_out")
+            if ex_ci and not ex_co:
+                # Site portal approved check_in, machine punch = check_out
+                ci, co = ex_ci, r["check_in"]
+            elif ex_co and not ex_ci:
+                # Site portal approved check_out, machine punch = check_in
+                ci, co = r["check_in"], ex_co
+
+        if ci == co:
+            co = None
+
+        h, m = map(int, ci.split(":"))
+        merged.append({
+            "emp_id":     r["emp_id"],
+            "date":       r["date"],
+            "check_in":   ci,
+            "check_out":  co,
+            "status":     calc_status(ci, co),
+            "late_entry": (h * 60 + m) > (late_h * 60 + late_m),
+            "ot_hours":   calc_ot(co),
+        })
+
     batch_size = 100
     pushed = 0
-    for i in range(0, len(records), batch_size):
-        batch = records[i:i + batch_size]
+    for i in range(0, len(merged), batch_size):
+        batch = merged[i:i + batch_size]
         r = requests.post(
             f"{SUPABASE_URL}/rest/v1/attendance?on_conflict=emp_id,date",
             headers=headers,
