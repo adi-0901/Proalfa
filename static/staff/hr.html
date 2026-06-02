@@ -348,33 +348,8 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Helvetica
         <option value="LWP">Leave Without Pay</option>
         <option value="WO">Work Off</option>
       </select>
-      <button class="btn btn-primary btn-sm" onclick="toggleLeaveForm()" id="lvFormBtn">＋ New Request</button>
     </div>
 
-    <div id="lvForm" class="fsec" style="display:none;margin-bottom:16px">
-      <div class="fsec-title">New Leave Request</div>
-      <div class="fgrid">
-        <div class="fg"><label>Employee *</label><select id="lv-emp"><option value="">— Select —</option></select></div>
-        <div class="fg"><label>Leave Type *</label><select id="lv-type">
-          <option value="CL">Casual Leave (CL)</option>
-          <option value="SL">Sick Leave (SL)</option>
-          <option value="EL">Earned Leave (EL)</option>
-          <option value="LWP">Leave Without Pay (LWP)</option>
-          <option value="WO">Work Off</option>
-        </select></div>
-        <div class="fg"><label>From Date *</label><input type="date" id="lv-from"></div>
-        <div class="fg"><label>To Date *</label><input type="date" id="lv-to"></div>
-        <div class="fg"><label>Half Day?</label><select id="lv-half">
-          <option value="no">No — Full Days</option>
-          <option value="yes">Yes — Half Day</option>
-        </select></div>
-        <div class="fg"><label>Reason</label><input id="lv-reason" placeholder="Optional reason"></div>
-      </div>
-      <div style="margin-top:12px;display:flex;gap:8px">
-        <button class="btn btn-primary btn-sm" onclick="submitLeave()">Submit Request</button>
-        <button class="btn btn-sm" onclick="toggleLeaveForm()">Cancel</button>
-      </div>
-    </div>
 
     <div class="fsec" style="margin-bottom:14px">
       <div class="fsec-title">Leave Requests</div>
@@ -1228,38 +1203,9 @@ function populateLvEmpFilter() {
   const active = employees.filter(e => e.status === 'active' || e.status === 'probation');
   const empOpts = '<option value="">All Employees</option>' + active.map(e => `<option value="${e.id}">${e.full_name}</option>`).join('');
   document.getElementById('lvEmpFilter').innerHTML = empOpts;
-  document.getElementById('lv-emp').innerHTML = '<option value="">— Select —</option>' + active.map(e => `<option value="${e.id}">${e.full_name}</option>`).join('');
 }
 
-function toggleLeaveForm() {
-  const f = document.getElementById('lvForm');
-  const btn = document.getElementById('lvFormBtn');
-  const show = f.style.display === 'none';
-  f.style.display = show ? 'block' : 'none';
-  btn.textContent = show ? '✕ Cancel' : '＋ New Request';
-  if (show) {
-    const _lvd=new Date(); const _lvds=_lvd.getFullYear()+'-'+String(_lvd.getMonth()+1).padStart(2,'0')+'-'+String(_lvd.getDate()).padStart(2,'0');
-    document.getElementById('lv-from').value = _lvds;
-    document.getElementById('lv-to').value   = _lvds;
-  }
-}
 
-async function submitLeave() {
-  const emp_id   = document.getElementById('lv-emp').value;
-  const type     = document.getElementById('lv-type').value;
-  const from     = document.getElementById('lv-from').value;
-  const to       = document.getElementById('lv-to').value;
-  const half     = document.getElementById('lv-half').value === 'yes';
-  const reason   = document.getElementById('lv-reason').value.trim();
-  if (!emp_id || !from || !to) { showAlert('Select employee and dates.', 'err'); return; }
-  const days = half ? 0.5 : Math.max(1, Math.round((new Date(to) - new Date(from)) / 864e5) + 1);
-  const { data, error } = await sb.from('hr_leaves').insert({ emp_id: parseInt(emp_id), type, from_date: from, to_date: to, days, half_day: half, reason, status: 'pending' }).select().single();
-  if (error) { showAlert('Error: ' + error.message, 'err'); return; }
-  leaves.unshift(data);
-  toggleLeaveForm();
-  renderLeaves();
-  showAlert(`Leave request submitted — ${days} day${days===1?'':'s'}.`, 'ok');
-}
 
 function renderLeaves() {
   const ef = document.getElementById('lvEmpFilter').value;

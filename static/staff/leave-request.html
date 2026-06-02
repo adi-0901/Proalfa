@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<title>Leave Request — Proalfa</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0;}
+  :root{
+    --bg:#f5f5f3;--card:#fff;--text:#111;--text2:#888;--border:#e5e5e5;
+    --green:#1a9e5c;--red:#d93025;--amber:#f59e0b;
+  }
+  body{font-family:-apple-system,BlinkMacSystemFont,'Helvetica Neue',Arial,sans-serif;
+    background:var(--bg);min-height:100vh;display:flex;flex-direction:column;
+    align-items:center;padding:24px 16px 48px;}
+  .brand{font-size:11px;color:var(--text2);letter-spacing:.06em;text-align:center;margin-bottom:28px;}
+  .card{background:var(--card);border-radius:14px;padding:24px 20px;width:100%;max-width:400px;
+    box-shadow:0 2px 12px rgba(0,0,0,.07);}
+  .section-title{font-size:13px;font-weight:700;color:var(--text);margin-bottom:16px;}
+  .field{margin-bottom:14px;}
+  label{display:block;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;
+    color:var(--text2);margin-bottom:6px;}
+  input,select,textarea{width:100%;padding:11px 13px;border:1.5px solid var(--border);border-radius:10px;
+    font-size:15px;font-family:inherit;color:var(--text);background:#fff;outline:none;
+    transition:border-color .15s;-webkit-appearance:none;}
+  input:focus,select:focus,textarea:focus{border-color:#111;}
+  textarea{resize:vertical;min-height:80px;font-size:14px;}
+  .emp-name{font-size:15px;font-weight:600;color:var(--text);margin-top:4px;min-height:20px;}
+  .emp-desig{font-size:12px;color:var(--text2);margin-top:2px;}
+  .btn{display:block;width:100%;padding:14px;border:none;border-radius:12px;font-size:15px;
+    font-weight:600;font-family:inherit;cursor:pointer;transition:opacity .15s;margin-bottom:10px;}
+  .btn:active{opacity:.8;}
+  .btn:disabled{opacity:.4;cursor:not-allowed;}
+  .btn-primary{background:#111;color:#fff;}
+  .btn-ghost{background:#fff;color:#111;border:1.5px solid #ddd;}
+  .alert{padding:12px 14px;border-radius:10px;font-size:13px;margin-bottom:14px;line-height:1.5;}
+  .alert-ok{background:#ecfdf5;color:#065f46;}
+  .alert-err{background:#fef2f2;color:#991b1b;}
+  .divider{height:1px;background:var(--border);margin:14px 0;}
+  .row-2{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+  #stepId{display:block;}
+  #stepForm{display:none;}
+  #stepDone{display:none;}
+</style>
+</head>
+<body>
+
+<div style="height:8px"></div>
+<div class="brand">PROALFA DYNAMIC PRIVATE LIMITED</div>
+
+<div class="card">
+
+  <!-- Step 1: Employee ID -->
+  <div id="stepId">
+    <div class="section-title">Leave Request</div>
+    <div class="field">
+      <label>Employee ID</label>
+      <input type="text" id="empIdInput" placeholder="Enter your ID" inputmode="numeric"
+        onkeydown="if(event.key==='Enter')verifyEmp()">
+    </div>
+    <button class="btn btn-primary" onclick="verifyEmp()" id="verifyBtn">Continue →</button>
+    <div id="idErr" class="alert alert-err" style="display:none;margin-top:12px"></div>
+  </div>
+
+  <!-- Step 2: Leave Form -->
+  <div id="stepForm">
+    <div class="field" style="margin-bottom:12px">
+      <label>Employee</label>
+      <div class="emp-name" id="empName"></div>
+      <div class="emp-desig" id="empDesig"></div>
+    </div>
+    <div class="divider"></div>
+    <div class="section-title" style="margin-top:14px">Leave Details</div>
+
+    <div class="field">
+      <label>Leave Type</label>
+      <select id="lv-type">
+        <option value="CL">Casual Leave (CL)</option>
+        <option value="SL">Sick Leave (SL)</option>
+        <option value="EL">Earned Leave (EL)</option>
+        <option value="LWP">Leave Without Pay (LWP)</option>
+      </select>
+    </div>
+
+    <div class="row-2">
+      <div class="field">
+        <label>From Date</label>
+        <input type="date" id="lv-from">
+      </div>
+      <div class="field">
+        <label>To Date</label>
+        <input type="date" id="lv-to">
+      </div>
+    </div>
+
+    <div class="field">
+      <label>Half Day?</label>
+      <select id="lv-half">
+        <option value="no">No — Full Day(s)</option>
+        <option value="yes">Yes — Half Day</option>
+      </select>
+    </div>
+
+    <div class="field">
+      <label>Reason <span style="font-weight:400;text-transform:none;letter-spacing:0">(optional)</span></label>
+      <textarea id="lv-reason" placeholder="Briefly describe the reason…"></textarea>
+    </div>
+
+    <div id="formErr" class="alert alert-err" style="display:none"></div>
+
+    <button class="btn btn-primary" onclick="submitLeave()" id="submitBtn">Submit Request</button>
+    <button class="btn btn-ghost" onclick="reset()">← Different Employee</button>
+  </div>
+
+  <!-- Step 3: Done -->
+  <div id="stepDone">
+    <div id="doneMsg"></div>
+    <button class="btn btn-primary" style="margin-top:16px" onclick="reset()">Submit Another</button>
+  </div>
+
+</div>
+
+<script>
+const SB_URL = "https://gzjzuudhtvljpwcqygtk.supabase.co";
+const SB_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imd6anp1dWRodHZsanB3Y3F5Z3RrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzgzOTY4NTksImV4cCI6MjA5Mzk3Mjg1OX0.pCBKZwMDvu8UAfKEXL8_hgkuG95A-MtVKK6sM2qFxEs";
+const { createClient } = supabase;
+const sb = createClient(SB_URL, SB_KEY);
+
+let currentEmp = null; // { id, full_name, designation, emp_id }
+
+async function verifyEmp() {
+  const val = document.getElementById('empIdInput').value.trim();
+  const errEl = document.getElementById('idErr');
+  const btn   = document.getElementById('verifyBtn');
+  errEl.style.display = 'none';
+  if (!val) { showIdErr('Please enter your Employee ID.'); return; }
+
+  btn.disabled = true; btn.textContent = 'Checking…';
+
+  // Look up hr_employees by emp_id field
+  const { data, error } = await sb
+    .from('hr_employees')
+    .select('id,full_name,designation,emp_id,status')
+    .eq('emp_id', val)
+    .single();
+
+  btn.disabled = false; btn.textContent = 'Continue →';
+
+  if (error || !data) { showIdErr('Employee ID not found. Contact HR.'); return; }
+  if (data.status === 'resigned' || data.status === 'terminated') {
+    showIdErr('This account is inactive. Contact HR.'); return;
+  }
+
+  currentEmp = data;
+  document.getElementById('empName').textContent  = data.full_name;
+  document.getElementById('empDesig').textContent = data.designation || '';
+
+  // Default dates to today
+  const today = new Date().toISOString().slice(0, 10);
+  document.getElementById('lv-from').value = today;
+  document.getElementById('lv-to').value   = today;
+
+  document.getElementById('stepId').style.display   = 'none';
+  document.getElementById('stepForm').style.display = 'block';
+}
+
+function showIdErr(msg) {
+  const el = document.getElementById('idErr');
+  el.textContent = msg; el.style.display = 'block';
+}
+
+async function submitLeave() {
+  const btn    = document.getElementById('submitBtn');
+  const errEl  = document.getElementById('formErr');
+  errEl.style.display = 'none';
+
+  const type  = document.getElementById('lv-type').value;
+  const from  = document.getElementById('lv-from').value;
+  const to    = document.getElementById('lv-to').value;
+  const half  = document.getElementById('lv-half').value === 'yes';
+  const reason= document.getElementById('lv-reason').value.trim();
+
+  if (!from || !to) { showFormErr('Please select both From and To dates.'); return; }
+  if (to < from)    { showFormErr('To date cannot be before From date.'); return; }
+
+  const diffDays = (new Date(to) - new Date(from)) / 86400000 + 1;
+  const days     = half ? 0.5 : diffDays;
+
+  btn.disabled = true; btn.textContent = 'Submitting…';
+
+  const { error } = await sb.from('hr_leaves').insert({
+    emp_id:    currentEmp.id,
+    type,
+    from_date: from,
+    to_date:   to,
+    days,
+    half_day:  half,
+    reason,
+    status:    'pending',
+  });
+
+  btn.disabled = false; btn.textContent = 'Submit Request';
+
+  if (error) { showFormErr('Submission failed: ' + error.message); return; }
+
+  const typeLabels = { CL:'Casual Leave', SL:'Sick Leave', EL:'Earned Leave', LWP:'Leave Without Pay' };
+  document.getElementById('doneMsg').innerHTML = `
+    <div class="alert alert-ok">
+      <strong>Leave request submitted</strong><br>
+      ${typeLabels[type]} · ${days} day${days === 1 ? '' : 's'}<br>
+      ${from === to ? from : from + ' → ' + to}<br>
+      Pending HR approval.
+    </div>
+    <div style="font-size:12px;color:var(--text2);margin-top:10px;text-align:center">
+      ${currentEmp.full_name}
+    </div>`;
+
+  document.getElementById('stepForm').style.display = 'none';
+  document.getElementById('stepDone').style.display = 'block';
+}
+
+function showFormErr(msg) {
+  const el = document.getElementById('formErr');
+  el.textContent = msg; el.style.display = 'block';
+}
+
+function reset() {
+  currentEmp = null;
+  document.getElementById('empIdInput').value = '';
+  document.getElementById('idErr').style.display  = 'none';
+  document.getElementById('formErr').style.display = 'none';
+  document.getElementById('lv-reason').value = '';
+  document.getElementById('lv-half').value   = 'no';
+  document.getElementById('stepId').style.display   = 'block';
+  document.getElementById('stepForm').style.display = 'none';
+  document.getElementById('stepDone').style.display = 'none';
+}
+</script>
+</body>
+</html>

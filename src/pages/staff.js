@@ -18,6 +18,20 @@ const tools = [
     icon: "🗄️",
   },
   {
+    title: "Site Attendance",
+    description: "Mark your attendance from site when you can't reach the factory machine. GPS required.",
+    href: "/staff/site-attendance.html",
+    access: "All Staff",
+    icon: "📍",
+  },
+  {
+    title: "Leave Request",
+    description: "Submit a leave request. Your manager will review and approve it from the HR Dashboard.",
+    href: "/staff/leave-request.html",
+    access: "All Staff",
+    icon: "🗓️",
+  },
+  {
     title: "HR Dashboard",
     description: "Employee KYC, documents, onboarding, attendance and salary. Management access only.",
     href: "/staff/hr.html",
