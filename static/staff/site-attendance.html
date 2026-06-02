@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<title>Site Attendance — Proalfa</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0;}
+  :root{
+    --bg:#f5f5f3;--card:#fff;--text:#111;--text2:#888;--border:#e5e5e5;
+    --green:#1a9e5c;--red:#d93025;--amber:#f59e0b;--blue:#2563eb;
+  }
+  body{font-family:-apple-system,BlinkMacSystemFont,'Helvetica Neue',Arial,sans-serif;
+    background:var(--bg);min-height:100vh;display:flex;flex-direction:column;
+    align-items:center;justify-content:flex-start;padding:24px 16px 48px;}
+
+  .logo{height:28px;width:auto;display:block;margin:0 auto 6px;}
+  .brand{font-size:11px;color:var(--text2);letter-spacing:.06em;text-align:center;margin-bottom:28px;}
+
+  .card{background:var(--card);border-radius:14px;padding:24px 20px;width:100%;max-width:360px;
+    box-shadow:0 2px 12px rgba(0,0,0,.07);}
+
+  .section-title{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.1em;
+    color:var(--text2);margin-bottom:14px;}
+
+  .input-group{margin-bottom:16px;}
+  .input-label{font-size:11px;font-weight:500;color:var(--text2);margin-bottom:6px;display:block;
+    text-transform:uppercase;letter-spacing:.06em;}
+  input[type=text]{width:100%;padding:12px 14px;border:1.5px solid var(--border);border-radius:10px;
+    font-size:16px;font-family:inherit;color:var(--text);background:#fff;outline:none;
+    transition:border-color .15s;}
+  input[type=text]:focus{border-color:#111;}
+
+  .emp-name{font-size:15px;font-weight:600;color:var(--text);margin-top:4px;min-height:20px;}
+  .emp-desig{font-size:12px;color:var(--text2);margin-top:2px;}
+
+  .btn{display:block;width:100%;padding:15px;border:none;border-radius:12px;font-size:15px;
+    font-weight:600;font-family:inherit;cursor:pointer;transition:opacity .15s;margin-bottom:10px;
+    letter-spacing:.01em;}
+  .btn:active{opacity:.8;}
+  .btn:disabled{opacity:.4;cursor:not-allowed;}
+  .btn-in{background:#111;color:#fff;}
+  .btn-out{background:#fff;color:#111;border:1.5px solid #ddd;}
+  .btn-verify{background:#111;color:#fff;padding:11px;}
+
+  .gps-row{display:flex;align-items:center;gap:8px;padding:10px 12px;background:#f9f9f7;
+    border-radius:8px;margin-bottom:16px;font-size:12px;color:var(--text2);}
+  .gps-dot{width:8px;height:8px;border-radius:50%;background:#ccc;flex-shrink:0;}
+  .gps-dot.ok{background:var(--green);}
+  .gps-dot.err{background:var(--red);}
+  .gps-dot.spin{background:var(--amber);animation:pulse 1s infinite;}
+  @keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+
+  .alert{padding:12px 14px;border-radius:10px;font-size:13px;margin-bottom:14px;line-height:1.5;}
+  .alert-ok{background:#ecfdf5;color:#065f46;}
+  .alert-err{background:#fef2f2;color:#991b1b;}
+  .alert-info{background:#eff6ff;color:#1e40af;}
+
+  .divider{height:1px;background:var(--border);margin:16px 0;}
+
+  #stepId{display:block;}
+  #stepPunch{display:none;}
+  #stepDone{display:none;}
+</style>
+</head>
+<body>
+
+<img class="logo" id="logoImg" src="" alt="Proalfa">
+<div class="brand">PROALFA DYNAMIC PRIVATE LIMITED</div>
+
+<div class="card">
+
+  <!-- Step 1: Enter Employee ID -->
+  <div id="stepId">
+    <div class="section-title">Site Attendance</div>
+    <div class="input-group">
+      <label class="input-label">Employee ID</label>
+      <input type="text" id="empIdInput" placeholder="Enter your ID" inputmode="numeric"
+        onkeydown="if(event.key==='Enter')verifyEmp()">
+    </div>
+    <button class="btn btn-verify" onclick="verifyEmp()" id="verifyBtn">Continue →</button>
+    <div id="idErr" class="alert alert-err" style="display:none;margin-top:12px"></div>
+  </div>
+
+  <!-- Step 2: Punch In / Out -->
+  <div id="stepPunch">
+    <div class="input-group" style="margin-bottom:12px">
+      <div class="input-label">Employee</div>
+      <div class="emp-name" id="empName"></div>
+      <div class="emp-desig" id="empDesig"></div>
+    </div>
+    <div class="divider"></div>
+
+    <div class="gps-row">
+      <div class="gps-dot spin" id="gpsDot"></div>
+      <span id="gpsLabel">Acquiring location…</span>
+    </div>
+
+    <div id="punchAlert" style="display:none"></div>
+
+    <button class="btn btn-in" id="btnIn" onclick="doPunch('check_in')" disabled>Punch In</button>
+    <button class="btn btn-out" id="btnOut" onclick="doPunch('check_out')" disabled>Punch Out</button>
+
+    <div style="text-align:center;margin-top:10px">
+      <span style="font-size:12px;color:var(--text2);cursor:pointer" onclick="reset()">← Different Employee</span>
+    </div>
+  </div>
+
+  <!-- Step 3: Done -->
+  <div id="stepDone">
+    <div id="doneMsg"></div>
+    <button class="btn btn-in" style="margin-top:16px" onclick="reset()">Done</button>
+  </div>
+
+</div>
+
+<script>
+const SB_URL = "https://gzjzuudhtvljpwcqygtk.supabase.co";
+const SB_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imd6anp1dWRodHZsanB3Y3F5Z3RrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzgzOTY4NTksImV4cCI6MjA5Mzk3Mjg1OX0.pCBKZwMDvu8UAfKEXL8_hgkuG95A-MtVKK6sM2qFxEs";
+const { createClient } = supabase;
+const sb = createClient(SB_URL, SB_KEY);
+
+let currentEmp = null;
+let gpsCoords  = null;
+let gpsError   = false;
+
+// ── Load logo from hr.html's module-level LOGO_BLACK if on same origin ──
+// Fallback: just leave empty (text brand still shows)
+
+// ── GPS ───────────────────────────────────────────────────────
+function startGPS() {
+  gpsCoords = null;
+  gpsError  = false;
+  setGps('spin', 'Acquiring location…');
+  if (!navigator.geolocation) {
+    setGps('err', 'GPS not supported on this device.');
+    gpsError = true;
+    return;
+  }
+  navigator.geolocation.getCurrentPosition(
+    pos => {
+      gpsCoords = { lat: pos.coords.latitude, lng: pos.coords.longitude, acc: Math.round(pos.coords.accuracy) };
+      setGps('ok', `Location acquired (±${gpsCoords.acc}m)`);
+      enablePunchBtns();
+    },
+    err => {
+      gpsError = true;
+      const msg = err.code === 1
+        ? 'Location access denied. Please allow location and reload.'
+        : 'Could not get location. Check GPS signal and try again.';
+      setGps('err', msg);
+    },
+    { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 }
+  );
+}
+
+function setGps(state, msg) {
+  const dot = document.getElementById('gpsDot');
+  dot.className = 'gps-dot ' + state;
+  document.getElementById('gpsLabel').textContent = msg;
+}
+
+function enablePunchBtns() {
+  if (gpsCoords && currentEmp) {
+    document.getElementById('btnIn').disabled  = false;
+    document.getElementById('btnOut').disabled = false;
+  }
+}
+
+// ── Verify Employee ───────────────────────────────────────────
+async function verifyEmp() {
+  const idVal = document.getElementById('empIdInput').value.trim();
+  const errEl = document.getElementById('idErr');
+  const btn   = document.getElementById('verifyBtn');
+
+  errEl.style.display = 'none';
+  if (!idVal) { showIdErr('Please enter your Employee ID.'); return; }
+
+  btn.disabled = true;
+  btn.textContent = 'Checking…';
+
+  const { data, error } = await sb.from('employees').select('emp_id,name,designation,active').eq('emp_id', idVal).single();
+
+  btn.disabled = false;
+  btn.textContent = 'Continue →';
+
+  if (error || !data) { showIdErr('Employee ID not found. Contact HR.'); return; }
+  if (data.active === false) { showIdErr('This employee account is inactive.'); return; }
+
+  currentEmp = data;
+  document.getElementById('empName').textContent  = data.name;
+  document.getElementById('empDesig').textContent = data.designation || '';
+
+  // Check today's existing requests
+  const today = todayStr();
+  const { data: existing } = await sb.from('site_attendance_requests')
+    .select('punch_type,status')
+    .eq('emp_id', idVal)
+    .eq('date', today)
+    .in('status', ['pending', 'approved']);
+
+  const hasPendingIn  = existing?.some(r => r.punch_type === 'check_in'  && r.status === 'pending');
+  const hasPendingOut = existing?.some(r => r.punch_type === 'check_out' && r.status === 'pending');
+  const hasApprovedIn = existing?.some(r => r.punch_type === 'check_in'  && r.status === 'approved');
+
+  let infoMsg = '';
+  if (hasPendingIn)  infoMsg += 'Punch-in request already pending approval. ';
+  if (hasPendingOut) infoMsg += 'Punch-out request already pending approval.';
+  if (infoMsg) {
+    const el = document.getElementById('punchAlert');
+    el.className = 'alert alert-info';
+    el.textContent = infoMsg.trim();
+    el.style.display = 'block';
+  }
+
+  document.getElementById('stepId').style.display    = 'none';
+  document.getElementById('stepPunch').style.display = 'block';
+  startGPS();
+}
+
+function showIdErr(msg) {
+  const el = document.getElementById('idErr');
+  el.textContent = msg;
+  el.style.display = 'block';
+}
+
+// ── Punch ─────────────────────────────────────────────────────
+async function doPunch(type) {
+  if (!gpsCoords) { alert('Location not ready yet. Please wait.'); return; }
+
+  const btnIn  = document.getElementById('btnIn');
+  const btnOut = document.getElementById('btnOut');
+  btnIn.disabled  = true;
+  btnOut.disabled = true;
+  btnIn.textContent  = type === 'check_in'  ? 'Submitting…' : 'Punch In';
+  btnOut.textContent = type === 'check_out' ? 'Submitting…' : 'Punch Out';
+
+  const now   = new Date();
+  const today = todayStr();
+  const timeStr = now.toTimeString().slice(0, 5); // HH:MM
+
+  const { error } = await sb.from('site_attendance_requests').insert({
+    emp_id:     String(currentEmp.emp_id),
+    date:       today,
+    punch_time: timeStr,
+    punch_type: type,
+    latitude:   gpsCoords.lat,
+    longitude:  gpsCoords.lng,
+    status:     'pending',
+  });
+
+  if (error) {
+    btnIn.disabled  = false;
+    btnOut.disabled = false;
+    btnIn.textContent  = 'Punch In';
+    btnOut.textContent = 'Punch Out';
+    alert('Submission failed. Please try again.\n' + error.message);
+    return;
+  }
+
+  const typeLabel = type === 'check_in' ? 'Punch-in' : 'Punch-out';
+  document.getElementById('doneMsg').innerHTML = `
+    <div class="alert alert-ok">
+      <strong>${typeLabel} submitted at ${timeStr}</strong><br>
+      Your request is pending HR approval. It will reflect in your attendance once approved.
+    </div>
+    <div style="font-size:12px;color:var(--text2);margin-top:10px;text-align:center">
+      ${currentEmp.name} &nbsp;·&nbsp; ${today}
+    </div>`;
+
+  document.getElementById('stepPunch').style.display = 'none';
+  document.getElementById('stepDone').style.display  = 'block';
+}
+
+// ── Helpers ───────────────────────────────────────────────────
+function todayStr() {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+}
+
+function reset() {
+  currentEmp = null; gpsCoords = null; gpsError = false;
+  document.getElementById('empIdInput').value = '';
+  document.getElementById('idErr').style.display     = 'none';
+  document.getElementById('punchAlert').style.display = 'none';
+  document.getElementById('btnIn').disabled  = true;
+  document.getElementById('btnOut').disabled = true;
+  document.getElementById('btnIn').textContent  = 'Punch In';
+  document.getElementById('btnOut').textContent = 'Punch Out';
+  document.getElementById('stepId').style.display    = 'block';
+  document.getElementById('stepPunch').style.display = 'none';
+  document.getElementById('stepDone').style.display  = 'none';
+}
+</script>
+</body>
+</html>

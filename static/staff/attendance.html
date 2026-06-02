@@ -224,6 +224,7 @@
     <button class="tab" onclick="sw('salary',this)">💰 Salary Sheet</button>
     <button class="tab" onclick="sw('advances',this)">💳 Advances</button>
     <button class="tab" onclick="sw('employees',this)">👥 Employees</button>
+    <button class="tab" onclick="sw('approvals',this)" id="tabApprovals">✅ Approvals</button>
   </div>
 
   <!-- TODAY -->
@@ -430,6 +431,15 @@
         <tbody id="empBody"><tr><td colspan="8" class="loading">Loading…</td></tr></tbody>
       </table>
     </div>
+  </div>
+
+  <!-- APPROVALS -->
+  <div class="panel" id="panel-approvals">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+      <div style="font-weight:600;font-size:15px">Site Attendance Approvals</div>
+      <button class="btn btn-sm" onclick="renderApprovals()">↻ Refresh</button>
+    </div>
+    <div id="approvalsContent"><div class="loading">Loading…</div></div>
   </div>
 
 </div>
@@ -1459,6 +1469,7 @@ function sw(name,el){
   document.getElementById('panel-'+name).classList.add('active');
   if(name==='monthly') renderMonthly();
   if(name==='advances') renderAdvances();
+  if(name==='approvals') renderApprovals();
 }
 
 // ── Export Salary CSV ─────────────────────────────────────────
@@ -1627,6 +1638,114 @@ function printRegistrationForm(){
 </body>
 </html>`);
   w.document.close();
+}
+
+// ── Site Attendance Approvals ─────────────────────────────────
+const LATE_MINS_JS    = 10 * 60;       // 10:00
+const SHIFT_END_MINS  = 18 * 60;       // 18:00
+const HALF_IN_MINS_JS = 12 * 60;       // 12:00
+const HALF_OUT_MINS_JS= 15 * 60;       // 15:00
+
+function toMins(t){ if(!t) return 0; const[h,m]=t.split(':').map(Number); return h*60+m; }
+function calcStatus(ci,co){
+  if(ci && toMins(ci) > HALF_IN_MINS_JS) return 'half_day';
+  if(co && toMins(co) < HALF_OUT_MINS_JS) return 'half_day';
+  return 'present';
+}
+function calcOt(co){ if(!co) return 0; return Math.max(0, Math.round((toMins(co)-SHIFT_END_MINS)/60*100)/100); }
+
+async function renderApprovals(){
+  const el = document.getElementById('approvalsContent');
+  el.innerHTML = '<div class="loading">Loading pending requests…</div>';
+
+  const { data: reqs, error } = await sb
+    .from('site_attendance_requests')
+    .select('*')
+    .eq('status','pending')
+    .order('date', { ascending: false });
+
+  if(error){ el.innerHTML='<div class="empty">Error loading approvals.</div>'; return; }
+  if(!reqs || !reqs.length){
+    el.innerHTML='<div class="empty" style="padding:32px;text-align:center;color:var(--muted)">No pending approvals.</div>';
+    return;
+  }
+
+  // Enrich with employee names
+  const empMap = {};
+  employees.forEach(e => empMap[String(e.emp_id)] = e);
+
+  const rows = reqs.map(r => {
+    const emp = empMap[String(r.emp_id)] || {};
+    const mapsUrl = `https://www.google.com/maps?q=${r.latitude},${r.longitude}`;
+    const typeLabel = r.punch_type === 'check_in' ? '🟢 Punch In' : '🔴 Punch Out';
+    return `<tr>
+      <td style="font-weight:500">${emp.name||r.emp_id}</td>
+      <td style="color:var(--muted);font-size:12px">${emp.designation||'—'}</td>
+      <td>${r.date}</td>
+      <td style="font-family:monospace">${r.punch_time}</td>
+      <td>${typeLabel}</td>
+      <td><a href="${mapsUrl}" target="_blank" style="color:var(--blue);font-size:12px">📍 View</a></td>
+      <td>
+        <button class="btn btn-sm" style="background:#111;color:#fff;margin-right:4px"
+          onclick="approveReq(${r.id},'${r.emp_id}','${r.date}','${r.punch_time}','${r.punch_type}',this)">Approve</button>
+        <button class="btn btn-sm" style="background:#fef2f2;color:#991b1b;border:1px solid #fca5a5"
+          onclick="rejectReq(${r.id},this)">Reject</button>
+      </td>
+    </tr>`;
+  }).join('');
+
+  el.innerHTML = `
+    <table style="width:100%;border-collapse:collapse;font-size:13px">
+      <thead>
+        <tr style="border-bottom:2px solid var(--border)">
+          <th style="text-align:left;padding:8px 10px;font-size:11px;color:var(--muted);font-weight:600;text-transform:uppercase">Employee</th>
+          <th style="text-align:left;padding:8px 10px;font-size:11px;color:var(--muted);font-weight:600;text-transform:uppercase">Role</th>
+          <th style="text-align:left;padding:8px 10px;font-size:11px;color:var(--muted);font-weight:600;text-transform:uppercase">Date</th>
+          <th style="text-align:left;padding:8px 10px;font-size:11px;color:var(--muted);font-weight:600;text-transform:uppercase">Time</th>
+          <th style="text-align:left;padding:8px 10px;font-size:11px;color:var(--muted);font-weight:600;text-transform:uppercase">Type</th>
+          <th style="text-align:left;padding:8px 10px;font-size:11px;color:var(--muted);font-weight:600;text-transform:uppercase">Location</th>
+          <th style="text-align:left;padding:8px 10px;font-size:11px;color:var(--muted);font-weight:600;text-transform:uppercase">Action</th>
+        </tr>
+      </thead>
+      <tbody>${rows}</tbody>
+    </table>`;
+}
+
+async function approveReq(id, empId, date, punchTime, punchType, btn){
+  btn.disabled = true; btn.textContent = '…';
+
+  // Fetch existing attendance record for this emp+date
+  const { data: existing } = await sb.from('attendance').select('*')
+    .eq('emp_id', empId).eq('date', date).maybeSingle();
+
+  const rec = existing || { emp_id: empId, date, status: 'present', late_entry: false, ot_hours: 0 };
+
+  if(punchType === 'check_in'){
+    rec.check_in   = punchTime;
+    rec.late_entry = toMins(punchTime) > LATE_MINS_JS;
+  } else {
+    rec.check_out = punchTime;
+    rec.ot_hours  = calcOt(punchTime);
+  }
+  rec.status = calcStatus(rec.check_in||null, rec.check_out||null);
+
+  const { error: attErr } = await sb.from('attendance')
+    .upsert(rec, { onConflict: 'emp_id,date' });
+
+  if(attErr){ btn.disabled=false; btn.textContent='Approve'; alert('Error updating attendance: '+attErr.message); return; }
+
+  await sb.from('site_attendance_requests').update({ status:'approved' }).eq('id', id);
+  btn.closest('tr').style.opacity='0.4';
+  btn.closest('tr').innerHTML = `<td colspan="7" style="padding:10px;color:var(--muted);font-size:12px">
+    ✅ Approved — attendance updated for ${empId} on ${date}</td>`;
+}
+
+async function rejectReq(id, btn){
+  btn.disabled = true; btn.textContent = '…';
+  await sb.from('site_attendance_requests').update({ status:'rejected' }).eq('id', id);
+  btn.closest('tr').style.opacity='0.4';
+  btn.closest('tr').innerHTML = `<td colspan="7" style="padding:10px;color:var(--muted);font-size:12px">
+    ❌ Rejected</td>`;
 }
 </script>
 </body>
