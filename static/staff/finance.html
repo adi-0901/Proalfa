@@ -204,6 +204,13 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Helvetica
   .panel { padding:14px; }
   #ov-grids { grid-template-columns:1fr!important; }
 }
+
+/* ── Tally Import Modal ── */
+.imp-type-card { border:1.5px solid var(--border2);border-radius:var(--r);padding:14px 12px;cursor:pointer;transition:.15s;user-select:none; }
+.imp-type-card:hover { border-color:var(--blue);background:var(--blue-bg); }
+.imp-type-card.selected { border-color:var(--blue);background:var(--blue-bg); }
+.imp-drop { border:2px dashed var(--border2);border-radius:var(--r);padding:24px;text-align:center;cursor:pointer;transition:.15s; }
+.imp-drop:hover { border-color:var(--blue); }
 </style>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
 </head>
@@ -232,6 +239,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Helvetica
     <div class="topbar-right">
       <div class="sync-status" id="syncStatus">Last sync: —</div>
       <a href="/staff/" style="font-size:12px;color:var(--text2);text-decoration:none">← Staff Portal</a>
+      <button class="btn btn-sm btn-primary" onclick="openImport()">⬆ Tally Import</button>
       <a href="/staff/finance-guide.html" target="_blank" class="btn btn-sm" style="text-decoration:none">📖 Finance Guide</a>
       <button class="btn btn-sm" onclick="doLogout()">Logout</button>
     </div>
@@ -1904,6 +1912,379 @@ function showAlert(msg, type) {
 function hideAlert() {
   document.getElementById('abar').style.display = 'none';
 }
+
+// ── TALLY IMPORT ────────────────────────────────────────────────────────────────
+let impType = null;
+let impParsed = [];
+
+const IMP_INSTRUCTIONS = {
+  receivables: `<strong>How to export from Tally:</strong><br>Gateway of Tally → Display More Reports → Statements of Accounts → Outstandings → Receivables<br>Set date range → press <strong>E</strong> (Export) → Microsoft Excel → OK`,
+  payables:    `<strong>How to export from Tally:</strong><br>Gateway of Tally → Display More Reports → Statements of Accounts → Outstandings → Payables<br>Set date range → press <strong>E</strong> (Export) → Microsoft Excel → OK`,
+  daybook:     `<strong>How to export from Tally:</strong><br>Gateway of Tally → Display More Reports → Account Books → Day Book<br>Set date range → press <strong>E</strong> (Export) → Microsoft Excel → OK`,
+  bank:        `<strong>How to export from Tally:</strong><br>Gateway of Tally → Display More Reports → Account Books → Cash / Bank Book<br>Select all bank/cash accounts → press <strong>E</strong> (Export) → Microsoft Excel → OK`,
+};
+
+const TALLY_COL_MAP = {
+  receivables: {
+    party_name:     ['party name','particulars','ledger name','name','ledger'],
+    bill_no:        ['ref. no.','ref no','bill no.','bill no','vch no.','vch no','bill number','reference'],
+    bill_date:      ['date','bill date','ref. date','ref date','voucher date','txn date'],
+    due_date:       ['due date','due on','payment due','credit period'],
+    pending_amount: ['pending amount','balance','closing balance','outstanding','pending','debit','dr. amount','dr amount'],
+  },
+  payables: {
+    party_name:     ['party name','particulars','ledger name','name','ledger'],
+    bill_no:        ['ref. no.','ref no','bill no.','bill no','vch no.','vch no','bill number'],
+    bill_date:      ['date','bill date','ref. date','ref date','voucher date'],
+    due_date:       ['due date','due on','payment due'],
+    pending_amount: ['pending amount','balance','closing balance','outstanding','pending','credit','cr. amount','cr amount'],
+  },
+  daybook: {
+    voucher_date: ['date','voucher date','txn date'],
+    voucher_type: ['voucher type','vch type','type','transaction type'],
+    voucher_no:   ['vch no.','vch no','voucher no','voucher number','ref no.','ref no'],
+    party_name:   ['particulars','party','party name','ledger','name'],
+    narration:    ['narration','description','remarks','note','details'],
+    amount:       ['amount','debit','dr. amount','dr amount','credit','cr. amount'],
+  },
+  bank: {
+    account_name: ['account','ledger','ledger name','bank','bank account','name'],
+    balance:      ['balance','closing balance','current balance','amount','cr. amount','dr. amount'],
+  },
+};
+
+const SUPABASE_TABLES = {
+  receivables: 'fin_outstanding_debtors',
+  payables:    'fin_outstanding_creditors',
+  daybook:     'fin_vouchers',
+  bank:        'fin_bank_balances',
+};
+
+const TYPE_LABELS = { receivables:'Receivables', payables:'Payables', daybook:'Day Book', bank:'Bank Balances' };
+
+function openImport() {
+  document.getElementById('importOverlay').style.display = 'block';
+  document.body.style.overflow = 'hidden';
+}
+function closeImport() {
+  document.getElementById('importOverlay').style.display = 'none';
+  document.body.style.overflow = '';
+  resetImport();
+}
+function resetImport() {
+  impType = null; impParsed = [];
+  document.querySelectorAll('.imp-type-card').forEach(c => c.classList.remove('selected'));
+  document.getElementById('imp-step1').style.display = 'block';
+  document.getElementById('imp-step2').style.display = 'none';
+  document.getElementById('imp-step3').style.display = 'none';
+  document.getElementById('imp-instructions').style.display = 'none';
+  document.getElementById('imp-upload-area').style.display = 'none';
+  document.getElementById('imp-file-err').style.display = 'none';
+  const fi = document.getElementById('impFileInput');
+  if (fi) fi.value = '';
+}
+function selectImportType(type, el) {
+  impType = type;
+  document.querySelectorAll('.imp-type-card').forEach(c => c.classList.remove('selected'));
+  el.classList.add('selected');
+  document.getElementById('imp-instr-text').innerHTML = IMP_INSTRUCTIONS[type];
+  document.getElementById('imp-instructions').style.display = 'block';
+  document.getElementById('imp-upload-area').style.display = 'block';
+  document.getElementById('imp-file-err').style.display = 'none';
+  const fi = document.getElementById('impFileInput');
+  if (fi) fi.value = '';
+}
+
+function parseAmt(val) {
+  if (val === null || val === undefined || val === '') return 0;
+  if (typeof val === 'number') return Math.abs(val);
+  return Math.abs(parseFloat(String(val).replace(/,/g,'').replace(/[^\d.-]/g,'')) || 0);
+}
+
+function parseTallyDate(val) {
+  if (!val && val !== 0) return null;
+  if (typeof val === 'number') {
+    const d = new Date((val - 25569) * 86400000);
+    return d.toISOString().slice(0, 10);
+  }
+  const s = String(val).trim();
+  const m1 = s.match(/^(\d{1,2})[-\/\s]([A-Za-z]{3})[-\/\s](\d{4})$/);
+  if (m1) {
+    const mo = {jan:'01',feb:'02',mar:'03',apr:'04',may:'05',jun:'06',jul:'07',aug:'08',sep:'09',oct:'10',nov:'11',dec:'12'}[m1[2].toLowerCase()];
+    return mo ? `${m1[3]}-${mo}-${m1[1].padStart(2,'0')}` : null;
+  }
+  const m2 = s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+  if (m2) return `${m2[3]}-${m2[2].padStart(2,'0')}-${m2[1].padStart(2,'0')}`;
+  if (/^\d{4}-\d{2}-\d{2}$/.test(s)) return s;
+  return null;
+}
+
+function findHeaderRow(rows, allCands) {
+  for (let i = 0; i < Math.min(rows.length, 12); i++) {
+    const cellVals = (rows[i] || []).map(v => String(v||'').toLowerCase().trim());
+    const hits = allCands.filter(k => cellVals.some(c => c === k || c.includes(k)));
+    if (hits.length >= 2) return i;
+  }
+  return 0;
+}
+
+function findCol(headers, candidates) {
+  const lc = headers.map(h => String(h||'').toLowerCase().trim());
+  for (const cand of candidates) {
+    const idx = lc.findIndex(h => h === cand || h.includes(cand));
+    if (idx !== -1) return { name: headers[idx], idx };
+  }
+  return null;
+}
+
+function loadScript(src) {
+  return new Promise((resolve, reject) => {
+    if (document.querySelector(`script[src="${src}"]`)) { resolve(); return; }
+    const s = document.createElement('script');
+    s.src = src; s.onload = resolve; s.onerror = reject;
+    document.head.appendChild(s);
+  });
+}
+
+async function handleImportFile(evt) {
+  const file = evt.target.files[0];
+  if (!file) return;
+  const errEl = document.getElementById('imp-file-err');
+  errEl.style.display = 'none';
+
+  await loadScript('https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js');
+
+  let rawRows;
+  try {
+    const buf = await file.arrayBuffer();
+    const wb  = XLSX.read(buf, { type: 'array', cellDates: false });
+    const ws  = wb.Sheets[wb.SheetNames[0]];
+    rawRows   = XLSX.utils.sheet_to_json(ws, { header: 1, defval: '' });
+  } catch(e) {
+    errEl.textContent = 'Could not read file. Make sure it is a valid .xlsx, .xls, or .csv export from Tally.';
+    errEl.style.display = 'block'; return;
+  }
+
+  const fieldMap   = TALLY_COL_MAP[impType];
+  const allCands   = [...new Set(Object.values(fieldMap).flat())];
+  const headerIdx  = findHeaderRow(rawRows, allCands);
+  const headers    = rawRows[headerIdx] || [];
+
+  const colIdx = {};
+  const colMapping = {};
+  for (const [field, cands] of Object.entries(fieldMap)) {
+    const found = findCol(headers, cands);
+    if (found) { colIdx[field] = found.idx; colMapping[field] = found.name; }
+  }
+
+  if (Object.keys(colMapping).length < 2) {
+    errEl.textContent = 'Could not detect Tally columns in this file. Make sure you exported the correct report type and chose Excel format.';
+    errEl.style.display = 'block'; return;
+  }
+
+  const parsed = [];
+  const now    = new Date().toISOString();
+
+  for (let i = headerIdx + 1; i < rawRows.length; i++) {
+    const row = rawRows[i];
+    const firstCell = String(row[0]||'').toLowerCase().trim();
+    if (!firstCell) continue;
+    if (/^(total|grand total|closing balance|sub total|opening balance)/.test(firstCell)) continue;
+
+    if (impType === 'receivables' || impType === 'payables') {
+      const pn  = colIdx.party_name !== undefined ? String(row[colIdx.party_name]||'').trim() : '';
+      if (!pn || /^(total|grand total)$/i.test(pn)) continue;
+      const amt = parseAmt(colIdx.pending_amount !== undefined ? row[colIdx.pending_amount] : 0);
+      if (amt === 0) continue;
+      const dueDate = colIdx.due_date !== undefined ? parseTallyDate(row[colIdx.due_date]) : null;
+      const daysDiff = dueDate ? Math.ceil((new Date() - new Date(dueDate)) / 864e5) : 0;
+      parsed.push({
+        party_name:     pn,
+        bill_no:        colIdx.bill_no !== undefined ? String(row[colIdx.bill_no]||'').trim() || null : null,
+        bill_date:      colIdx.bill_date !== undefined ? parseTallyDate(row[colIdx.bill_date]) : null,
+        due_date:       dueDate,
+        pending_amount: amt,
+        days_overdue:   Math.max(0, daysDiff),
+        synced_at:      now,
+      });
+    } else if (impType === 'daybook') {
+      const vdate = colIdx.voucher_date !== undefined ? parseTallyDate(row[colIdx.voucher_date]) : null;
+      if (!vdate) continue;
+      const amt = parseAmt(colIdx.amount !== undefined ? row[colIdx.amount] : 0);
+      parsed.push({
+        voucher_date: vdate,
+        voucher_type: colIdx.voucher_type !== undefined ? String(row[colIdx.voucher_type]||'').trim() || 'Unknown' : 'Unknown',
+        voucher_no:   colIdx.voucher_no  !== undefined ? String(row[colIdx.voucher_no] ||'').trim() || null : null,
+        party_name:   colIdx.party_name  !== undefined ? String(row[colIdx.party_name] ||'').trim() : '',
+        narration:    colIdx.narration   !== undefined ? String(row[colIdx.narration]  ||'').trim() : '',
+        amount:       amt,
+        synced_at:    now,
+      });
+    } else if (impType === 'bank') {
+      const acct = colIdx.account_name !== undefined ? String(row[colIdx.account_name]||'').trim() : '';
+      if (!acct) continue;
+      parsed.push({
+        account_name: acct,
+        balance:      parseAmt(colIdx.balance !== undefined ? row[colIdx.balance] : 0),
+        as_of_date:   new Date().toISOString().slice(0,10),
+        synced_at:    now,
+      });
+    }
+  }
+
+  if (parsed.length === 0) {
+    errEl.textContent = 'No data rows found. Check that the exported report has data rows and is not empty.';
+    errEl.style.display = 'block'; return;
+  }
+
+  impParsed = parsed;
+  showImportPreview(parsed, colMapping);
+}
+
+function showImportPreview(parsed, colMapping) {
+  document.getElementById('imp-step1').style.display = 'none';
+  document.getElementById('imp-step2').style.display = 'block';
+  document.getElementById('imp-preview-title').textContent = TYPE_LABELS[impType] + ' — Ready to Import';
+  document.getElementById('imp-preview-count').textContent = parsed.length + ' records detected';
+
+  const mapHtml = Object.entries(colMapping).map(([f,c]) =>
+    `<span style="display:inline-block;margin:2px 4px 2px 0;padding:2px 8px;background:var(--blue-bg);color:var(--blue-text);border-radius:4px;font-size:10px;font-weight:600;">${f} ← "${c}"</span>`
+  ).join('');
+  document.getElementById('imp-col-map').innerHTML = '<span style="font-size:10px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:.06em;">Detected: </span>' + mapHtml;
+
+  const fields = Object.keys(parsed[0]).filter(f => f !== 'synced_at');
+  document.getElementById('imp-thead').innerHTML = '<tr>' + fields.map(f => `<th>${f}</th>`).join('') + '</tr>';
+  document.getElementById('imp-tbody').innerHTML = parsed.slice(0,8).map(r =>
+    '<tr>' + fields.map(f => `<td style="white-space:nowrap;max-width:160px;overflow:hidden;text-overflow:ellipsis">${r[f] ?? '—'}</td>`).join('') + '</tr>'
+  ).join('');
+
+  const warnEl = document.getElementById('imp-warn');
+  if (impType !== 'daybook') {
+    warnEl.textContent = `⚠ This will replace all existing ${TYPE_LABELS[impType]} data in the dashboard with these ${parsed.length} records.`;
+    warnEl.style.display = 'block';
+  } else {
+    warnEl.style.display = 'none';
+  }
+  document.getElementById('imp-confirm-btn').textContent = `⬆ Import ${parsed.length} records`;
+  document.getElementById('imp-confirm-btn').disabled = false;
+}
+
+async function confirmImport() {
+  const btn = document.getElementById('imp-confirm-btn');
+  btn.disabled = true; btn.textContent = 'Importing…';
+  const table = SUPABASE_TABLES[impType];
+  const now   = new Date().toISOString();
+
+  try {
+    if (impType !== 'daybook') {
+      const { error: delErr } = await sb.from(table).delete().gte('id', 0);
+      if (delErr && !delErr.message.includes('0 rows')) throw delErr;
+      const { error: insErr } = await sb.from(table).insert(impParsed);
+      if (insErr) throw insErr;
+    } else {
+      const { error } = await sb.from(table).upsert(impParsed, { onConflict: 'voucher_date,voucher_no', ignoreDuplicates: true });
+      if (error) throw error;
+    }
+    try { await sb.from('fin_sync_log').insert({ synced_at: now }); } catch(_) {}
+  } catch(e) {
+    btn.disabled = false; btn.textContent = `⬆ Import ${impParsed.length} records`;
+    alert('Import failed: ' + (e.message || JSON.stringify(e))); return;
+  }
+
+  document.getElementById('imp-done-title').textContent = `${impParsed.length} ${TYPE_LABELS[impType]} records imported`;
+  document.getElementById('imp-done-sub').textContent   = 'Dashboard will refresh when you close this panel.';
+  document.getElementById('imp-step2').style.display = 'none';
+  document.getElementById('imp-step3').style.display = 'block';
+}
 </script>
+
+<!-- ── Tally Import Modal ── -->
+<div id="importOverlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:600;overflow-y:auto;-webkit-overflow-scrolling:touch;">
+  <div style="max-width:640px;margin:40px auto 80px;background:var(--card);border-radius:14px;padding:28px 24px;box-shadow:0 8px 40px rgba(0,0,0,.25);">
+
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:22px;">
+      <div>
+        <div style="font-size:16px;font-weight:700;">Import from Tally</div>
+        <div style="font-size:12px;color:var(--text2);margin-top:3px;">Upload a TallyPrime Excel export to sync data into the dashboard</div>
+      </div>
+      <button onclick="closeImport()" style="background:none;border:none;font-size:24px;line-height:1;cursor:pointer;color:var(--text2);padding:0 4px;margin-top:-2px;">×</button>
+    </div>
+
+    <!-- Step 1 -->
+    <div id="imp-step1">
+      <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text2);margin-bottom:12px;">1. What are you importing?</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:18px;">
+        <div class="imp-type-card" onclick="selectImportType('receivables',this)">
+          <div style="font-size:20px;margin-bottom:6px;">🟢</div>
+          <div style="font-weight:600;font-size:13px;">Receivables</div>
+          <div style="font-size:11px;color:var(--text2);margin-top:3px;">Outstanding — clients owe you</div>
+        </div>
+        <div class="imp-type-card" onclick="selectImportType('payables',this)">
+          <div style="font-size:20px;margin-bottom:6px;">🔴</div>
+          <div style="font-weight:600;font-size:13px;">Payables</div>
+          <div style="font-size:11px;color:var(--text2);margin-top:3px;">Outstanding — you owe vendors</div>
+        </div>
+        <div class="imp-type-card" onclick="selectImportType('daybook',this)">
+          <div style="font-size:20px;margin-bottom:6px;">📒</div>
+          <div style="font-weight:600;font-size:13px;">Day Book</div>
+          <div style="font-size:11px;color:var(--text2);margin-top:3px;">All vouchers — sales, purchases, payments</div>
+        </div>
+        <div class="imp-type-card" onclick="selectImportType('bank',this)">
+          <div style="font-size:20px;margin-bottom:6px;">🏦</div>
+          <div style="font-weight:600;font-size:13px;">Bank Balances</div>
+          <div style="font-size:11px;color:var(--text2);margin-top:3px;">Cash &amp; bank account balances</div>
+        </div>
+      </div>
+
+      <div id="imp-instructions" style="display:none;background:var(--card2);border-radius:var(--r);padding:13px 14px;margin-bottom:16px;font-size:12px;color:var(--text2);line-height:1.6;">
+        <div id="imp-instr-text"></div>
+      </div>
+
+      <div id="imp-upload-area" style="display:none;">
+        <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text2);margin-bottom:10px;">2. Upload the Excel export</div>
+        <label for="impFileInput" class="imp-drop">
+          <div style="font-size:28px;margin-bottom:8px;">📂</div>
+          <div style="font-size:13px;font-weight:600;color:var(--text);">Click to choose file</div>
+          <div style="font-size:11px;color:var(--text2);margin-top:4px;">Supports .xlsx · .xls · .csv</div>
+        </label>
+        <input type="file" id="impFileInput" accept=".xlsx,.xls,.csv" style="display:none;" onchange="handleImportFile(event)">
+        <div id="imp-file-err" style="display:none;color:var(--red);font-size:12px;margin-top:10px;padding:10px 12px;background:var(--red-bg);border-radius:var(--r);"></div>
+      </div>
+    </div>
+
+    <!-- Step 2: Preview -->
+    <div id="imp-step2" style="display:none;">
+      <div style="display:flex;align-items:baseline;gap:10px;margin-bottom:12px;">
+        <span style="font-size:14px;font-weight:700;" id="imp-preview-title"></span>
+        <span style="font-size:12px;color:var(--text2);" id="imp-preview-count"></span>
+      </div>
+      <div id="imp-col-map" style="background:var(--card2);border-radius:var(--r);padding:10px 12px;margin-bottom:12px;line-height:1.8;"></div>
+      <div style="overflow-x:auto;max-height:240px;overflow-y:auto;border-radius:var(--r);border:1px solid var(--border);">
+        <table class="fin-tbl" style="margin:0;font-size:11px;">
+          <thead id="imp-thead"></thead>
+          <tbody id="imp-tbody"></tbody>
+        </table>
+      </div>
+      <div id="imp-warn" style="display:none;background:var(--amber-bg);color:var(--amber-text);padding:10px 12px;border-radius:var(--r);font-size:12px;margin-top:12px;line-height:1.5;"></div>
+      <div style="display:flex;gap:10px;margin-top:16px;">
+        <button class="btn btn-primary" id="imp-confirm-btn" onclick="confirmImport()">⬆ Import</button>
+        <button class="btn" onclick="resetImport()">← Back</button>
+      </div>
+    </div>
+
+    <!-- Step 3: Done -->
+    <div id="imp-step3" style="display:none;text-align:center;padding:24px 0;">
+      <div style="font-size:40px;margin-bottom:14px;">✅</div>
+      <div style="font-size:16px;font-weight:700;margin-bottom:6px;" id="imp-done-title"></div>
+      <div style="font-size:13px;color:var(--text2);" id="imp-done-sub"></div>
+      <div style="display:flex;gap:10px;justify-content:center;margin-top:22px;">
+        <button class="btn btn-primary" onclick="closeImport();initApp();">Done</button>
+        <button class="btn" onclick="resetImport()">Import More</button>
+      </div>
+    </div>
+
+  </div>
+</div>
+
 </body>
 </html>
