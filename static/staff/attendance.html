@@ -289,6 +289,20 @@
     </div>
   </div>
 
+  <!-- EMPLOYEE DETAIL MODAL -->
+  <div id="empDetailOverlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:200;overflow-y:auto;padding:24px 12px" onclick="if(event.target===this)closeEmpDetail()">
+    <div style="background:var(--card);border-radius:12px;max-width:780px;margin:0 auto;padding:20px 0;box-shadow:0 8px 32px rgba(0,0,0,.18)">
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:0 20px 14px;border-bottom:1px solid var(--border)">
+        <div>
+          <div id="edEmpName" style="font-weight:700;font-size:15px"></div>
+          <div id="edEmpMeta" style="font-size:12px;color:var(--muted);margin-top:2px"></div>
+        </div>
+        <button onclick="closeEmpDetail()" style="background:none;border:none;font-size:20px;cursor:pointer;color:var(--muted);padding:4px 8px">✕</button>
+      </div>
+      <div id="edBody" style="padding:0 20px;margin-top:14px"></div>
+    </div>
+  </div>
+
   <!-- SALARY SHEET -->
   <div class="panel" id="panel-salary">
     <div class="frow" style="margin-bottom:16px">
@@ -640,7 +654,7 @@ function renderToday(){
     const ot = (rec.ot_hours||0)>0 ? rec.ot_hours+' hrs' : '—';
     const late  = rec.late_entry  ? ' <span style="color:var(--amber);font-size:11px">(Late)</span>'  : '';
     const early = rec.early_exit  ? ' <span style="color:var(--amber);font-size:11px">(Early exit)</span>' : '';
-    return `<tr>
+    return `<tr style="cursor:pointer" onclick="showEmpDetail('${emp.emp_id}',${m},${y})" title="Click for daily breakdown">
       <td style="font-weight:500">${emp.name}</td>
       <td style="color:var(--muted)">${emp.designation||'—'}</td>
       <td><span class="badge ${emp.type==='staff'?'b-staff':'b-worker'}">${emp.type==='staff'?'Staff':'Worker'}</span></td>
@@ -677,6 +691,8 @@ async function renderMonthly(){
 
   const {data,error}=await sb.from('attendance').select('*').gte('date',startD).lte('date',endD);
   if(error){ body.innerHTML='<tr><td colspan="9" class="empty">Error loading data.</td></tr>'; return; }
+
+  window._mvData={data:data||[],m,y}; // cache for detail modal
 
   const cal=daysInMonth(m,y);
   body.innerHTML=employees.map(emp=>{
@@ -1746,6 +1762,130 @@ async function rejectReq(id, btn){
   btn.closest('tr').style.opacity='0.4';
   btn.closest('tr').innerHTML = `<td colspan="7" style="padding:10px;color:var(--muted);font-size:12px">
     ❌ Rejected</td>`;
+}
+
+// ── Employee Monthly Detail Modal ────────────────────────────
+async function showEmpDetail(empId, m, y) {
+  const emp = employees.find(e => String(e.emp_id) === String(empId));
+  if (!emp) return;
+
+  const cached = window._mvData;
+  if (!cached || cached.m !== m || cached.y !== y) return;
+
+  document.getElementById('edEmpName').textContent = emp.name;
+  document.getElementById('edEmpMeta').textContent =
+    (emp.designation || '—') + '  ·  ' +
+    new Date(y, m-1, 1).toLocaleString('en-IN',{month:'long'}) + ' ' + y;
+  document.getElementById('edBody').innerHTML = '<div class="loading">Loading…</div>';
+  document.getElementById('empDetailOverlay').style.display = 'block';
+
+  // Fetch site portal punches for this employee this month
+  const startD = `${y}-${String(m).padStart(2,'0')}-01`;
+  const endD   = `${y}-${String(m).padStart(2,'0')}-${String(daysInMonth(m,y)).padStart(2,'0')}`;
+  const { data: siteReqs } = await sb.from('site_attendance_requests')
+    .select('date,punch_type,punch_time,latitude,longitude,status')
+    .eq('emp_id', String(empId))
+    .eq('status', 'approved')
+    .gte('date', startD).lte('date', endD);
+
+  const siteMap = {};
+  (siteReqs || []).forEach(r => {
+    if (!siteMap[r.date]) siteMap[r.date] = [];
+    siteMap[r.date].push(r);
+  });
+
+  const attMap = {};
+  cached.data.filter(r => String(r.emp_id) === String(empId))
+    .forEach(r => attMap[r.date] = r);
+
+  const days   = daysInMonth(m, y);
+  const today  = new Date();
+  const dayNames = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+  const woDay  = emp.weekly_off || 'sunday';
+
+  const statusBadge = {
+    present:     '<span style="color:#1a9e5c;font-weight:600">Present</span>',
+    half_day:    '<span style="color:#f59e0b;font-weight:600">Half Day</span>',
+    paid_leave:  '<span style="color:#2563eb;font-weight:600">Paid Leave</span>',
+    weekly_off:  '<span style="color:#888">Week Off</span>',
+    absent:      '<span style="color:#d93025;font-weight:600">Absent</span>',
+  };
+
+  let rows = '';
+  for (let d = 1; d <= days; d++) {
+    const dateObj  = new Date(y, m-1, d);
+    const dateStr  = `${y}-${String(m).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+    const dayName  = dayNames[dateObj.getDay()];
+    const isFuture = dateObj > today;
+    const isWO     = dateObj.toLocaleDateString('en-IN',{weekday:'long'}).toLowerCase() === woDay.toLowerCase();
+
+    const rec    = attMap[dateStr];
+    const sites  = siteMap[dateStr] || [];
+
+    let status, ci, co, late, ot, locCell;
+
+    if (isFuture) {
+      rows += `<tr style="opacity:.35"><td>${d} ${dayName}</td><td colspan="6" style="color:var(--muted);font-size:12px">—</td></tr>`;
+      continue;
+    }
+
+    if (rec) {
+      status = rec.status || 'present';
+      ci     = rec.check_in  ? rec.check_in.slice(0,5)  : '—';
+      co     = rec.check_out ? rec.check_out.slice(0,5) : '—';
+      late   = rec.late_entry ? '<span style="color:#f59e0b;font-size:11px">Late</span>' : '';
+      ot     = (rec.ot_hours||0) > 0 ? `<span style="color:#1a9e5c;font-size:11px">+${rec.ot_hours}h OT</span>` : '';
+    } else if (isWO) {
+      status = 'weekly_off'; ci = '—'; co = '—'; late = ''; ot = '';
+    } else {
+      status = 'absent'; ci = '—'; co = '—'; late = ''; ot = '';
+    }
+
+    // Location: show 📍 for any approved site punches this day
+    if (sites.length) {
+      locCell = sites.map(s => {
+        const label = s.punch_type === 'check_in' ? 'In' : 'Out';
+        return `<a href="https://www.google.com/maps?q=${s.latitude},${s.longitude}" target="_blank"
+          style="color:#2563eb;font-size:11px;margin-right:6px;text-decoration:none">📍 ${label}</a>`;
+      }).join('');
+    } else {
+      locCell = '<span style="color:#ccc;font-size:11px">Machine</span>';
+    }
+
+    const rowBg = status === 'absent' ? 'background:#fff5f5' :
+                  status === 'half_day' ? 'background:#fffbeb' :
+                  status === 'weekly_off' ? 'background:#fafafa' : '';
+
+    rows += `<tr style="${rowBg}">
+      <td style="font-weight:500;white-space:nowrap">${d} ${dayName}</td>
+      <td style="font-family:monospace;font-size:13px">${ci}</td>
+      <td style="font-family:monospace;font-size:13px">${co}</td>
+      <td>${statusBadge[status] || status}</td>
+      <td>${late}</td>
+      <td>${ot}</td>
+      <td>${locCell}</td>
+    </tr>`;
+  }
+
+  document.getElementById('edBody').innerHTML = `
+    <table style="width:100%;border-collapse:collapse;font-size:13px">
+      <thead>
+        <tr style="border-bottom:2px solid var(--border)">
+          <th style="text-align:left;padding:6px 8px;font-size:10px;color:var(--muted);font-weight:600;text-transform:uppercase;white-space:nowrap">Date</th>
+          <th style="text-align:left;padding:6px 8px;font-size:10px;color:var(--muted);font-weight:600;text-transform:uppercase">In</th>
+          <th style="text-align:left;padding:6px 8px;font-size:10px;color:var(--muted);font-weight:600;text-transform:uppercase">Out</th>
+          <th style="text-align:left;padding:6px 8px;font-size:10px;color:var(--muted);font-weight:600;text-transform:uppercase">Status</th>
+          <th style="text-align:left;padding:6px 8px;font-size:10px;color:var(--muted);font-weight:600;text-transform:uppercase"></th>
+          <th style="text-align:left;padding:6px 8px;font-size:10px;color:var(--muted);font-weight:600;text-transform:uppercase">OT</th>
+          <th style="text-align:left;padding:6px 8px;font-size:10px;color:var(--muted);font-weight:600;text-transform:uppercase">Source</th>
+        </tr>
+      </thead>
+      <tbody>${rows}</tbody>
+    </table>`;
+}
+
+function closeEmpDetail() {
+  document.getElementById('empDetailOverlay').style.display = 'none';
 }
 </script>
 </body>
