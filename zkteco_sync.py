@@ -31,10 +31,11 @@ SUPABASE_URL = "https://gzjzuudhtvljpwcqygtk.supabase.co"
 SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imd6anp1dWRodHZsanB3Y3F5Z3RrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzgzOTY4NTksImV4cCI6MjA5Mzk3Mjg1OX0.pCBKZwMDvu8UAfKEXL8_hgkuG95A-MtVKK6sM2qFxEs"
 
 # Shift window
-LATE_AFTER   = "10:00"   # punch-in after this = late
-SHIFT_END    = "18:00"   # punch-out after this = OT
-HALF_IN_AFTER = "12:00"  # punch-in after this = half day
-HALF_OUT_BEFORE = "15:00" # punch-out before this = half day
+LATE_AFTER      = "10:00"   # punch-in after this = late
+SHIFT_END       = "18:00"   # punch-out after this = OT
+HALF_IN_AFTER   = "12:00"   # punch-in after this = half day
+HALF_OUT_BEFORE = "15:00"   # punch-out before this = half day
+NIGHT_CUTOFF    = "05:00"   # punch before this hour belongs to the previous day's shift
 
 # ── CONNECT TO DEVICE ────────────────────────────────────────────────────────
 def get_attendance():
@@ -62,35 +63,49 @@ def get_attendance():
             conn.disconnect()
 
 # ── PROCESS RECORDS ──────────────────────────────────────────────────────────
-def calc_ot(co_str):
-    """Return OT hours (float, 2dp) for a check-out time string, or 0."""
+def t2m(t):
+    """Convert HH:MM string to minutes."""
+    h, m = map(int, t.split(":"))
+    return h * 60 + m
+
+def calc_ot(ci_str, co_str):
+    """Return OT hours accounting for midnight crossover."""
     if not co_str:
         return 0.0
-    se_h, se_m = map(int, SHIFT_END.split(":"))
-    h, m = map(int, co_str.split(":"))
-    diff_mins = (h * 60 + m) - (se_h * 60 + se_m)
+    co_mins = t2m(co_str)
+    # Midnight crossover: checkout is earlier in the clock than check-in
+    if ci_str and co_mins < t2m(ci_str):
+        co_mins += 24 * 60
+    diff_mins = co_mins - t2m(SHIFT_END)
     return round(max(0, diff_mins / 60), 2)
 
 def calc_status(ci_str, co_str):
-    """Return 'half_day' or 'present' based on punch times."""
-    hi_h, hi_m = map(int, HALF_IN_AFTER.split(":"))
-    ho_h, ho_m = map(int, HALF_OUT_BEFORE.split(":"))
-    ci_mins = sum(int(x) * f for x, f in zip(ci_str.split(":"), [60, 1]))
-    if ci_mins > hi_h * 60 + hi_m:
+    """Return 'half_day' or 'present', handling midnight crossover."""
+    ci_mins = t2m(ci_str)
+    if ci_mins > t2m(HALF_IN_AFTER):
         return "half_day"
     if co_str:
-        co_mins = sum(int(x) * f for x, f in zip(co_str.split(":"), [60, 1]))
-        if co_mins < ho_h * 60 + ho_m:
+        co_mins = t2m(co_str)
+        if co_mins < ci_mins:          # midnight crossover — definitely full day+
+            return "present"
+        if co_mins < t2m(HALF_OUT_BEFORE):
             return "half_day"
     return "present"
 
 def process_attendance(raw_logs, from_date):
     late_h, late_m = map(int, LATE_AFTER.split(":"))
+    cutoff_mins = t2m(NIGHT_CUTOFF)
 
-    # Group punches by (user_id, date)
+    # Group punches by (user_id, shift_date)
+    # Punches before NIGHT_CUTOFF are attributed to the previous day's shift
     grouped = {}
     for log in raw_logs:
-        log_date = log.timestamp.date()
+        punch_mins = log.timestamp.hour * 60 + log.timestamp.minute
+        if punch_mins < cutoff_mins:
+            log_date = log.timestamp.date() - timedelta(days=1)
+        else:
+            log_date = log.timestamp.date()
+
         if log_date < from_date:
             continue
 
@@ -113,8 +128,7 @@ def process_attendance(raw_logs, from_date):
             co_str = None
 
         # Late flag
-        h, m = map(int, ci_str.split(":"))
-        late = (h * 60 + m) > (late_h * 60 + late_m)
+        late = t2m(ci_str) > (late_h * 60 + late_m)
 
         records.append({
             "emp_id":     user_id,
@@ -123,7 +137,7 @@ def process_attendance(raw_logs, from_date):
             "check_out":  co_str,
             "status":     calc_status(ci_str, co_str),
             "late_entry": late,
-            "ot_hours":   calc_ot(co_str),
+            "ot_hours":   calc_ot(ci_str, co_str),
         })
 
     return records
@@ -201,15 +215,14 @@ def push_to_supabase(records):
         if ci == co:
             co = None
 
-        h, m = map(int, ci.split(":"))
         merged.append({
             "emp_id":     r["emp_id"],
             "date":       r["date"],
             "check_in":   ci,
             "check_out":  co,
             "status":     calc_status(ci, co),
-            "late_entry": (h * 60 + m) > (late_h * 60 + late_m),
-            "ot_hours":   calc_ot(co),
+            "late_entry": t2m(ci) > (late_h * 60 + late_m),
+            "ot_hours":   calc_ot(ci, co),
         })
 
     batch_size = 100
