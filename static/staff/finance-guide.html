@@ -1,0 +1,680 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Finance &amp; Accounts Guide — Proalfa Dynamic</title>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0;}
+  :root{
+    --text:#111;--text2:#555;--muted:#888;--border:#e5e5e5;
+    --bg:#f5f5f3;--card:#fff;--accent:#111;
+    --green:#1a9e5c;--amber:#b45309;--blue:#1d4ed8;--red:#b91c1c;
+  }
+  body{font-family:-apple-system,BlinkMacSystemFont,'Helvetica Neue',Arial,sans-serif;
+    background:var(--bg);color:var(--text);line-height:1.6;font-size:14px;}
+
+  /* Toolbar */
+  .toolbar{position:sticky;top:0;z-index:50;background:#fff;border-bottom:1px solid var(--border);
+    padding:10px 24px;display:flex;align-items:center;justify-content:space-between;}
+  .toolbar-title{font-size:13px;font-weight:600;color:var(--text2);}
+  .print-btn{padding:7px 16px;background:#111;color:#fff;border:none;border-radius:6px;
+    font-size:12px;cursor:pointer;font-family:inherit;}
+
+  /* Layout */
+  .wrap{max-width:860px;margin:0 auto;padding:40px 24px 80px;}
+
+  /* Header */
+  .doc-header{margin-bottom:40px;padding-bottom:24px;border-bottom:2px solid #111;}
+  .doc-header h1{font-size:28px;font-weight:800;letter-spacing:-.5px;line-height:1.1;margin-bottom:6px;}
+  .doc-header .sub{font-size:13px;color:var(--muted);}
+  .doc-header .meta{display:flex;gap:24px;margin-top:14px;flex-wrap:wrap;}
+  .doc-header .meta span{font-size:11px;color:var(--text2);background:#f0f0ee;padding:3px 10px;border-radius:20px;}
+
+  /* TOC */
+  .toc{background:#fafaf8;border:1px solid var(--border);border-radius:8px;padding:20px 24px;margin-bottom:36px;}
+  .toc h3{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);margin-bottom:12px;}
+  .toc ol{padding-left:18px;}
+  .toc li{margin-bottom:4px;}
+  .toc a{color:var(--blue);text-decoration:none;font-size:13px;}
+  .toc a:hover{text-decoration:underline;}
+  .toc .toc-sub{margin-top:2px;margin-left:16px;list-style:disc;}
+  .toc .toc-sub li{font-size:12px;color:var(--text2);}
+
+  /* Parts */
+  .part-header{background:#111;color:#fff;padding:10px 16px;border-radius:6px;
+    font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.15em;
+    margin:40px 0 20px;}
+
+  /* Sections */
+  h2{font-size:19px;font-weight:700;margin:32px 0 12px;padding-top:8px;
+    border-bottom:2px solid #111;padding-bottom:6px;}
+  h3{font-size:14px;font-weight:700;margin:20px 0 8px;color:var(--text);}
+  h4{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;
+    color:var(--muted);margin:16px 0 6px;}
+  p{margin-bottom:10px;color:var(--text2);}
+  ul,ol{padding-left:20px;margin-bottom:10px;}
+  li{margin-bottom:4px;color:var(--text2);}
+  strong{color:var(--text);}
+
+  /* Callout boxes */
+  .box{border-radius:8px;padding:14px 16px;margin:14px 0;font-size:13px;}
+  .box-tip{background:#f0fdf4;border-left:3px solid var(--green);}
+  .box-warn{background:#fffbeb;border-left:3px solid #f59e0b;}
+  .box-rule{background:#eff6ff;border-left:3px solid var(--blue);}
+  .box-imp{background:#fef2f2;border-left:3px solid #ef4444;}
+  .box p{margin-bottom:4px;color:inherit;}
+  .box strong{color:inherit;}
+
+  /* ERP steps */
+  .erp-step{display:flex;gap:14px;margin:10px 0;align-items:flex-start;}
+  .erp-step .num{background:#111;color:#fff;border-radius:50%;width:22px;height:22px;
+    display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;
+    flex-shrink:0;margin-top:1px;}
+  .erp-step .body{font-size:13px;color:var(--text2);}
+  .erp-step .body strong{color:var(--text);}
+
+  /* Path breadcrumb */
+  .path{display:inline-flex;align-items:center;gap:4px;background:#f5f5f3;
+    border:1px solid var(--border);border-radius:6px;padding:3px 10px;
+    font-size:11px;font-weight:600;color:var(--text);margin:4px 0;}
+  .path span{color:var(--muted);}
+
+  /* Table */
+  table{width:100%;border-collapse:collapse;margin:14px 0;font-size:13px;}
+  th{text-align:left;padding:8px 10px;font-size:10px;font-weight:700;
+    text-transform:uppercase;letter-spacing:.06em;color:var(--muted);
+    border-bottom:2px solid #111;background:#fafaf8;}
+  td{padding:9px 10px;border-bottom:1px solid var(--border);color:var(--text2);}
+  tr:last-child td{border-bottom:none;}
+  td strong{color:var(--text);}
+
+  /* Badge */
+  .badge{display:inline-block;padding:2px 8px;border-radius:20px;font-size:10px;font-weight:700;
+    text-transform:uppercase;letter-spacing:.04em;}
+  .badge-green{background:#dcfce7;color:#166534;}
+  .badge-amber{background:#fef3c7;color:#92400e;}
+  .badge-blue{background:#dbeafe;color:#1e3a8a;}
+  .badge-red{background:#fee2e2;color:#991b1b;}
+
+  /* Checklist */
+  .checklist{list-style:none;padding:0;}
+  .checklist li{padding:7px 0 7px 28px;position:relative;border-bottom:1px solid var(--border);
+    font-size:13px;color:var(--text2);}
+  .checklist li:last-child{border-bottom:none;}
+  .checklist li::before{content:"☐";position:absolute;left:0;color:#ccc;font-size:15px;}
+
+  /* Divider */
+  hr{border:none;border-top:1px solid var(--border);margin:28px 0;}
+
+  @media print{
+    .toolbar{display:none;}
+    body{background:#fff;}
+    .wrap{padding:20px;}
+    .part-header{-webkit-print-color-adjust:exact;print-color-adjust:exact;}
+  }
+</style>
+</head>
+<body>
+
+<div class="toolbar">
+  <div class="toolbar-title">Proalfa Dynamic — Finance &amp; Accounts Guide</div>
+  <button class="print-btn" onclick="window.print()">Print / Save PDF</button>
+</div>
+
+<div class="wrap">
+
+  <!-- HEADER -->
+  <div class="doc-header">
+    <h1>Finance &amp; Accounts Guide</h1>
+    <div class="sub">Proalfa Dynamic Private Limited — Internal Use Only</div>
+    <div class="meta">
+      <span>Role: Accounts Executive / Finance Team</span>
+      <span>Covers: Full Financial Operations</span>
+      <span>ERP: Proalfa Finance Dashboard</span>
+    </div>
+  </div>
+
+  <!-- TOC -->
+  <div class="toc">
+    <h3>Contents</h3>
+    <ol>
+      <li><a href="#part-a">Part A — The Accounts Role at Proalfa</a>
+        <ul class="toc-sub">
+          <li><a href="#s1">Responsibilities Overview</a></li>
+          <li><a href="#s2">Physical Records &amp; Filing</a></li>
+          <li><a href="#s3">Monthly Financial Calendar</a></li>
+          <li><a href="#s4">Tax &amp; Statutory Reference</a></li>
+          <li><a href="#s5">Banking &amp; Vendor Relations</a></li>
+        </ul>
+      </li>
+      <li><a href="#part-b">Part B — Finance ERP Guide: End to End</a>
+        <ul class="toc-sub">
+          <li><a href="#e1">Step 1 — Daily Overview Routine</a></li>
+          <li><a href="#e2">Step 2 — Receivables: Client Invoices &amp; Collections</a></li>
+          <li><a href="#e3">Step 3 — Payables: Vendor Bills &amp; Payments</a></li>
+          <li><a href="#e4">Step 4 — Cash Flow Monitoring</a></li>
+          <li><a href="#e5">Step 5 — P&amp;L Monthly Review</a></li>
+          <li><a href="#e6">Step 6 — Projects: Margin &amp; Advance Tracker</a></li>
+          <li><a href="#e7">Step 7 — Credit Line Management</a></li>
+          <li><a href="#e8">Step 8 — Insurance &amp; Collateral Tracker</a></li>
+        </ul>
+      </li>
+    </ol>
+  </div>
+
+  <!-- ═══ PART A ═══ -->
+  <div class="part-header" id="part-a">Part A — The Accounts Role at Proalfa Dynamic</div>
+
+  <!-- S1 -->
+  <h2 id="s1">1. Responsibilities Overview</h2>
+  <p>The accounts team is responsible for the full financial health of Proalfa Dynamic — from client billing and vendor payments to statutory compliance and management reporting. The ERP dashboard supports but does not replace your judgment; you must cross-check the system against physical records and bank statements regularly.</p>
+
+  <table>
+    <thead><tr><th>Area</th><th>What it Covers</th><th>Frequency</th></tr></thead>
+    <tbody>
+      <tr><td><strong>Receivables</strong></td><td>Raising client invoices, following up on outstanding payments, marking receipts, aging analysis</td><td>Daily / Weekly</td></tr>
+      <tr><td><strong>Payables</strong></td><td>Recording vendor bills, scheduling payments, maintaining due dates, avoiding late fees</td><td>Daily / Weekly</td></tr>
+      <tr><td><strong>Cash Flow</strong></td><td>Monitoring available cash, short-term inflows vs outflows, flagging shortfalls to management</td><td>Daily</td></tr>
+      <tr><td><strong>P&amp;L &amp; Reporting</strong></td><td>Monthly profit &amp; loss, expense categorisation, management review packs</td><td>Monthly</td></tr>
+      <tr><td><strong>Project Accounting</strong></td><td>Project-wise revenue, cost tracking, margin analysis, advance received/paid tracker</td><td>Per project / Monthly</td></tr>
+      <tr><td><strong>Tax &amp; Compliance</strong></td><td>GST returns, TDS deduction &amp; deposit, advance tax, professional tax coordination with HR</td><td>Monthly / Quarterly</td></tr>
+      <tr><td><strong>Credit &amp; Banking</strong></td><td>CC/OD utilisation monitoring, drawdown log, bank reconciliation, interest tracking</td><td>Weekly / Monthly</td></tr>
+      <tr><td><strong>Insurance</strong></td><td>Policy renewal tracking, premium payments, bank collateral records, claims coordination</td><td>As needed / Annual</td></tr>
+    </tbody>
+  </table>
+
+  <div class="box box-rule">
+    <p><strong>Golden rule:</strong> The ERP is your working view. The primary records are your physical vouchers, bank passbook, and tally/accounting software. Always reconcile both. Any discrepancy must be investigated and resolved — never ignore it.</p>
+  </div>
+
+  <!-- S2 -->
+  <h2 id="s2">2. Physical Records &amp; Filing</h2>
+  <p>Maintain a physical file system in parallel with the ERP. In any audit or dispute, physical documents are the legal proof. The ERP is a management tool, not a replacement for books of accounts.</p>
+
+  <h3>File Register — Accounts Section</h3>
+  <p>Maintain one folder/register per category. Label clearly with the financial year (e.g., FY 2025–26).</p>
+
+  <table>
+    <thead><tr><th>File / Register</th><th>Contents</th><th>Retention</th></tr></thead>
+    <tbody>
+      <tr><td><strong>Sales Invoice File</strong></td><td>All client invoices in chronological order, signed copies, GST invoice format</td><td>8 years</td></tr>
+      <tr><td><strong>Purchase Bill File</strong></td><td>Vendor bills/invoices, GRN copies, payment vouchers attached</td><td>8 years</td></tr>
+      <tr><td><strong>Bank Statement File</strong></td><td>Monthly bank statements, CC/OD statements, reconciliation sheets</td><td>8 years</td></tr>
+      <tr><td><strong>Payment Voucher Book</strong></td><td>Cash &amp; NEFT payment vouchers, cheque stubs, approval signatures</td><td>8 years</td></tr>
+      <tr><td><strong>Receipt Voucher Book</strong></td><td>Client payment receipts, advance receipts</td><td>8 years</td></tr>
+      <tr><td><strong>GST File</strong></td><td>GSTR-1, GSTR-3B workings, input tax credit register, E-way bills</td><td>8 years</td></tr>
+      <tr><td><strong>TDS Register</strong></td><td>TDS deducted (194C, 194J), Form 16A issued to vendors, quarterly returns acknowledgements</td><td>8 years</td></tr>
+      <tr><td><strong>Advance Tax File</strong></td><td>Challan copies, computation workings, estimated income</td><td>8 years</td></tr>
+      <tr><td><strong>Insurance File</strong></td><td>All policy documents, premium receipts, renewal notices, bank endorsement letters</td><td>Duration + 3 years</td></tr>
+      <tr><td><strong>Credit Facility File</strong></td><td>Sanction letters, drawdown confirmations, interest notes, collateral documents</td><td>Duration + 7 years</td></tr>
+      <tr><td><strong>Project Cost File</strong></td><td>Project-wise material cost sheets, subcontractor bills, advance paid/received records</td><td>Project completion + 5 years</td></tr>
+      <tr><td><strong>Petty Cash Register</strong></td><td>Daily cash entries, expense receipts attached, monthly closing balance</td><td>5 years</td></tr>
+    </tbody>
+  </table>
+
+  <div class="box box-warn">
+    <p><strong>Never destroy financial records</strong> before the statutory retention period. GST records must be kept for 8 years from the due date of annual return. Income tax records must be kept for 6–8 years depending on the case.</p>
+  </div>
+
+  <h3>Daily / Weekly Routine (Physical)</h3>
+  <ul class="checklist">
+    <li>Record all cash receipts and payments in petty cash register on the same day</li>
+    <li>Attach physical bill/receipt to every payment voucher before filing</li>
+    <li>Log every bank transaction in your bank reconciliation sheet (weekly)</li>
+    <li>Stamp "PAID" with date on vendor bills once payment is made</li>
+    <li>File new sales invoices in sequence on the day of issue</li>
+    <li>Check incoming cheques for post-dated status; log separately</li>
+  </ul>
+
+  <!-- S3 -->
+  <h2 id="s3">3. Monthly Financial Calendar</h2>
+  <p>These are your hard deadlines every month. Missing them results in interest, penalties, or filing defaults. Set calendar reminders one week before each deadline.</p>
+
+  <table>
+    <thead><tr><th>Deadline</th><th>Task</th><th>Platform / Authority</th><th>Who</th></tr></thead>
+    <tbody>
+      <tr><td><strong>7th</strong></td><td>TDS deposit for previous month deductions (194C/194J/192)</td><td>NSDL Challan 281</td><td>Accounts</td></tr>
+      <tr><td><strong>7th</strong></td><td>Professional Tax deposit (coordinate with HR for PT on salaries)</td><td>State PT portal</td><td>Accounts + HR</td></tr>
+      <tr><td><strong>11th</strong></td><td>GSTR-1 filing (outward supplies for previous month)</td><td>GST Portal</td><td>Accounts</td></tr>
+      <tr><td><strong>13th</strong></td><td>GSTR-2B auto-generated (check &amp; reconcile ITC)</td><td>GST Portal</td><td>Accounts</td></tr>
+      <tr><td><strong>20th</strong></td><td>GSTR-3B filing &amp; GST payment (net liability after ITC)</td><td>GST Portal</td><td>Accounts</td></tr>
+      <tr><td><strong>25th</strong></td><td>Review &amp; update ERP: close receivables, payables for month</td><td>Finance Dashboard</td><td>Accounts</td></tr>
+      <tr><td><strong>Month-end</strong></td><td>Bank reconciliation — match every transaction in statements vs. books</td><td>Bank passbook / net banking</td><td>Accounts</td></tr>
+      <tr><td><strong>Month-end</strong></td><td>P&amp;L review — verify revenue, expenses, project margins in ERP</td><td>Finance Dashboard → P&amp;L tab</td><td>Accounts + Management</td></tr>
+      <tr><td><strong>Month-end</strong></td><td>CC/OD interest check — review bank's debit note, record in ERP</td><td>Credit Line tab + bank statement</td><td>Accounts</td></tr>
+    </tbody>
+  </table>
+
+  <h3>Quarterly Deadlines</h3>
+  <table>
+    <thead><tr><th>Deadline</th><th>Task</th><th>Quarter</th></tr></thead>
+    <tbody>
+      <tr><td><strong>31 July</strong></td><td>TDS Return (Form 24Q + 26Q) for Q1 (Apr–Jun)</td><td>Q1</td></tr>
+      <tr><td><strong>15 Sep</strong></td><td>Advance Tax — 2nd instalment (45% of estimated tax)</td><td>Q2</td></tr>
+      <tr><td><strong>31 Oct</strong></td><td>TDS Return for Q2 (Jul–Sep)</td><td>Q2</td></tr>
+      <tr><td><strong>15 Dec</strong></td><td>Advance Tax — 3rd instalment (75% cumulative)</td><td>Q3</td></tr>
+      <tr><td><strong>31 Jan</strong></td><td>TDS Return for Q3 (Oct–Dec)</td><td>Q3</td></tr>
+      <tr><td><strong>15 Mar</strong></td><td>Advance Tax — 4th instalment (100% cumulative)</td><td>Q4</td></tr>
+      <tr><td><strong>31 May</strong></td><td>TDS Return for Q4 (Jan–Mar)</td><td>Q4</td></tr>
+      <tr><td><strong>30 Sep</strong></td><td>Income Tax Return (Audit cases) / GSTR-9 Annual Return</td><td>Annual</td></tr>
+    </tbody>
+  </table>
+
+  <div class="box box-imp">
+    <p><strong>Late filing penalty:</strong> GSTR-1 and GSTR-3B late fee = ₹50/day (₹20/day for nil returns). TDS late deposit interest = 1.5% per month. TDS late filing fee (Sec 234E) = ₹200/day up to the tax amount. These are avoidable — file on time.</p>
+  </div>
+
+  <!-- S4 -->
+  <h2 id="s4">4. Tax &amp; Statutory Reference</h2>
+  <p>Quick reference for the taxes and deductions you handle most frequently at Proalfa.</p>
+
+  <h3>GST (Goods &amp; Services Tax)</h3>
+  <table>
+    <thead><tr><th>Item</th><th>Detail</th></tr></thead>
+    <tbody>
+      <tr><td><strong>GSTIN</strong></td><td>Proalfa's GST registration number — appears on all sales invoices</td></tr>
+      <tr><td><strong>GST on PEB / Steel Structures</strong></td><td>18% GST typically applicable on fabrication &amp; erection contracts (confirm with CA for works contracts)</td></tr>
+      <tr><td><strong>Input Tax Credit (ITC)</strong></td><td>ITC claimable on raw material, services, machinery — match with GSTR-2B before claiming</td></tr>
+      <tr><td><strong>Reverse Charge (RCM)</strong></td><td>Applicable on certain services (GTA freight, legal fees, etc.) — you pay GST directly even if vendor is unregistered</td></tr>
+      <tr><td><strong>E-Way Bill</strong></td><td>Required for goods movement above ₹50,000 — generate on ewaybillgst.gov.in before dispatch</td></tr>
+    </tbody>
+  </table>
+
+  <h3>TDS Rates (Common at Proalfa)</h3>
+  <table>
+    <thead><tr><th>Section</th><th>Nature of Payment</th><th>Rate</th><th>Threshold</th></tr></thead>
+    <tbody>
+      <tr><td>194C</td><td>Contractor / subcontractor payments</td><td>1% (individual) / 2% (company)</td><td>₹30,000 per payment / ₹1L in year</td></tr>
+      <tr><td>194J</td><td>Professional or technical service fees</td><td>10%</td><td>₹30,000 per year</td></tr>
+      <tr><td>194I</td><td>Rent (plant, machinery, land/building)</td><td>2% (P&amp;M) / 10% (land &amp; building)</td><td>₹2.4L per year</td></tr>
+      <tr><td>192</td><td>Salary to employees</td><td>As per slab</td><td>Above basic exemption limit</td></tr>
+      <tr><td>194Q</td><td>Purchase of goods from seller (>10 Cr turnover)</td><td>0.1%</td><td>₹50L per seller per year</td></tr>
+    </tbody>
+  </table>
+
+  <div class="box box-warn">
+    <p><strong>Before paying any vendor:</strong> Check if TDS is applicable. If yes, deduct at source, deposit by 7th of next month, and issue Form 16A within 15 days of filing the quarterly return. Vendors will follow up — track it proactively.</p>
+  </div>
+
+  <h3>GST TCS vs TDS — Quick Distinction</h3>
+  <ul>
+    <li><strong>TDS (Tax Deducted at Source)</strong> — You deduct from vendor payment. Income Tax Act.</li>
+    <li><strong>TCS (Tax Collected at Source)</strong> — Seller collects from buyer on certain goods. Applies above ₹50L in a year under Income Tax.</li>
+    <li><strong>GST TDS</strong> — Certain government bodies deduct 2% GST TDS on payments to you. You can see &amp; claim it in your GST portal credit ledger.</li>
+  </ul>
+
+  <!-- S5 -->
+  <h2 id="s5">5. Banking &amp; Vendor Relations</h2>
+
+  <h3>Bank Account Management</h3>
+  <ul>
+    <li>Maintain separate records for each bank account (current account, CC account, OD facility).</li>
+    <li>Reconcile each account statement at month-end. Every entry must match your vouchers.</li>
+    <li>Keep net banking credentials secure. Report any suspicious transaction to management immediately.</li>
+    <li>For cheque payments: always cross cheques "A/c Payee Only". Log cheque number, date, amount, and payee in the cheque register before dispatch.</li>
+    <li>Maintain a post-dated cheque (PDC) register if clients issue PDCs. Present on due date; mark in ERP on realisation.</li>
+  </ul>
+
+  <h3>CC / OD Facility</h3>
+  <ul>
+    <li>Check the CC/OD balance daily against the sanctioned limit. Never let utilisation exceed the limit without management approval.</li>
+    <li>Interest is debited by the bank monthly — record it in ERP under Credit Line tab → Drawdown Log.</li>
+    <li>Bank may ask for updated stock statements (for CC against stock) — prepare and submit within the deadline given by the bank (usually monthly or quarterly).</li>
+    <li>Renewal of CC/OD facility is typically annual — start the renewal process 2 months before expiry.</li>
+  </ul>
+
+  <h3>Vendor Payment Discipline</h3>
+  <ul>
+    <li>Review payables weekly — identify bills due in the next 15 days and plan payments.</li>
+    <li>Always obtain a receipt/acknowledgement for every payment made (even NEFT — print the transaction confirmation).</li>
+    <li>For new vendors, verify bank account details directly (call/email) before the first payment. Fraud via fake account change requests is common.</li>
+    <li>If a vendor disputes a payment, produce the payment voucher + bank statement entry. Do not pay again without a full reconciliation.</li>
+  </ul>
+
+  <div class="box box-tip">
+    <p><strong>Good habit:</strong> Every Friday, review all overdue receivables and escalate to management if any client is more than 30 days past due. Proactive follow-up prevents bad debts.</p>
+  </div>
+
+  <!-- ═══ PART B ═══ -->
+  <div class="part-header" id="part-b">Part B — Finance ERP Guide: End to End</div>
+
+  <p>The Finance Dashboard is at <strong>/staff/finance.html</strong>. Access requires the finance password. The dashboard is divided into 8 tabs. Each tab is covered below with step-by-step instructions.</p>
+
+  <div class="box box-rule">
+    <p><strong>Login:</strong> Open <code>/staff/finance.html</code> → enter finance password. Your session is remembered in the browser (sessionStorage) until you close the tab. Do not share the URL or password with anyone outside the finance team.</p>
+  </div>
+
+  <!-- E1 -->
+  <h2 id="e1">Step 1 — Daily Overview Routine</h2>
+  <p>Start every working day on the <strong>Overview tab</strong>. It is your morning financial briefing.</p>
+
+  <h3>What the Overview Tab Shows</h3>
+  <ul>
+    <li><strong>Stat cards (top row):</strong> Total outstanding receivables, upcoming payables, current month revenue (from P&amp;L), and cash/bank balance.</li>
+    <li><strong>Top Overdue Receivables table:</strong> Clients with the largest overdue amounts — call or email these parties today if overdue > 7 days.</li>
+    <li><strong>Upcoming Payables (30 days):</strong> Vendor bills due in the next 30 days — plan your cash outflows.</li>
+    <li><strong>Recent Vouchers:</strong> Last few transactions entered — quick audit trail to confirm yesterday's entries are correct.</li>
+  </ul>
+
+  <h3>Daily Morning Checklist</h3>
+  <ul class="checklist">
+    <li>Open Finance Dashboard → Overview tab. Note receivables outstanding and payables due this week.</li>
+    <li>Check bank balance in net banking. Compare with ERP cash flow opening balance.</li>
+    <li>Flag any client overdue &gt; 30 days to management via WhatsApp/email.</li>
+    <li>Identify any vendor payment due today — initiate NEFT or prepare cheque.</li>
+    <li>Check CC/OD utilisation (Credit Line tab) — ensure within limit.</li>
+  </ul>
+
+  <div class="erp-step">
+    <div class="num">1</div>
+    <div class="body"><strong>Open Finance Dashboard.</strong> Overview tab loads automatically. Read the 4 stat cards. If any figure looks unexpected, go to the relevant tab to investigate before proceeding.</div>
+  </div>
+  <div class="erp-step">
+    <div class="num">2</div>
+    <div class="body"><strong>Check overdue receivables.</strong> Any party in red (overdue) should be followed up. Note the amount and call/message them with a polite payment reminder.</div>
+  </div>
+  <div class="erp-step">
+    <div class="num">3</div>
+    <div class="body"><strong>Check upcoming payables.</strong> Any bill due today or tomorrow — initiate payment immediately. Don't wait for end of day.</div>
+  </div>
+
+  <!-- E2 -->
+  <h2 id="e2">Step 2 — Receivables: Client Invoices &amp; Collections</h2>
+  <p>The <strong>Receivables tab</strong> shows all outstanding client invoices. This is the money Proalfa is owed.</p>
+
+  <h3>How to Read the Receivables Table</h3>
+  <table>
+    <thead><tr><th>Column</th><th>Meaning</th></tr></thead>
+    <tbody>
+      <tr><td><strong>Party</strong></td><td>Client / customer name</td></tr>
+      <tr><td><strong>Invoice No.</strong></td><td>Your sales invoice number — should match the physical invoice in your Sales Invoice File</td></tr>
+      <tr><td><strong>Invoice Date</strong></td><td>Date the invoice was raised</td></tr>
+      <tr><td><strong>Due Date</strong></td><td>Payment due as per agreed credit terms (e.g., 30 days, 45 days)</td></tr>
+      <tr><td><strong>Status</strong></td><td>Outstanding / Partial / Overdue</td></tr>
+      <tr><td><strong>Amount</strong></td><td>Invoice amount including GST</td></tr>
+    </tbody>
+  </table>
+
+  <h3>Recording a New Invoice</h3>
+  <div class="erp-step">
+    <div class="num">1</div>
+    <div class="body"><strong>Raise the invoice.</strong> Create it in your accounting software (Tally / Excel) with all GST details. Take a signed printed copy to the client if required.</div>
+  </div>
+  <div class="erp-step">
+    <div class="num">2</div>
+    <div class="body"><strong>Add to ERP.</strong> In the Receivables tab, click <strong>+ Add</strong>. Fill Party name, Invoice No., Invoice Date, Due Date, Amount. Save.</div>
+  </div>
+  <div class="erp-step">
+    <div class="num">3</div>
+    <div class="body"><strong>File physical copy.</strong> Place the invoice in the Sales Invoice File in sequence. If the client provides a PO number, note it on the invoice and in the ERP.</div>
+  </div>
+
+  <h3>Recording a Collection (Payment Received)</h3>
+  <div class="erp-step">
+    <div class="num">1</div>
+    <div class="body"><strong>Confirm receipt.</strong> Check bank statement or net banking for the credit. Note the exact amount and UTR/transaction reference.</div>
+  </div>
+  <div class="erp-step">
+    <div class="num">2</div>
+    <div class="body"><strong>Mark as paid in ERP.</strong> In Receivables tab, find the invoice row. Click <strong>Mark Paid</strong> (or <strong>Partial</strong> if only part-payment). Enter the received amount and date.</div>
+  </div>
+  <div class="erp-step">
+    <div class="num">3</div>
+    <div class="body"><strong>Issue receipt voucher.</strong> Write a receipt voucher in your Receipt Voucher Book. Note client name, invoice number, amount, UTR. Send a formal receipt to the client if needed.</div>
+  </div>
+  <div class="erp-step">
+    <div class="num">4</div>
+    <div class="body"><strong>Update cash flow.</strong> The receipt should automatically appear in Cash Flow → Inflows. Verify it is reflected correctly.</div>
+  </div>
+
+  <div class="box box-tip">
+    <p><strong>Aging analysis:</strong> The Receivables tab shows how long each invoice has been outstanding. Review the aging weekly. Escalate invoices older than 60 days to management — these may need legal notice or written follow-up.</p>
+  </div>
+
+  <!-- E3 -->
+  <h2 id="e3">Step 3 — Payables: Vendor Bills &amp; Payments</h2>
+  <p>The <strong>Payables tab</strong> tracks all amounts Proalfa owes to vendors and suppliers. Staying on top of this protects your credit relationships and avoids late payment charges.</p>
+
+  <h3>Recording a Vendor Bill</h3>
+  <div class="erp-step">
+    <div class="num">1</div>
+    <div class="body"><strong>Receive the bill.</strong> Vendor sends an invoice/bill. Verify the bill against the purchase order or delivery challan. Check amounts, GST, and GSTIN.</div>
+  </div>
+  <div class="erp-step">
+    <div class="num">2</div>
+    <div class="body"><strong>Check TDS applicability.</strong> Is this vendor subject to TDS (Section 194C for contractors, 194J for professionals)? If yes, note the TDS amount to deduct.</div>
+  </div>
+  <div class="erp-step">
+    <div class="num">3</div>
+    <div class="body"><strong>Add to ERP.</strong> In the Payables tab, click <strong>+ Add Bill</strong>. Fill Party/Vendor, Bill No., Bill Date, Due Date, Amount. Save. The bill now appears in upcoming payables.</div>
+  </div>
+  <div class="erp-step">
+    <div class="num">4</div>
+    <div class="body"><strong>File physical bill.</strong> Stamp the bill with "RECEIVED" and today's date. File it in the Purchase Bill File.</div>
+  </div>
+
+  <h3>Making a Payment</h3>
+  <div class="erp-step">
+    <div class="num">1</div>
+    <div class="body"><strong>Prepare payment.</strong> Initiate NEFT/RTGS in net banking (or prepare cheque). If TDS applies, pay the net amount (bill amount minus TDS). Note the UTR/cheque number.</div>
+  </div>
+  <div class="erp-step">
+    <div class="num">2</div>
+    <div class="body"><strong>Mark as paid in ERP.</strong> In Payables tab, find the bill. Click <strong>Mark Paid</strong>. Enter payment date and amount. If TDS was deducted, note it in the narration field.</div>
+  </div>
+  <div class="erp-step">
+    <div class="num">3</div>
+    <div class="body"><strong>Write payment voucher.</strong> Record in Payment Voucher Book: vendor name, bill number, gross amount, TDS amount, net paid, UTR/cheque number, date. Attach bank confirmation printout.</div>
+  </div>
+  <div class="erp-step">
+    <div class="num">4</div>
+    <div class="body"><strong>Stamp physical bill "PAID"</strong> with date and payment reference. This prevents accidental duplicate payment.</div>
+  </div>
+
+  <div class="box box-imp">
+    <p><strong>Duplicate payment risk:</strong> Before making any payment, search the Payables tab for the bill number. If it is already marked "Paid," stop. Call the vendor to confirm before proceeding. Duplicate payments are very difficult to recover.</p>
+  </div>
+
+  <!-- E4 -->
+  <h2 id="e4">Step 4 — Cash Flow Monitoring</h2>
+  <p>The <strong>Cash Flow tab</strong> gives you a real-time view of money coming in (inflows) and going out (outflows). This is the single most important daily view for managing Proalfa's liquidity.</p>
+
+  <h3>Reading the Cash Flow Panel</h3>
+  <ul>
+    <li><strong>Opening Balance:</strong> Today's available cash + bank balance (update manually or via bank reconciliation).</li>
+    <li><strong>Expected Inflows (30 days):</strong> Receivables with due dates in the next 30 days — these are expected but not confirmed until they arrive.</li>
+    <li><strong>Expected Outflows (30 days):</strong> Payables due, salary (from HR), TDS, GST, CC interest — confirmed obligations.</li>
+    <li><strong>Projected Closing Balance:</strong> Opening + Inflows − Outflows. If this goes negative, raise it with management immediately.</li>
+  </ul>
+
+  <h3>When to Flag a Cash Shortfall</h3>
+  <div class="box box-imp">
+    <p><strong>If projected closing balance is negative or below ₹5 lakh</strong> within the next 15 days: raise it with management that day. Do not wait. Options include: drawing down on the CC facility, chasing a large receivable, or deferring a payable with vendor agreement.</p>
+  </div>
+
+  <h3>Updating Cash Flow Entries</h3>
+  <div class="erp-step">
+    <div class="num">1</div>
+    <div class="body"><strong>Opening balance:</strong> At month start, enter the actual bank balance (sum of all accounts). Update mid-month if significantly different from projected.</div>
+  </div>
+  <div class="erp-step">
+    <div class="num">2</div>
+    <div class="body"><strong>Non-invoice inflows</strong> (e.g., loan drawdown, advance from client): Add under <strong>+ Add Inflow</strong> with date, party, and amount.</div>
+  </div>
+  <div class="erp-step">
+    <div class="num">3</div>
+    <div class="body"><strong>Non-bill outflows</strong> (e.g., salary payout, GST payment, TDS deposit, petty cash): Add under <strong>+ Add Outflow</strong>. Categorise correctly (Salary, Tax, Utilities, etc.).</div>
+  </div>
+
+  <!-- E5 -->
+  <h2 id="e5">Step 5 — P&amp;L Monthly Review</h2>
+  <p>The <strong>P&amp;L tab</strong> builds Proalfa's Profit &amp; Loss statement from the data entered across the other tabs. Review it with management at month-end.</p>
+
+  <h3>P&amp;L Structure at Proalfa</h3>
+  <table>
+    <thead><tr><th>Line Item</th><th>Source</th></tr></thead>
+    <tbody>
+      <tr><td><strong>Revenue (Sales)</strong></td><td>Total invoices raised this month (Receivables tab)</td></tr>
+      <tr><td><strong>Less: Direct Costs</strong></td><td>Raw material (steel, plates), fabrication labour, freight, subcontractor costs</td></tr>
+      <tr><td><strong>Gross Profit</strong></td><td>Revenue − Direct Costs</td></tr>
+      <tr><td><strong>Less: Indirect Expenses</strong></td><td>Salaries (from HR), rent, utilities, bank charges, CC interest, insurance premiums</td></tr>
+      <tr><td><strong>Less: Taxes &amp; Depreciation</strong></td><td>GST (net), TDS, advance tax provision, depreciation on machinery</td></tr>
+      <tr><td><strong>Net Profit / (Loss)</strong></td><td>Final bottom line</td></tr>
+    </tbody>
+  </table>
+
+  <h3>Month-End P&amp;L Checklist</h3>
+  <ul class="checklist">
+    <li>Verify all sales invoices for the month are entered in Receivables</li>
+    <li>Verify all vendor bills for the month are entered in Payables</li>
+    <li>Enter salary payout (get total from HR after salary processing)</li>
+    <li>Enter GST net liability paid (from GSTR-3B computation)</li>
+    <li>Enter CC/OD interest for the month (from bank statement)</li>
+    <li>Enter any depreciation provision (check with CA)</li>
+    <li>Review Gross Margin % — if significantly lower than previous months, investigate cost overruns</li>
+    <li>Share P&amp;L screenshot or PDF with management for review</li>
+  </ul>
+
+  <div class="box box-warn">
+    <p><strong>Gross margin benchmark for PEB projects:</strong> A healthy gross margin for fabrication + erection contracts is typically 20–35%. If a month drops below 15%, there is likely a cost overrun or an under-priced project — review project-wise margins in the Projects tab.</p>
+  </div>
+
+  <!-- E6 -->
+  <h2 id="e6">Step 6 — Projects: Margin &amp; Advance Tracker</h2>
+  <p>The <strong>Projects tab</strong> tracks each PEB project's revenue, direct cost, and profitability, as well as advances received from clients and paid to suppliers.</p>
+
+  <h3>Adding / Updating a Project</h3>
+  <div class="erp-step">
+    <div class="num">1</div>
+    <div class="body"><strong>When a new project is confirmed:</strong> Add it under Projects → <strong>+ New Project</strong>. Enter Project Name, Client, Contract Value, estimated direct costs (RM, labour, freight, erection).</div>
+  </div>
+  <div class="erp-step">
+    <div class="num">2</div>
+    <div class="body"><strong>As costs are incurred:</strong> Update actual costs. The system shows budgeted vs. actual margin. Any cost overrun will immediately reduce the margin %.</div>
+  </div>
+  <div class="erp-step">
+    <div class="num">3</div>
+    <div class="body"><strong>When project is completed and invoiced:</strong> Link the final invoice(s) to the project. The ERP then shows total revenue vs. total cost and the net project margin.</div>
+  </div>
+
+  <h3>Advance Tracker</h3>
+  <p>Proalfa both <strong>receives advances</strong> from clients and <strong>pays advances</strong> to raw material suppliers.</p>
+
+  <table>
+    <thead><tr><th>Type</th><th>What to Record</th><th>When to Close</th></tr></thead>
+    <tbody>
+      <tr><td><strong>Advance Received (from client)</strong></td><td>Client name, project, amount, date received, adjustment against which invoice</td><td>When adjusted against final invoice — mark as adjusted</td></tr>
+      <tr><td><strong>Advance Paid (to supplier)</strong></td><td>Supplier name, item/purpose, amount, date paid</td><td>When material delivered and bill raised — match against bill</td></tr>
+    </tbody>
+  </table>
+
+  <div class="box box-warn">
+    <p><strong>Unadjusted advances are a liability.</strong> Client advance sitting unadjusted for more than 90 days = client or project manager needs to be followed up. Supplier advance unadjusted = supplier has not delivered — chase delivery or get refund.</p>
+  </div>
+
+  <!-- E7 -->
+  <h2 id="e7">Step 7 — Credit Line Management</h2>
+  <p>The <strong>Credit Line tab</strong> tracks Proalfa's CC (Cash Credit) and OD (Overdraft) facilities with the bank. Mismanaging this is costly — bank interest is typically 10–14% p.a.</p>
+
+  <h3>Key Metrics to Monitor Daily</h3>
+  <table>
+    <thead><tr><th>Metric</th><th>Where to Find</th><th>Action if Breached</th></tr></thead>
+    <tbody>
+      <tr><td><strong>Utilisation %</strong></td><td>Credit Line tab → Utilisation chart</td><td>If &gt; 90% of limit: inform management; delay non-urgent payments; accelerate receivables collection</td></tr>
+      <tr><td><strong>Available Headroom</strong></td><td>Sanctioned Limit − Current Outstanding</td><td>If headroom &lt; ₹5L: do not draw further without management sign-off</td></tr>
+      <tr><td><strong>Interest Rate</strong></td><td>Facility agreement / bank communication</td><td>Renegotiate annually during renewal; compare with market rates</td></tr>
+      <tr><td><strong>Renewal Date</strong></td><td>Insurance tab → Facilities section</td><td>Start renewal 60 days before expiry; collect documents (audited balance sheet, IT returns, stock statement)</td></tr>
+    </tbody>
+  </table>
+
+  <h3>Recording a Drawdown</h3>
+  <div class="erp-step">
+    <div class="num">1</div>
+    <div class="body"><strong>Draw from CC/OD:</strong> Transfer funds from CC account to current account in net banking. Note the amount and purpose (e.g., "Vendor payment — steel procurement").</div>
+  </div>
+  <div class="erp-step">
+    <div class="num">2</div>
+    <div class="body"><strong>Log in ERP:</strong> Credit Line tab → <strong>+ Drawdown</strong>. Enter amount, purpose, date. This updates the utilisation chart automatically.</div>
+  </div>
+  <div class="erp-step">
+    <div class="num">3</div>
+    <div class="body"><strong>Record repayment:</strong> When receivable is collected and funds transferred back to CC account, log as <strong>Repayment</strong> with amount and date.</div>
+  </div>
+
+  <div class="box box-tip">
+    <p><strong>Best practice:</strong> Use CC/OD only for short-term mismatches (e.g., you need to pay a vendor today but client payment is expected in 15 days). Avoid using it as a substitute for working capital. Every rupee in CC costs interest — repay as soon as the receivable comes in.</p>
+  </div>
+
+  <h3>Bank Submission Requirements (Periodic)</h3>
+  <ul>
+    <li><strong>Stock Statement (monthly or quarterly):</strong> For CC facilities against stock, the bank requires a statement of raw material, WIP, and finished goods. Prepare and submit by bank's deadline (usually by the 7th of the following month).</li>
+    <li><strong>Debtors Statement (monthly or quarterly):</strong> Aging of outstanding receivables. Cross-check with ERP Receivables tab before submitting.</li>
+    <li><strong>Audited Financial Statements (annual):</strong> Required for renewal. Ensure your CA finalises accounts and provides audited P&amp;L and balance sheet on time.</li>
+  </ul>
+
+  <!-- E8 -->
+  <h2 id="e8">Step 8 — Insurance &amp; Collateral Tracker</h2>
+  <p>The <strong>Insurance tab</strong> tracks all insurance policies (fire, marine, machinery, workmen's compensation, etc.) and the bank collateral position (property mortgaged / pledged against credit facilities).</p>
+
+  <h3>Insurance Policy Tracker</h3>
+  <div class="erp-step">
+    <div class="num">1</div>
+    <div class="body"><strong>Adding a policy:</strong> Insurance tab → <strong>+ Add Policy</strong>. Enter insurer name, policy number, type (Fire / Marine / WC / Machinery), sum insured, premium, start date, end date.</div>
+  </div>
+  <div class="erp-step">
+    <div class="num">2</div>
+    <div class="body"><strong>Renewal alerts:</strong> The tab shows a "Renewal Alerts" section for policies expiring in the next 60 days. Start the renewal process as soon as an alert appears.</div>
+  </div>
+  <div class="erp-step">
+    <div class="num">3</div>
+    <div class="body"><strong>Recording premium payment:</strong> When premium is paid, mark the policy as renewed in ERP and enter the new end date. Record the outflow in Cash Flow tab as well.</div>
+  </div>
+
+  <h3>Renewal Procedure</h3>
+  <ul class="checklist">
+    <li>60 days before expiry: Contact broker/insurer for renewal quote</li>
+    <li>Compare premium with last year and market alternatives</li>
+    <li>Confirm sum insured reflects current asset value (especially for plant &amp; machinery — get updated valuation if needed)</li>
+    <li>Get bank's endorsement letter if the policy is assigned to the bank (required for CC/OD collateral)</li>
+    <li>Pay premium before expiry — lapse in coverage is a serious risk, especially for fire and marine</li>
+    <li>File renewed policy document in Insurance File and update ERP</li>
+    <li>Send copy of renewed policy to bank if required for credit facility compliance</li>
+  </ul>
+
+  <h3>Bank Collateral Summary</h3>
+  <p>The Insurance tab also shows the bank collateral position — property mortgaged, machinery hypothecated, and stock pledged against credit facilities. Keep this updated whenever:</p>
+  <ul>
+    <li>A new credit facility is sanctioned or an existing one is modified.</li>
+    <li>A property mortgage is released or a new property is added.</li>
+    <li>The bank changes the terms of hypothecation (e.g., adds a new asset category).</li>
+  </ul>
+
+  <div class="box box-imp">
+    <p><strong>Insurance lapse = bank default.</strong> Most CC/OD facilities require the borrower to maintain insurance on hypothecated assets and send proof of renewal to the bank annually. If you let a policy lapse, the bank can treat it as a covenant breach and recall the facility. Never let it happen.</p>
+  </div>
+
+  <hr>
+
+  <h3>Quick Reference — Finance Dashboard Navigation</h3>
+  <table>
+    <thead><tr><th>Tab</th><th>Purpose</th><th>Check Frequency</th></tr></thead>
+    <tbody>
+      <tr><td><strong>Overview</strong></td><td>Daily financial briefing — outstanding receivables, upcoming payables, recent vouchers</td><td>Every morning</td></tr>
+      <tr><td><strong>Receivables</strong></td><td>All client invoices pending payment, aging, collection recording</td><td>Daily / every collection</td></tr>
+      <tr><td><strong>Payables</strong></td><td>All vendor bills, due dates, payment recording</td><td>Daily / every payment</td></tr>
+      <tr><td><strong>Cash Flow</strong></td><td>Inflows vs outflows, projected balance, shortfall alerts</td><td>Daily</td></tr>
+      <tr><td><strong>P&amp;L</strong></td><td>Monthly profit &amp; loss, revenue, expenses, net margin</td><td>Month-end review</td></tr>
+      <tr><td><strong>Projects</strong></td><td>Project-wise revenue, cost, margin, advance tracker</td><td>Weekly / per project milestone</td></tr>
+      <tr><td><strong>Credit Line</strong></td><td>CC/OD utilisation, drawdown log, facility details</td><td>Daily (utilisation) / monthly (interest)</td></tr>
+      <tr><td><strong>Insurance</strong></td><td>Policy register, renewal alerts, bank collateral summary</td><td>Monthly (renewals) / annual review</td></tr>
+    </tbody>
+  </table>
+
+  <div class="box box-rule" style="margin-top:28px">
+    <p><strong>End of guide.</strong> For questions about specific ERP fields or if you encounter a data discrepancy you cannot resolve, escalate to management. Do not guess or overwrite data you are unsure about — incorrect financial records are harder to fix than delayed ones.</p>
+  </div>
+
+</div><!-- /wrap -->
+</body>
+</html>

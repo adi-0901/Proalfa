@@ -1,0 +1,536 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>HR Operations Guide — Proalfa Dynamic</title>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0;}
+  :root{
+    --text:#111;--text2:#555;--muted:#888;--border:#e5e5e5;
+    --bg:#f5f5f3;--card:#fff;--accent:#111;
+    --green:#1a9e5c;--amber:#b45309;--blue:#1d4ed8;--red:#b91c1c;
+  }
+  body{font-family:-apple-system,BlinkMacSystemFont,'Helvetica Neue',Arial,sans-serif;
+    background:var(--bg);color:var(--text);line-height:1.6;font-size:14px;}
+
+  /* Toolbar */
+  .toolbar{position:sticky;top:0;z-index:50;background:#fff;border-bottom:1px solid var(--border);
+    padding:10px 24px;display:flex;align-items:center;justify-content:space-between;}
+  .toolbar-title{font-size:13px;font-weight:600;color:var(--text2);}
+  .print-btn{padding:7px 16px;background:#111;color:#fff;border:none;border-radius:6px;
+    font-size:12px;cursor:pointer;font-family:inherit;}
+
+  /* Layout */
+  .wrap{max-width:860px;margin:0 auto;padding:40px 24px 80px;}
+
+  /* Header */
+  .doc-header{margin-bottom:40px;padding-bottom:24px;border-bottom:2px solid #111;}
+  .doc-header h1{font-size:28px;font-weight:800;letter-spacing:-.5px;line-height:1.1;margin-bottom:6px;}
+  .doc-header .sub{font-size:13px;color:var(--muted);}
+  .doc-header .meta{display:flex;gap:24px;margin-top:14px;flex-wrap:wrap;}
+  .doc-header .meta span{font-size:11px;color:var(--text2);background:#f0f0ee;padding:3px 10px;border-radius:20px;}
+
+  /* TOC */
+  .toc{background:#fafaf8;border:1px solid var(--border);border-radius:8px;padding:20px 24px;margin-bottom:36px;}
+  .toc h3{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);margin-bottom:12px;}
+  .toc ol{padding-left:18px;}
+  .toc li{margin-bottom:4px;}
+  .toc a{color:var(--blue);text-decoration:none;font-size:13px;}
+  .toc a:hover{text-decoration:underline;}
+  .toc .toc-sub{margin-top:2px;margin-left:16px;list-style:disc;}
+  .toc .toc-sub li{font-size:12px;color:var(--text2);}
+
+  /* Parts */
+  .part-header{background:#111;color:#fff;padding:10px 16px;border-radius:6px;
+    font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.15em;
+    margin:40px 0 20px;}
+
+  /* Sections */
+  h2{font-size:19px;font-weight:700;margin:32px 0 12px;padding-top:8px;
+    border-bottom:2px solid #111;padding-bottom:6px;}
+  h3{font-size:14px;font-weight:700;margin:20px 0 8px;color:var(--text);}
+  h4{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;
+    color:var(--muted);margin:16px 0 6px;}
+  p{margin-bottom:10px;color:var(--text2);}
+  ul,ol{padding-left:20px;margin-bottom:10px;}
+  li{margin-bottom:4px;color:var(--text2);}
+  strong{color:var(--text);}
+
+  /* Callout boxes */
+  .box{border-radius:8px;padding:14px 16px;margin:14px 0;font-size:13px;}
+  .box-tip{background:#f0fdf4;border-left:3px solid var(--green);}
+  .box-warn{background:#fffbeb;border-left:3px solid #f59e0b;}
+  .box-rule{background:#eff6ff;border-left:3px solid var(--blue);}
+  .box-imp{background:#fef2f2;border-left:3px solid #ef4444;}
+  .box p{margin-bottom:4px;color:inherit;}
+  .box strong{color:inherit;}
+
+  /* ERP steps */
+  .erp-step{display:flex;gap:14px;margin:10px 0;align-items:flex-start;}
+  .erp-step .num{background:#111;color:#fff;border-radius:50%;width:22px;height:22px;
+    display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;
+    flex-shrink:0;margin-top:1px;}
+  .erp-step .body{font-size:13px;color:var(--text2);}
+  .erp-step .body strong{color:var(--text);}
+
+  /* Path breadcrumb */
+  .path{display:inline-flex;align-items:center;gap:4px;background:#f5f5f3;
+    border:1px solid var(--border);border-radius:6px;padding:3px 10px;
+    font-size:11px;font-weight:600;color:var(--text);margin:4px 0;}
+  .path span{color:var(--muted);}
+
+  /* Table */
+  table{width:100%;border-collapse:collapse;margin:14px 0;font-size:13px;}
+  th{text-align:left;padding:8px 10px;font-size:10px;font-weight:700;
+    text-transform:uppercase;letter-spacing:.06em;color:var(--muted);
+    border-bottom:2px solid #111;background:#fafaf8;}
+  td{padding:9px 10px;border-bottom:1px solid var(--border);color:var(--text2);}
+  tr:last-child td{border-bottom:none;}
+  td strong{color:var(--text);}
+
+  /* Badge */
+  .badge{display:inline-block;padding:2px 8px;border-radius:20px;font-size:10px;font-weight:700;
+    text-transform:uppercase;letter-spacing:.04em;}
+  .badge-green{background:#dcfce7;color:#166534;}
+  .badge-amber{background:#fef3c7;color:#92400e;}
+  .badge-blue{background:#dbeafe;color:#1e3a8a;}
+  .badge-red{background:#fee2e2;color:#991b1b;}
+
+  /* Checklist */
+  .checklist{list-style:none;padding:0;}
+  .checklist li{padding:7px 0 7px 28px;position:relative;border-bottom:1px solid var(--border);
+    font-size:13px;color:var(--text2);}
+  .checklist li:last-child{border-bottom:none;}
+  .checklist li::before{content:"☐";position:absolute;left:0;color:#ccc;font-size:15px;}
+
+  /* Divider */
+  hr{border:none;border-top:1px solid var(--border);margin:28px 0;}
+
+  @media print{
+    .toolbar{display:none;}
+    body{background:#fff;}
+    .wrap{padding:20px;}
+    .part-header{-webkit-print-color-adjust:exact;print-color-adjust:exact;}
+  }
+</style>
+</head>
+<body>
+
+<div class="toolbar">
+  <div class="toolbar-title">Proalfa Dynamic — HR Operations Guide</div>
+  <button class="print-btn" onclick="window.print()">Print / Save PDF</button>
+</div>
+
+<div class="wrap">
+
+  <!-- HEADER -->
+  <div class="doc-header">
+    <h1>HR Operations Guide</h1>
+    <div class="sub">Proalfa Dynamic Private Limited — Internal Use Only</div>
+    <div class="meta">
+      <span>Role: HR Executive</span>
+      <span>Covers: Full Employee Lifecycle</span>
+      <span>ERP: Proalfa Internal Portal</span>
+    </div>
+  </div>
+
+  <!-- TOC -->
+  <div class="toc">
+    <h3>Contents</h3>
+    <ol>
+      <li><a href="#part-a">Part A — The HR Role at Proalfa</a>
+        <ul class="toc-sub">
+          <li><a href="#s1">Responsibilities Overview</a></li>
+          <li><a href="#s2">Physical File Management</a></li>
+          <li><a href="#s3">Monthly Compliance Calendar</a></li>
+          <li><a href="#s4">Statutory Deductions Reference</a></li>
+          <li><a href="#s5">Employee Relations & Discipline</a></li>
+        </ul>
+      </li>
+      <li><a href="#part-b">Part B — ERP Guide: End to End</a>
+        <ul class="toc-sub">
+          <li><a href="#e1">Step 1 — Hiring Pipeline</a></li>
+          <li><a href="#e2">Step 2 — Onboarding & KYC</a></li>
+          <li><a href="#e3">Step 3 — Attendance Setup</a></li>
+          <li><a href="#e4">Step 4 — Daily Attendance</a></li>
+          <li><a href="#e5">Step 5 — Leave Management</a></li>
+          <li><a href="#e6">Step 6 — Monthly Salary</a></li>
+          <li><a href="#e7">Step 7 — Increments & Letters</a></li>
+          <li><a href="#e8">Step 8 — Exit Process</a></li>
+        </ul>
+      </li>
+    </ol>
+  </div>
+
+  <!-- ═══ PART A ═══ -->
+  <div class="part-header" id="part-a">Part A — The HR Role at Proalfa Dynamic</div>
+
+  <!-- S1 -->
+  <h2 id="s1">1. Responsibilities Overview</h2>
+  <p>As HR at Proalfa, your role spans four broad areas. Each is described in detail in this guide.</p>
+
+  <table>
+    <thead><tr><th>Area</th><th>What it Covers</th><th>Frequency</th></tr></thead>
+    <tbody>
+      <tr><td><strong>Recruitment & Onboarding</strong></td><td>Hiring, KYC documents, onboarding checklist, issuing appointment letters</td><td>As needed</td></tr>
+      <tr><td><strong>Attendance & Leave</strong></td><td>Monitoring daily attendance, approving site punches and leave requests, flagging discrepancies</td><td>Daily</td></tr>
+      <tr><td><strong>Payroll & Compliance</strong></td><td>Monthly salary processing, PF/ESIC/PT deductions, advance tracking, salary slip distribution</td><td>Monthly</td></tr>
+      <tr><td><strong>Records & Employee Relations</strong></td><td>Physical files, letters, disciplinary records, exit formalities</td><td>Ongoing</td></tr>
+    </tbody>
+  </table>
+
+  <!-- S2 -->
+  <h2 id="s2">2. Physical File Management</h2>
+  <p>Every employee must have a <strong>physical file</strong> maintained in a dedicated folder/binder. Keep files locked in a cabinet. Label each file with the employee name, ID, and date of joining.</p>
+
+  <h3>What Goes in Each Employee File</h3>
+  <ul>
+    <li><strong>Aadhar Card</strong> — Self-attested copy. Mandatory.</li>
+    <li><strong>PAN Card</strong> — Self-attested copy. Required for TDS. If PAN is not available, TDS is deducted at 20%.</li>
+    <li><strong>Passport Photo</strong> — Minimum 2 copies. One for ID card, one for file.</li>
+    <li><strong>Bank Account Details</strong> — Cancelled cheque or passbook front page copy. Required for salary transfer.</li>
+    <li><strong>Educational / Skill Certificates</strong> — Original verification not required, attested copies acceptable.</li>
+    <li><strong>Previous Employment Documents</strong> — Relieving letter or experience letter if applicable.</li>
+    <li><strong>Appointment Letter (signed copy)</strong> — One copy stays in the file, one goes to the employee.</li>
+    <li><strong>Offer Letter (if issued separately)</strong></li>
+    <li><strong>PF Declaration Form (Form 2)</strong> — For nominees. Required when enrolling in PF.</li>
+    <li><strong>ESIC Declaration</strong> — If employee is ESIC-eligible (gross ≤ ₹21,000).</li>
+    <li><strong>Emergency Contact Form</strong> — Name, relationship, phone number.</li>
+    <li><strong>Increment Letters</strong> — Filed chronologically.</li>
+    <li><strong>Warning / Show Cause Letters</strong> — If any disciplinary actions taken.</li>
+    <li><strong>Resignation / Termination Letter</strong> — Filed at exit.</li>
+  </ul>
+
+  <div class="box box-tip">
+    <strong>File Tip:</strong> Use a plastic document separator inside each file to divide sections: (1) KYC Docs, (2) Employment Letters, (3) Compliance Forms, (4) Disciplinary/Exit. This makes audits easy.
+  </div>
+
+  <h3>File Register</h3>
+  <p>Maintain a simple <strong>File Register</strong> — a spreadsheet or ruled notebook — listing every employee, their file number, and the checklist of documents received vs pending. Cross-check this with the ERP's onboarding checklist monthly.</p>
+
+  <!-- S3 -->
+  <h2 id="s3">3. Monthly Compliance Calendar</h2>
+  <p>These are non-negotiable deadlines every month. Missing them attracts penalties.</p>
+
+  <table>
+    <thead><tr><th>Deadline</th><th>Task</th><th>Filed With</th><th>How ERP Helps</th></tr></thead>
+    <tbody>
+      <tr>
+        <td><strong>7th of month</strong></td>
+        <td>Salary disbursement to all employees</td>
+        <td>Internal</td>
+        <td>Generate salary sheet from Attendance dashboard → verify net pay → initiate bank transfers</td>
+      </tr>
+      <tr>
+        <td><strong>15th of month</strong></td>
+        <td>PF (EPF) remittance for previous month</td>
+        <td>EPFO portal</td>
+        <td>ERP calculates employee PF (12% basic) and employer PF (12% basic). Export salary sheet for figures.</td>
+      </tr>
+      <tr>
+        <td><strong>15th of month</strong></td>
+        <td>ESIC contribution for previous month</td>
+        <td>ESIC portal</td>
+        <td>ERP shows ESIC deduction (0.75% of gross for employee, 3.25% for employer) for eligible employees.</td>
+      </tr>
+      <tr>
+        <td><strong>Before 7th</strong></td>
+        <td>Professional Tax (PT) payment</td>
+        <td>State PT office / portal</td>
+        <td>ERP deducts ₹200/month for PT-applicable employees. Collect and remit.</td>
+      </tr>
+      <tr>
+        <td><strong>Quarterly</strong></td>
+        <td>TDS return (Form 24Q)</td>
+        <td>Income Tax / CA</td>
+        <td>ERP tracks monthly TDS deducted per employee. Share with CA for quarterly filing.</td>
+      </tr>
+      <tr>
+        <td><strong>April</strong></td>
+        <td>PF Annual Return (Form 3A/6A)</td>
+        <td>EPFO</td>
+        <td>Export full year salary data from ERP for CA/consultant.</td>
+      </tr>
+      <tr>
+        <td><strong>End of year</strong></td>
+        <td>Issue Form 16 to employees</td>
+        <td>Employees</td>
+        <td>TDS figures available in ERP salary records. CA prepares Form 16.</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="box box-warn">
+    <strong>Important:</strong> PF and ESIC remittances are due by the <strong>15th of the following month</strong>. Late payment attracts interest (12% p.a. for PF) and penalties. Set a reminder on the 10th to prepare.
+  </div>
+
+  <!-- S4 -->
+  <h2 id="s4">4. Statutory Deductions Reference</h2>
+  <p>These are the deductions the ERP calculates. Understand what each is so you can explain salary slips to employees.</p>
+
+  <table>
+    <thead><tr><th>Deduction</th><th>Who it Applies To</th><th>Rate</th><th>Notes</th></tr></thead>
+    <tbody>
+      <tr>
+        <td><strong>PF (Employee)</strong></td>
+        <td>PF-enrolled employees</td>
+        <td>12% of Basic Salary</td>
+        <td>Capped at ₹15,000 basic unless "actual" wage cap is set. Goes to employee's EPF account.</td>
+      </tr>
+      <tr>
+        <td><strong>PF (Employer)</strong></td>
+        <td>PF-enrolled employees</td>
+        <td>12% of Basic Salary</td>
+        <td>Company's contribution. Not deducted from salary — it's an additional cost to company.</td>
+      </tr>
+      <tr>
+        <td><strong>ESIC (Employee)</strong></td>
+        <td>Gross ≤ ₹21,000/month</td>
+        <td>0.75% of Gross</td>
+        <td>Provides medical insurance. Employer contributes 3.25% additionally.</td>
+      </tr>
+      <tr>
+        <td><strong>Professional Tax (PT)</strong></td>
+        <td>PT-applicable employees</td>
+        <td>₹200/month</td>
+        <td>Maharashtra state tax. Applicable to most employees above a threshold.</td>
+      </tr>
+      <tr>
+        <td><strong>TDS</strong></td>
+        <td>Tax-liable employees (higher salary)</td>
+        <td>As computed by CA</td>
+        <td>Editable per employee in salary sheet. Default 0. Update monthly if applicable.</td>
+      </tr>
+      <tr>
+        <td><strong>Advance Recovery</strong></td>
+        <td>Employees with outstanding advances</td>
+        <td>As agreed</td>
+        <td>Log in Advances tab. ERP auto-deducts in that month's salary.</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <!-- S5 -->
+  <h2 id="s5">5. Employee Relations & Discipline</h2>
+
+  <h3>Attendance Issues</h3>
+  <ul>
+    <li>Habitual late arrivals (more than 3 times/month): Issue a <strong>verbal warning</strong> first, then written warning if repeated.</li>
+    <li>Unapproved absences: Mark as unpaid. Notify the employee in writing if it becomes a pattern.</li>
+    <li>No-show without information for 3+ continuous days: Send a <strong>Show Cause Notice</strong> (SCN) by registered post and WhatsApp.</li>
+  </ul>
+
+  <h3>Leave Abuse</h3>
+  <ul>
+    <li>Employees get 1 paid leave per month. Any additional absence is unpaid.</li>
+    <li>If sick leave is suspected to be false, you may request a medical certificate for absences of 2+ days.</li>
+    <li>Consistent Monday/Friday absences are a red flag — track in ERP monthly view.</li>
+  </ul>
+
+  <h3>Disciplinary Process</h3>
+  <ol>
+    <li><strong>Verbal Warning</strong> — Documented internally by HR, noted in employee file.</li>
+    <li><strong>Written Warning</strong> — Formal letter, employee signs acknowledgement. Copy in file.</li>
+    <li><strong>Show Cause Notice (SCN)</strong> — Employee must respond in writing within 48–72 hrs.</li>
+    <li><strong>Domestic Enquiry</strong> — If the matter is serious (theft, misconduct). Requires a proper enquiry officer.</li>
+    <li><strong>Termination</strong> — Only after due process. Give notice or pay in lieu as per appointment letter.</li>
+  </ol>
+
+  <div class="box box-rule">
+    <strong>Rule:</strong> Never terminate an employee verbally or without documentation. All disciplinary actions must go through at least a Show Cause Notice and the employee's written response. This protects the company from labour disputes.
+  </div>
+
+  <h3>Exit Formalities</h3>
+  <ul>
+    <li>Collect <strong>resignation letter</strong> in writing (WhatsApp screenshot acceptable for workers).</li>
+    <li>Serve notice period as per appointment letter (7 days probation / 30 days post-confirmation) or recover notice pay from full and final settlement.</li>
+    <li>Complete <strong>No-Objection Checklist</strong>: PPE returned, tools returned, ID card returned, pending advances cleared.</li>
+    <li>Prepare <strong>Full & Final Settlement</strong> — unpaid salary + OT + leave encashment (if applicable) minus any recoveries.</li>
+    <li>Issue <strong>Relieving Letter</strong> and <strong>Experience Letter</strong> within 15 days of last working day.</li>
+    <li>Update ERP: change employee status to "resigned" or "terminated" in HR Dashboard.</li>
+    <li>Remove employee from ZKTeco attendance machine.</li>
+  </ul>
+
+  <!-- ═══ PART B ═══ -->
+  <div class="part-header" id="part-b">Part B — ERP Guide: End to End</div>
+
+  <div class="box box-tip">
+    <strong>How to access the ERP:</strong> Open <strong>your company domain /staff</strong> on any browser. HR Dashboard requires the management password. Attendance & Salary is at /staff/attendance.html. Keep the password confidential — do not share with non-management staff.
+  </div>
+
+  <!-- E1 -->
+  <h2 id="e1">Step 1 — Hiring Pipeline</h2>
+  <p>When a new position is open, start here before any other ERP step.</p>
+
+  <div class="path">HR Dashboard <span>›</span> Hiring Pipeline tab</div>
+
+  <h3>Creating a Job Position</h3>
+  <div class="erp-step"><div class="num">1</div><div class="body">Click <strong>＋ New Position</strong>. Fill in Title, Department, Location, and Type (full-time/contract). Save.</div></div>
+  <div class="erp-step"><div class="num">2</div><div class="body">Share the position details with candidates via WhatsApp or in person.</div></div>
+
+  <h3>Tracking Candidates</h3>
+  <div class="erp-step"><div class="num">3</div><div class="body">Click <strong>＋ Add Candidate</strong>. Fill name, phone, applied-for role, and stage (Applied / Screening / Interview / Offered / Hired / Rejected).</div></div>
+  <div class="erp-step"><div class="num">4</div><div class="body">As the candidate progresses, update their stage. Notes field is useful for interview observations.</div></div>
+  <div class="erp-step"><div class="num">5</div><div class="body">Once a candidate is <strong>Hired</strong>, proceed to Step 2 — Onboarding.</div></div>
+
+  <!-- E2 -->
+  <h2 id="e2">Step 2 — Onboarding & KYC</h2>
+
+  <div class="path">HR Dashboard <span>›</span> Employees tab <span>›</span> ＋ Add Employee</div>
+
+  <h3>Adding the Employee</h3>
+  <div class="erp-step"><div class="num">1</div><div class="body">Fill <strong>Employee ID</strong> (assign a unique number — this must match the number you'll program on the ZKTeco machine), Full Name, Designation, Department, Date of Joining.</div></div>
+  <div class="erp-step"><div class="num">2</div><div class="body">Set <strong>Employment Type</strong> (Permanent / Contract / Daily Wage / Trainee) and <strong>Status</strong> (Probation for new joiners).</div></div>
+  <div class="erp-step"><div class="num">3</div><div class="body">Enter <strong>Monthly CTC</strong> and <strong>Basic Salary</strong> (typically 50% of CTC). Set Probation End Date.</div></div>
+  <div class="erp-step"><div class="num">4</div><div class="body">Toggle applicable statutory deductions: <strong>PF applicable, ESIC applicable, PT applicable</strong>. Set EPF wage cap.</div></div>
+  <div class="erp-step"><div class="num">5</div><div class="body">Set <strong>Weekly Off</strong> day (Thursday for most workers at Proalfa).</div></div>
+  <div class="erp-step"><div class="num">6</div><div class="body">Click <strong>Save Employee</strong>.</div></div>
+
+  <h3>Uploading KYC Documents</h3>
+  <div class="erp-step"><div class="num">7</div><div class="body">Open the employee's detail card. Under <strong>Documents</strong>, mark each document as received: Aadhar, PAN, Photo, Bank Proof, Certificates.</div></div>
+  <div class="erp-step"><div class="num">8</div><div class="body">Physical copies go in the employee's physical file (see Part A).</div></div>
+
+  <h3>Onboarding Checklist</h3>
+  <div class="erp-step"><div class="num">9</div><div class="body">Go to <strong>Onboarding tab</strong>. Find the employee and tick off each task: offer letter signed, induction done, PPE issued, ID card issued, added to attendance system, added to payroll.</div></div>
+  <div class="erp-step"><div class="num">10</div><div class="body">Print the <strong>Registration Form</strong> (button in employee panel) — have the employee sign it. File the original.</div></div>
+  <div class="erp-step"><div class="num">11</div><div class="body">Print and issue the <strong>Appointment Letter</strong> (button in employee panel). Get employee signature on the office copy. File it.</div></div>
+
+  <!-- E3 -->
+  <h2 id="e3">Step 3 — Setting Up Attendance</h2>
+  <p>After adding the employee in HR Dashboard, sync them to the Attendance system.</p>
+
+  <div class="path">Attendance & Salary <span>›</span> Employees tab <span>›</span> ↻ Sync from HR</div>
+
+  <div class="erp-step"><div class="num">1</div><div class="body">Open Attendance & Salary. Go to <strong>Employees tab</strong> and click <strong>↻ Sync from HR</strong>. This pulls all active employees from HR Dashboard into the attendance system.</div></div>
+  <div class="erp-step"><div class="num">2</div><div class="body">Verify the new employee appears in the list with correct designation, type, and OT eligibility.</div></div>
+
+  <h3>ZKTeco Machine Setup</h3>
+  <div class="erp-step"><div class="num">3</div><div class="body">On the ZKTeco K40 Pro machine: go to <strong>User Management → Add User</strong>. Set the User ID to exactly match the Employee ID in the ERP (e.g., if ERP ID is 7, set machine User ID to 7).</div></div>
+  <div class="erp-step"><div class="num">4</div><div class="body">Enrol the employee's fingerprint (enrol 2 fingers — index and middle — for reliability).</div></div>
+  <div class="erp-step"><div class="num">5</div><div class="body">Test by having the employee punch once — verify it appears correctly in the Today view after the next sync.</div></div>
+
+  <div class="box box-warn">
+    <strong>Critical:</strong> The Employee ID in ERP and the User ID on the ZKTeco machine <strong>must match exactly</strong>. If they don't match, that employee's machine punches will be ignored by the sync script.
+  </div>
+
+  <!-- E4 -->
+  <h2 id="e4">Step 4 — Daily Attendance</h2>
+
+  <h3>What Gets Auto-tracked</h3>
+  <ul>
+    <li>Machine syncs every minute via cron. Records appear in <strong>Today</strong> view within 1–2 minutes of punching.</li>
+    <li>The system auto-classifies: <span class="badge badge-green">Present</span> <span class="badge badge-amber">Half Day</span> <span class="badge badge-red">Late</span> based on punch times.</li>
+    <li>Check-in after <strong>10:00 AM</strong> → flagged Late.</li>
+    <li>Check-in after <strong>12:00 PM</strong> or check-out before <strong>3:00 PM</strong> → Half Day.</li>
+    <li>Check-out after <strong>6:00 PM</strong> → OT hours calculated automatically.</li>
+    <li>Punches before <strong>5:00 AM</strong> are attributed to the previous day's shift (for night-shift OT).</li>
+  </ul>
+
+  <h3>Your Daily Routine</h3>
+  <div class="erp-step"><div class="num">1</div><div class="body">Each morning, open <strong>Today tab</strong> in Attendance & Salary. Check for absent employees and note names.</div></div>
+  <div class="erp-step"><div class="num">2</div><div class="body">Check <strong>✅ Approvals tab</strong> for pending site attendance requests. For each request: click the 📍 location link to verify the employee is genuinely on site. Approve or reject accordingly.</div></div>
+  <div class="erp-step"><div class="num">3</div><div class="body">If someone was absent due to an approved leave, their leave status will reflect in the monthly view once leave is approved.</div></div>
+
+  <h3>Manual Corrections</h3>
+  <p>If a punch is wrong (wrong time, missed punch) and the employee cannot use the site portal, you can correct it directly in <strong>Supabase → attendance table</strong>. Edit the <code>check_in</code>, <code>check_out</code>, or <code>status</code> field for that emp_id + date record. Always note the reason in your HR log.</p>
+
+  <!-- E5 -->
+  <h2 id="e5">Step 5 — Leave Management</h2>
+
+  <h3>Employee Submits Leave</h3>
+  <div class="erp-step"><div class="num">1</div><div class="body">Employee opens <strong>/staff → Leave Request</strong> on their phone. Enters Employee ID, leave type, dates, reason. Submits.</div></div>
+  <div class="erp-step"><div class="num">2</div><div class="body">Request appears in HR Dashboard → <strong>Leave Tracker tab</strong> as <span class="badge badge-amber">Pending</span>.</div></div>
+
+  <h3>HR Reviews & Approves</h3>
+  <div class="erp-step"><div class="num">3</div><div class="body">Check the request: dates, leave type, days count. Verify the employee has not exhausted their leave balance (visible in Leave Balance Summary below the table).</div></div>
+  <div class="erp-step"><div class="num">4</div><div class="body">Click <strong>✓</strong> to approve or <strong>✕</strong> to reject. The leave balance updates automatically on approval.</div></div>
+
+  <h3>Leave Policy Reference</h3>
+  <table>
+    <thead><tr><th>Leave Type</th><th>Entitlement (post-confirmation)</th><th>Notes</th></tr></thead>
+    <tbody>
+      <tr><td><strong>CL — Casual Leave</strong></td><td>12 days/year</td><td>Max 3 consecutive days. Cannot be carried forward.</td></tr>
+      <tr><td><strong>SL — Sick Leave</strong></td><td>8 days/year</td><td>Medical certificate required for 2+ days.</td></tr>
+      <tr><td><strong>EL — Earned Leave</strong></td><td>15 days/year</td><td>Accrues at 1.25 days/month. Can be carried forward up to 30 days.</td></tr>
+      <tr><td><strong>LWP — Leave Without Pay</strong></td><td>As approved</td><td>Full day deducted from salary. Use when all paid leaves exhausted.</td></tr>
+      <tr><td><strong>Paid Leave (auto)</strong></td><td>1 day/month</td><td>ERP automatically covers first absent day of each month as PL.</td></tr>
+    </tbody>
+  </table>
+
+  <!-- E6 -->
+  <h2 id="e6">Step 6 — Monthly Salary Processing</h2>
+  <p>Run this process between the <strong>1st and 5th</strong> of each month for the previous month.</p>
+
+  <div class="path">Attendance & Salary <span>›</span> Salary Sheet tab</div>
+
+  <div class="erp-step"><div class="num">1</div><div class="body">Select the correct <strong>Month and Year</strong>. Click <strong>Generate Salary Sheet</strong>.</div></div>
+  <div class="erp-step"><div class="num">2</div><div class="body">ERP calculates for each employee: Working Days, Present Days, Half Days, Absent (unpaid), Gross, OT Pay, PF, ESIC, PT, TDS, Advance Deductions, Net Wages.</div></div>
+  <div class="erp-step"><div class="num">3</div><div class="body">Review the <strong>TDS column</strong> — adjust TDS amounts if your CA has given updated monthly figures. (Click directly in the TDS cell to edit.)</div></div>
+  <div class="erp-step"><div class="num">4</div><div class="body">Log any <strong>salary advances</strong> in the Advances tab before generating (they auto-deduct).</div></div>
+  <div class="erp-step"><div class="num">5</div><div class="body">Click <strong>Post to Financials</strong> to record the salary in the Finance system.</div></div>
+  <div class="erp-step"><div class="num">6</div><div class="body">Click <strong>Export CSV</strong> to download the salary sheet — share with accounts for bank transfer processing.</div></div>
+  <div class="erp-step"><div class="num">7</div><div class="body">Click <strong>Generate Salary Slips</strong> → Print/Save each slip as PDF → distribute to employees (WhatsApp is fine).</div></div>
+
+  <h3>Checklist Before Finalising Salary</h3>
+  <ul class="checklist">
+    <li>All attendance for the month is correct — no missing punches or wrong statuses</li>
+    <li>Leaves are approved/rejected in Leave Tracker</li>
+    <li>Advances for the month are entered in the Advances tab</li>
+    <li>Any new joiners or exits during the month have their dates correctly set</li>
+    <li>TDS amounts confirmed with CA (if applicable)</li>
+    <li>OT hours look reasonable — spot-check 2–3 workers</li>
+  </ul>
+
+  <div class="box box-imp">
+    <strong>Never post to financials until you've verified the attendance data.</strong> Once salary records are saved, corrections require manual Supabase edits. A few minutes of verification saves a lot of trouble.
+  </div>
+
+  <h3>After Salary is Run</h3>
+  <ul>
+    <li>Keep a printed copy of the salary sheet in the <strong>monthly compliance folder</strong> (one folder per month).</li>
+    <li>File individual salary slips in each employee's physical file (or note that slip was sent digitally).</li>
+    <li>Prepare PF and ESIC payment challans using ERP figures — remit by 15th.</li>
+    <li>Prepare PT payment — remit before 7th.</li>
+  </ul>
+
+  <!-- E7 -->
+  <h2 id="e7">Step 7 — Increments & Letters</h2>
+
+  <h3>Giving an Increment</h3>
+  <div class="erp-step"><div class="num">1</div><div class="body">In <strong>HR Dashboard → Employees</strong>, open the employee's card. Update the <strong>Monthly Salary</strong> field to the new CTC. Save.</div></div>
+  <div class="erp-step"><div class="num">2</div><div class="body">Sync to Attendance: go to <strong>Attendance → Employees → ↻ Sync from HR</strong>. The new salary is now active from the next salary run.</div></div>
+  <div class="erp-step"><div class="num">3</div><div class="body">Click <strong>📈 Increment Letter</strong> in the employee's HR card. Enter the <strong>previous CTC</strong> when prompted. The letter is generated with old CTC, new CTC, increment amount, and percentage.</div></div>
+  <div class="erp-step"><div class="num">4</div><div class="body">Print the letter → get employee signature on office copy → file it → send employee their copy.</div></div>
+
+  <div class="box box-tip">
+    <strong>Best Practice:</strong> Update the salary in ERP <em>after</em> the last salary run of the old CTC month. This way the old month is processed at the old rate and the new month starts at the new rate automatically.
+  </div>
+
+  <!-- E8 -->
+  <h2 id="e8">Step 8 — Exit Process</h2>
+
+  <h3>When an Employee Leaves</h3>
+  <div class="erp-step"><div class="num">1</div><div class="body">Collect <strong>resignation letter</strong> in writing. File it immediately.</div></div>
+  <div class="erp-step"><div class="num">2</div><div class="body">Note the last working day. Ensure notice period is served or notice pay recovery is agreed.</div></div>
+  <div class="erp-step"><div class="num">3</div><div class="body">Run a <strong>No-Objection checklist</strong>: PPE, tools, ID card returned; no outstanding advances; all dues settled.</div></div>
+  <div class="erp-step"><div class="num">4</div><div class="body">Process the <strong>Full & Final salary</strong> in the Salary Sheet for the exit month (attendance up to last working day is auto-tracked).</div></div>
+  <div class="erp-step"><div class="num">5</div><div class="body">In <strong>HR Dashboard → employee card</strong>, update Status to <strong>Resigned</strong> or <strong>Terminated</strong>. This removes them from future salary runs.</div></div>
+  <div class="erp-step"><div class="num">6</div><div class="body">Run <strong>↻ Sync from HR</strong> in Attendance — they will be marked inactive and excluded from future sheets.</div></div>
+  <div class="erp-step"><div class="num">7</div><div class="body"><strong>Delete from ZKTeco machine</strong>: User Management → find user by ID → Delete. This prevents ghost punches.</div></div>
+  <div class="erp-step"><div class="num">8</div><div class="body">Issue <strong>Relieving Letter</strong> and <strong>Experience Letter</strong> within 15 days. File office copies.</div></div>
+  <div class="erp-step"><div class="num">9</div><div class="body">Retain the employee's physical file for a minimum of <strong>5 years</strong> after exit (labour law requirement).</div></div>
+
+  <hr>
+
+  <div class="box box-rule">
+    <strong>Questions?</strong> Reach out to the Director or refer to the Policy Library (/staff/policies.html) for company-specific SOPs, shift timings, leave policies, and conduct guidelines.
+  </div>
+
+  <p style="font-size:11px;color:var(--muted);text-align:center;margin-top:32px">
+    Proalfa Dynamic Private Limited &nbsp;·&nbsp; HR Operations Guide &nbsp;·&nbsp; Internal &amp; Confidential
+  </p>
+
+</div>
+</body>
+</html>
