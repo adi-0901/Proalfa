@@ -247,6 +247,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Helvetica
 
   <div class="tabs">
     <button class="tab active" data-tab="overview"   onclick="switchTab('overview',this)">Overview</button>
+    <button class="tab" data-tab="receipts"    onclick="switchTab('receipts',this)">💰 Receipts</button>
     <button class="tab" data-tab="receivables" onclick="switchTab('receivables',this)">Receivables</button>
     <button class="tab" data-tab="payables"    onclick="switchTab('payables',this)">Payables</button>
     <button class="tab" data-tab="cashflow"    onclick="switchTab('cashflow',this)">Cash Flow</button>
@@ -276,6 +277,163 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Helvetica
     <div style="margin-top:16px" class="tbl-card">
       <div class="tbl-header"><span class="section-title" style="margin:0">Recent Vouchers</span></div>
       <div class="tbl-wrap"><table class="fin-tbl"><thead><tr><th>Date</th><th>Type</th><th>Party</th><th>Narration</th><th class="amt">₹ Amount</th></tr></thead><tbody id="ov-vouchers"></tbody></table></div>
+    </div>
+  </div>
+
+  <!-- RECEIPTS -->
+  <div class="panel" id="panel-receipts">
+
+    <!-- Balance cards -->
+    <div class="stat-grid" id="rcpt-balances" style="margin-bottom:16px"></div>
+
+    <!-- Add receipt form -->
+    <div class="tbl-card" style="margin-bottom:16px">
+      <div class="tbl-header" style="cursor:pointer" onclick="toggleRcptForm()">
+        <span class="section-title" style="margin:0">➕ Record Inward Payment</span>
+        <span id="rcpt-form-toggle" style="font-size:12px;color:var(--text2)">Show ▾</span>
+      </div>
+      <div id="rcpt-form-body" style="display:none;padding:16px;">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px">
+          <div>
+            <div class="section-title" style="margin-bottom:6px">Date</div>
+            <input type="date" id="rf-date" style="width:100%;padding:8px 10px;border:1px solid var(--border2);border-radius:var(--r);background:var(--card2);color:var(--text);font-size:13px;outline:none;font-family:inherit">
+          </div>
+          <div>
+            <div class="section-title" style="margin-bottom:6px">Payment Type</div>
+            <select id="rf-type" onchange="onRcptTypeChange()" style="width:100%;padding:8px 10px;border:1px solid var(--border2);border-radius:var(--r);background:var(--card2);color:var(--text);font-size:13px;outline:none;font-family:inherit">
+              <option value="project">Project Payment</option>
+              <option value="misc">Misc Income</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Project fields -->
+        <div id="rf-project-fields" style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px">
+          <div>
+            <div class="section-title" style="margin-bottom:6px">Project</div>
+            <select id="rf-project" onchange="onRcptProjectChange()" style="width:100%;padding:8px 10px;border:1px solid var(--border2);border-radius:var(--r);background:var(--card2);color:var(--text);font-size:13px;outline:none;font-family:inherit">
+              <option value="">— Select Project —</option>
+            </select>
+          </div>
+          <div>
+            <div class="section-title" style="margin-bottom:6px">Party Name</div>
+            <input type="text" id="rf-party-project" placeholder="Auto-filled from project" style="width:100%;padding:8px 10px;border:1px solid var(--border2);border-radius:var(--r);background:var(--card2);color:var(--text);font-size:13px;outline:none;font-family:inherit">
+          </div>
+          <div>
+            <div class="section-title" style="margin-bottom:6px">Payment Stage</div>
+            <select id="rf-stage" style="width:100%;padding:8px 10px;border:1px solid var(--border2);border-radius:var(--r);background:var(--card2);color:var(--text);font-size:13px;outline:none;font-family:inherit">
+              <option>Advance</option>
+              <option>Running Bill Payment</option>
+              <option>Final Payment</option>
+              <option>Retention Release</option>
+              <option>Other</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Misc fields -->
+        <div id="rf-misc-fields" style="display:none;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px">
+          <div>
+            <div class="section-title" style="margin-bottom:6px">Category</div>
+            <select id="rf-category" style="width:100%;padding:8px 10px;border:1px solid var(--border2);border-radius:var(--r);background:var(--card2);color:var(--text);font-size:13px;outline:none;font-family:inherit">
+              <option>Scrap Sale</option>
+              <option>Commission</option>
+              <option>Consultancy</option>
+              <option>Rental Income</option>
+              <option>Interest Received</option>
+              <option>Other</option>
+            </select>
+          </div>
+          <div>
+            <div class="section-title" style="margin-bottom:6px">Party / Payer Name</div>
+            <input type="text" id="rf-party-misc" placeholder="Who paid you?" style="width:100%;padding:8px 10px;border:1px solid var(--border2);border-radius:var(--r);background:var(--card2);color:var(--text);font-size:13px;outline:none;font-family:inherit">
+          </div>
+        </div>
+
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:12px">
+          <div>
+            <div class="section-title" style="margin-bottom:6px">Amount (₹)</div>
+            <input type="number" id="rf-amount" min="1" placeholder="0" style="width:100%;padding:8px 10px;border:1px solid var(--border2);border-radius:var(--r);background:var(--card2);color:var(--text);font-size:13px;outline:none;font-family:inherit">
+          </div>
+          <div>
+            <div class="section-title" style="margin-bottom:6px">Payment Mode</div>
+            <select id="rf-mode" style="width:100%;padding:8px 10px;border:1px solid var(--border2);border-radius:var(--r);background:var(--card2);color:var(--text);font-size:13px;outline:none;font-family:inherit">
+              <option value="Bank Transfer">🏦 Bank Transfer</option>
+              <option value="UPI">📱 UPI</option>
+              <option value="RTGS/NEFT">🔁 RTGS / NEFT</option>
+              <option value="Cheque">🧾 Cheque</option>
+              <option value="Cash">💵 Cash</option>
+            </select>
+          </div>
+          <div>
+            <div class="section-title" style="margin-bottom:6px">Reference No.</div>
+            <input type="text" id="rf-ref" placeholder="UTR / Cheque No." style="width:100%;padding:8px 10px;border:1px solid var(--border2);border-radius:var(--r);background:var(--card2);color:var(--text);font-size:13px;outline:none;font-family:inherit">
+          </div>
+        </div>
+
+        <div style="margin-bottom:14px">
+          <div class="section-title" style="margin-bottom:6px">Narration <span style="text-transform:none;font-weight:400;letter-spacing:0">(optional)</span></div>
+          <input type="text" id="rf-narration" placeholder="Brief note about this payment" style="width:100%;padding:8px 10px;border:1px solid var(--border2);border-radius:var(--r);background:var(--card2);color:var(--text);font-size:13px;outline:none;font-family:inherit">
+        </div>
+
+        <div style="display:flex;gap:10px;align-items:center">
+          <button class="btn btn-primary" onclick="saveReceipt()">💾 Save Receipt</button>
+          <span id="rf-err" style="font-size:12px;color:var(--red);display:none"></span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Opening balances setup -->
+    <div class="tbl-card" style="margin-bottom:16px">
+      <div class="tbl-header" style="cursor:pointer" onclick="toggleObForm()">
+        <span class="section-title" style="margin:0">⚙ Opening Balances</span>
+        <span style="font-size:11px;color:var(--text2)">Set once — Bank &amp; Cash balance as of ERP start date</span>
+      </div>
+      <div id="ob-form-body" style="display:none;padding:14px">
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;align-items:flex-end">
+          <div>
+            <div class="section-title" style="margin-bottom:6px">As of Date</div>
+            <input type="date" id="ob-date" style="width:100%;padding:8px 10px;border:1px solid var(--border2);border-radius:var(--r);background:var(--card2);color:var(--text);font-size:13px;outline:none;font-family:inherit">
+          </div>
+          <div>
+            <div class="section-title" style="margin-bottom:6px">Bank Opening Balance (₹)</div>
+            <input type="number" id="ob-bank" min="0" placeholder="0" style="width:100%;padding:8px 10px;border:1px solid var(--border2);border-radius:var(--r);background:var(--card2);color:var(--text);font-size:13px;outline:none;font-family:inherit">
+          </div>
+          <div>
+            <div class="section-title" style="margin-bottom:6px">Cash Opening Balance (₹)</div>
+            <input type="number" id="ob-cash" min="0" placeholder="0" style="width:100%;padding:8px 10px;border:1px solid var(--border2);border-radius:var(--r);background:var(--card2);color:var(--text);font-size:13px;outline:none;font-family:inherit">
+          </div>
+        </div>
+        <button class="btn btn-primary btn-sm" style="margin-top:12px" onclick="saveOpeningBalances()">Save Opening Balances</button>
+      </div>
+    </div>
+
+    <!-- Monthly summary stats -->
+    <div class="stat-grid" id="rcpt-stats" style="margin-bottom:16px"></div>
+
+    <!-- Receipts table -->
+    <div class="tbl-card">
+      <div class="tbl-header">
+        <span class="section-title" style="margin:0">Payment History</span>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <select id="rcpt-filter-month" onchange="renderReceipts()" style="padding:6px 10px;border:1px solid var(--border2);border-radius:var(--r);background:var(--card);color:var(--text);font-size:12px;outline:none"></select>
+          <select id="rcpt-filter-mode" onchange="renderReceipts()" style="padding:6px 10px;border:1px solid var(--border2);border-radius:var(--r);background:var(--card);color:var(--text);font-size:12px;outline:none">
+            <option value="">All Modes</option>
+            <option>Bank Transfer</option><option>UPI</option><option>RTGS/NEFT</option><option>Cheque</option><option>Cash</option>
+          </select>
+          <select id="rcpt-filter-type" onchange="renderReceipts()" style="padding:6px 10px;border:1px solid var(--border2);border-radius:var(--r);background:var(--card);color:var(--text);font-size:12px;outline:none">
+            <option value="">All Types</option>
+            <option value="project">Project</option>
+            <option value="misc">Misc</option>
+          </select>
+        </div>
+      </div>
+      <div class="tbl-wrap">
+        <table class="fin-tbl">
+          <thead><tr><th>Date</th><th>Receipt #</th><th>Party</th><th>Type / Stage</th><th>Mode</th><th>Ref</th><th class="amt">₹ Amount</th><th></th></tr></thead>
+          <tbody id="rcpt-body"></tbody>
+        </table>
+      </div>
     </div>
   </div>
 
@@ -767,6 +925,9 @@ let creditFacilities = [];
 let creditDrawdowns  = [];
 let insurancePolicies = [];
 let editingProjId    = null;
+let receipts         = [];
+let openingBalances  = { Bank: 0, Cash: 0, as_of_date: null };
+const BANK_MODES     = new Set(['Bank Transfer','UPI','RTGS/NEFT','Cheque','Online','NEFT','RTGS','Online Transfer']);
 let editingFacId     = null;
 let editingDdId      = null;
 let editingInsId     = null;
@@ -811,6 +972,8 @@ async function initApp() {
     { data: eRows },
     { data: expRows },
     { data: logRows },
+    { data: rcptRows },
+    { data: obRows },
   ] = await Promise.all([
     sb.from('fin_outstanding_debtors').select('*').order('days_overdue', { ascending: false }),
     sb.from('fin_outstanding_creditors').select('*').order('due_date', { ascending: true }),
@@ -819,6 +982,8 @@ async function initApp() {
     sb.from('hr_employees').select('emp_id,full_name,monthly_salary,status').eq('status','active'),
     sb.from('hr_expenses').select('*').order('date', { ascending: false }),
     sb.from('fin_sync_log').select('*').order('synced_at', { ascending: false }).limit(1),
+    sb.from('fin_receipts').select('*').order('receipt_date', { ascending: false }),
+    sb.from('fin_opening_balances').select('*'),
   ]);
   debtors   = dRows   || [];
   creditors = cRows   || [];
@@ -827,6 +992,13 @@ async function initApp() {
   employees = eRows   || [];
   expenses  = expRows || [];
   syncLog   = (logRows && logRows[0]) || null;
+  receipts  = rcptRows || [];
+  if (obRows) {
+    obRows.forEach(r => {
+      if (r.account === 'Bank') { openingBalances.Bank = parseFloat(r.balance)||0; openingBalances.as_of_date = r.as_of_date; }
+      if (r.account === 'Cash') { openingBalances.Cash = parseFloat(r.balance)||0; }
+    });
+  }
 
   buildPLMonths();
   updateSyncStatus();
@@ -856,6 +1028,7 @@ function switchTab(name, el) {
   el.classList.add('active');
   document.getElementById('panel-' + name).classList.add('active');
   sessionStorage.setItem('fin_tab', name);
+  if (name === 'receipts')    renderReceipts();
   if (name === 'receivables') renderReceivables();
   if (name === 'payables')    renderPayables();
   if (name === 'cashflow')    renderCashFlow();
@@ -866,8 +1039,21 @@ function switchTab(name, el) {
 }
 
 // ── OVERVIEW ────────────────────────────────────────────────────────────────────
+function calcRunningBalances() {
+  const bankRcpt = receipts.filter(r => BANK_MODES.has(r.payment_mode)).reduce((s,r) => s+parseFloat(r.amount||0), 0);
+  const cashRcpt = receipts.filter(r => r.payment_mode === 'Cash').reduce((s,r) => s+parseFloat(r.amount||0), 0);
+  const bankExp  = expenses.filter(e => BANK_MODES.has(e.payment_mode)).reduce((s,e) => s+parseFloat(e.amount||0), 0);
+  const cashExp  = expenses.filter(e => e.payment_mode === 'Cash' || e.payment_mode === 'Petty Cash').reduce((s,e) => s+parseFloat(e.amount||0), 0);
+  return {
+    bank: openingBalances.Bank + bankRcpt - bankExp,
+    cash: openingBalances.Cash + cashRcpt - cashExp,
+    bankRcpt, cashRcpt, bankExp, cashExp,
+  };
+}
+
 function renderOverview() {
-  const totalCash = balances.reduce((s, b) => s + parseFloat(b.balance || 0), 0);
+  const { bank, cash } = calcRunningBalances();
+  const totalCash = bank + cash;
   const totalRcv  = debtors.reduce((s, d) => s + parseFloat(d.pending_amount || 0), 0);
   const totalPay  = creditors.reduce((s, c) => s + parseFloat(c.pending_amount || 0), 0);
   const wc        = totalCash + totalRcv - totalPay;
@@ -875,9 +1061,14 @@ function renderOverview() {
 
   document.getElementById('ov-stats').innerHTML = `
     <div class="stat-card blue">
-      <div class="stat-label">Cash &amp; Bank</div>
-      <div class="stat-value">${fmt(totalCash)}</div>
-      <div class="stat-sub">${balances.length} account${balances.length !== 1 ? 's' : ''}</div>
+      <div class="stat-label">🏦 Bank Balance</div>
+      <div class="stat-value">${fmt(bank)}</div>
+      <div class="stat-sub">Online + UPI + RTGS/NEFT</div>
+    </div>
+    <div class="stat-card ${cash < 5000 ? 'amber' : 'green'}">
+      <div class="stat-label">💵 Cash in Hand</div>
+      <div class="stat-value">${fmt(cash)}</div>
+      <div class="stat-sub">Physical cash balance</div>
     </div>
     <div class="stat-card ${totalRcv > 0 ? 'amber' : 'green'}">
       <div class="stat-label">Total Receivables</div>
@@ -892,7 +1083,7 @@ function renderOverview() {
     <div class="stat-card ${wc >= 0 ? 'green' : 'red'}">
       <div class="stat-label">Working Capital</div>
       <div class="stat-value">${fmt(wc)}</div>
-      <div class="stat-sub">Cash + Receivables − Payables</div>
+      <div class="stat-sub">Bank + Cash + Receivables − Payables</div>
     </div>
     ${overdueRcv > 0 ? `
     <div class="stat-card red">
@@ -1911,6 +2102,166 @@ function showAlert(msg, type) {
 }
 function hideAlert() {
   document.getElementById('abar').style.display = 'none';
+}
+
+// ── RECEIPTS ────────────────────────────────────────────────────────────────────
+function toggleRcptForm() {
+  const b = document.getElementById('rcpt-form-body');
+  const t = document.getElementById('rcpt-form-toggle');
+  const open = b.style.display === 'none';
+  b.style.display = open ? 'block' : 'none';
+  t.textContent = open ? 'Hide ▴' : 'Show ▾';
+  if (open) initRcptForm();
+}
+function toggleObForm() {
+  const b = document.getElementById('ob-form-body');
+  b.style.display = b.style.display === 'none' ? 'block' : 'none';
+  if (b.style.display === 'block') {
+    document.getElementById('ob-bank').value = openingBalances.Bank || '';
+    document.getElementById('ob-cash').value = openingBalances.Cash || '';
+    document.getElementById('ob-date').value = openingBalances.as_of_date || new Date().toISOString().slice(0,10);
+  }
+}
+function initRcptForm() {
+  document.getElementById('rf-date').value = new Date().toISOString().slice(0,10);
+  const sel = document.getElementById('rf-project');
+  sel.innerHTML = '<option value="">— Select Project —</option>' +
+    projects.map(p => `<option value="${p.id}" data-client="${p.client_name||''}" data-code="${p.project_code||''}">${p.project_code ? p.project_code+' — ' : ''}${p.project_name||''}</option>`).join('');
+}
+function onRcptTypeChange() {
+  const type = document.getElementById('rf-type').value;
+  document.getElementById('rf-project-fields').style.display = type === 'project' ? 'grid' : 'none';
+  document.getElementById('rf-misc-fields').style.display    = type === 'misc'    ? 'grid' : 'none';
+}
+function onRcptProjectChange() {
+  const sel = document.getElementById('rf-project');
+  const opt = sel.options[sel.selectedIndex];
+  document.getElementById('rf-party-project').value = opt ? (opt.dataset.client || '') : '';
+}
+async function saveReceipt() {
+  const errEl = document.getElementById('rf-err');
+  errEl.style.display = 'none';
+  const type = document.getElementById('rf-type').value;
+  const date = document.getElementById('rf-date').value;
+  const mode = document.getElementById('rf-mode').value;
+  const amt  = parseFloat(document.getElementById('rf-amount').value);
+  const ref  = document.getElementById('rf-ref').value.trim();
+  const narr = document.getElementById('rf-narration').value.trim();
+  if (!date) { errEl.textContent='Please select a date.'; errEl.style.display='inline'; return; }
+  if (!amt || amt <= 0) { errEl.textContent='Enter a valid amount.'; errEl.style.display='inline'; return; }
+  let party='', category='', project_id=null, project_code=null;
+  if (type === 'project') {
+    const projSel = document.getElementById('rf-project');
+    project_id   = projSel.value ? parseInt(projSel.value) : null;
+    project_code = projSel.options[projSel.selectedIndex]?.dataset?.code || null;
+    party        = document.getElementById('rf-party-project').value.trim();
+    category     = document.getElementById('rf-stage').value;
+    if (!project_id) { errEl.textContent='Please select a project.'; errEl.style.display='inline'; return; }
+  } else {
+    party    = document.getElementById('rf-party-misc').value.trim();
+    category = document.getElementById('rf-category').value;
+  }
+  const ym  = date.slice(0,7).replace('-','');
+  const cnt = receipts.filter(r => (r.receipt_no||'').startsWith('RCP-'+ym)).length + 1;
+  const receipt_no = `RCP-${ym}-${String(cnt).padStart(3,'0')}`;
+  const btn = document.querySelector('#rcpt-form-body .btn-primary');
+  btn.disabled = true; btn.textContent = 'Saving…';
+  const { data, error } = await sb.from('fin_receipts').insert([{
+    receipt_date: date, receipt_no, receipt_type: type,
+    party_name: party||null, project_id, project_code,
+    category, amount: amt, payment_mode: mode,
+    reference_no: ref||null, narration: narr||null,
+  }]).select().single();
+  btn.disabled = false; btn.textContent = '💾 Save Receipt';
+  if (error) { errEl.textContent='Save failed: '+error.message; errEl.style.display='inline'; return; }
+  receipts.unshift(data);
+  if (type === 'project' && project_id) {
+    const projTotal = receipts.filter(r=>r.project_id===project_id).reduce((s,r)=>s+parseFloat(r.amount||0),0);
+    await sb.from('proalfa_projects').update({ collected_to_date: projTotal, updated_at: new Date().toISOString() }).eq('id', project_id);
+    const p = projects.find(x=>x.id===project_id);
+    if (p) p.collected_to_date = projTotal;
+  }
+  document.getElementById('rf-amount').value   = '';
+  document.getElementById('rf-ref').value      = '';
+  document.getElementById('rf-narration').value = '';
+  document.getElementById('rf-party-misc').value = '';
+  renderReceipts(); renderOverview();
+  showAlert(`Receipt ${receipt_no} saved — ${fmt(amt)} via ${mode}`, 'ok');
+  setTimeout(hideAlert, 3000);
+}
+async function deleteReceipt(id) {
+  if (!confirm('Delete this receipt?')) return;
+  const { error } = await sb.from('fin_receipts').delete().eq('id', id);
+  if (error) { alert('Delete failed: '+error.message); return; }
+  receipts = receipts.filter(r => r.id !== id);
+  renderReceipts(); renderOverview();
+}
+function buildRcptMonths() {
+  const sel = document.getElementById('rcpt-filter-month');
+  if (!sel) return;
+  const months = [...new Set(receipts.map(r=>(r.receipt_date||'').slice(0,7)))].sort().reverse();
+  const cur = sel.value;
+  sel.innerHTML = '<option value="">All Months</option>' + months.map(m => {
+    const d = new Date(m+'-01');
+    return `<option value="${m}"${m===cur?' selected':''}>${d.toLocaleString('en-IN',{month:'long',year:'numeric'})}</option>`;
+  }).join('');
+}
+function renderReceipts() {
+  if (!document.getElementById('rcpt-body')) return;
+  buildRcptMonths();
+  const { bank, cash } = calcRunningBalances();
+  document.getElementById('rcpt-balances').innerHTML = `
+    <div class="stat-card blue"><div class="stat-label">🏦 Bank Balance</div><div class="stat-value">${fmt(bank)}</div><div class="stat-sub">Opening ${fmt(openingBalances.Bank)} + receipts − expenses</div></div>
+    <div class="stat-card ${cash<5000?'amber':'green'}"><div class="stat-label">💵 Cash in Hand</div><div class="stat-value">${fmt(cash)}</div><div class="stat-sub">Opening ${fmt(openingBalances.Cash)} + receipts − expenses</div></div>`;
+  const thisM = new Date().toISOString().slice(0,7);
+  const mRcpt = receipts.filter(r=>(r.receipt_date||'').startsWith(thisM));
+  const mBank = mRcpt.filter(r=>BANK_MODES.has(r.payment_mode)).reduce((s,r)=>s+parseFloat(r.amount||0),0);
+  const mCash = mRcpt.filter(r=>r.payment_mode==='Cash').reduce((s,r)=>s+parseFloat(r.amount||0),0);
+  const mProj = mRcpt.filter(r=>r.receipt_type==='project').reduce((s,r)=>s+parseFloat(r.amount||0),0);
+  const mMisc = mRcpt.filter(r=>r.receipt_type==='misc').reduce((s,r)=>s+parseFloat(r.amount||0),0);
+  document.getElementById('rcpt-stats').innerHTML = `
+    <div class="stat-card green"><div class="stat-label">This Month — Bank</div><div class="stat-value">${fmt(mBank)}</div><div class="stat-sub">${mRcpt.filter(r=>BANK_MODES.has(r.payment_mode)).length} transactions</div></div>
+    <div class="stat-card green"><div class="stat-label">This Month — Cash</div><div class="stat-value">${fmt(mCash)}</div><div class="stat-sub">${mRcpt.filter(r=>r.payment_mode==='Cash').length} transactions</div></div>
+    <div class="stat-card blue"><div class="stat-label">This Month — Projects</div><div class="stat-value">${fmt(mProj)}</div><div class="stat-sub">${mRcpt.filter(r=>r.receipt_type==='project').length} payments</div></div>
+    <div class="stat-card amber"><div class="stat-label">This Month — Misc</div><div class="stat-value">${fmt(mMisc)}</div><div class="stat-sub">${mRcpt.filter(r=>r.receipt_type==='misc').length} entries</div></div>`;
+  const mF = document.getElementById('rcpt-filter-month')?.value||'';
+  const modeF = document.getElementById('rcpt-filter-mode')?.value||'';
+  const typeF = document.getElementById('rcpt-filter-type')?.value||'';
+  let rows = [...receipts];
+  if (mF)    rows = rows.filter(r=>(r.receipt_date||'').startsWith(mF));
+  if (modeF) rows = rows.filter(r=>r.payment_mode===modeF);
+  if (typeF) rows = rows.filter(r=>r.receipt_type===typeF);
+  const modeIcon = m=>({'Cash':'💵','UPI':'📱','Cheque':'🧾'}[m]||'🏦');
+  document.getElementById('rcpt-body').innerHTML = rows.length
+    ? rows.map(r=>`<tr>
+        <td style="white-space:nowrap">${r.receipt_date||'—'}</td>
+        <td style="font-size:11px;color:var(--text2)">${r.receipt_no||'—'}</td>
+        <td style="font-weight:500">${r.party_name||'—'}${r.project_code?'<br><span style="font-size:10px;color:var(--text2)">'+r.project_code+'</span>':''}</td>
+        <td><span class="badge ${r.receipt_type==='project'?'badge-blue':'badge-amber'}">${r.receipt_type}</span> <span style="font-size:11px;color:var(--text2)">${r.category||''}</span></td>
+        <td>${modeIcon(r.payment_mode)} ${r.payment_mode}</td>
+        <td style="font-size:11px;color:var(--text2)">${r.reference_no||'—'}</td>
+        <td class="amt" style="color:var(--green);font-weight:700">${fmt(r.amount)}</td>
+        <td><button class="btn btn-sm" style="color:var(--red);border-color:var(--red-bg)" onclick="deleteReceipt(${r.id})">✕</button></td>
+      </tr>`).join('')
+    : '<tr><td colspan="8" class="no-data">No receipts yet. Use the form above to log your first payment.</td></tr>';
+}
+async function saveOpeningBalances() {
+  const date = document.getElementById('ob-date').value;
+  const bank = parseFloat(document.getElementById('ob-bank').value)||0;
+  const cash = parseFloat(document.getElementById('ob-cash').value)||0;
+  if (!date) { alert('Please select a date.'); return; }
+  const btn = document.querySelector('#ob-form-body .btn-primary');
+  btn.disabled=true; btn.textContent='Saving…';
+  const { error } = await sb.from('fin_opening_balances').upsert([
+    { account:'Bank', balance:bank, as_of_date:date, updated_at:new Date().toISOString() },
+    { account:'Cash', balance:cash, as_of_date:date, updated_at:new Date().toISOString() },
+  ], { onConflict:'account' });
+  btn.disabled=false; btn.textContent='Save Opening Balances';
+  if (error) { alert('Save failed: '+error.message); return; }
+  openingBalances.Bank=bank; openingBalances.Cash=cash; openingBalances.as_of_date=date;
+  renderReceipts(); renderOverview();
+  document.getElementById('ob-form-body').style.display='none';
+  showAlert('Opening balances saved.','ok'); setTimeout(hideAlert,3000);
 }
 
 // ── TALLY IMPORT ────────────────────────────────────────────────────────────────
