@@ -2122,8 +2122,12 @@ function toggleObForm() {
     document.getElementById('ob-date').value = openingBalances.as_of_date || new Date().toISOString().slice(0,10);
   }
 }
-function initRcptForm() {
+async function initRcptForm() {
   document.getElementById('rf-date').value = new Date().toISOString().slice(0,10);
+  if (projects.length === 0) {
+    const { data } = await sb.from('proalfa_projects').select('*').eq('is_deleted', false).order('created_at', { ascending: false });
+    projects = data || [];
+  }
   const sel = document.getElementById('rf-project');
   sel.innerHTML = '<option value="">— Select Project —</option>' +
     projects.map(p => `<option value="${p.id}" data-client="${p.client_name||''}" data-code="${p.project_code||''}">${p.project_code ? p.project_code+' — ' : ''}${p.project_name||''}</option>`).join('');
