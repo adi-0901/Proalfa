@@ -377,7 +377,9 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Helvetica
         </div>
 
         <div style="display:flex;gap:10px;align-items:center">
-          <button class="btn btn-primary" onclick="saveReceipt()">💾 Save Receipt</button>
+          <button class="btn btn-primary" id="rf-save-btn" onclick="saveReceipt()">💾 Save Receipt</button>
+          <button class="btn" id="rf-cancel-btn" style="display:none;color:var(--red)" onclick="cancelEditReceipt()">✕ Cancel</button>
+          <span id="rf-editing-badge" style="display:none;font-size:11px;color:var(--amber);font-weight:600;padding:4px 8px;border:1px solid var(--amber);border-radius:4px">Editing entry</span>
           <span id="rf-err" style="font-size:12px;color:var(--red);display:none"></span>
         </div>
       </div>
@@ -927,6 +929,7 @@ let insurancePolicies = [];
 let editingProjId    = null;
 let receipts         = [];
 let openingBalances  = { Bank: 0, Cash: 0, as_of_date: null };
+let editingReceiptId = null;
 const BANK_MODES     = new Set(['Bank Transfer','UPI','RTGS/NEFT','Cheque','Online','NEFT','RTGS','Online Transfer']);
 let editingFacId     = null;
 let editingDdId      = null;
@@ -2142,6 +2145,43 @@ function onRcptProjectChange() {
   const opt = sel.options[sel.selectedIndex];
   document.getElementById('rf-party-project').value = opt ? (opt.dataset.client || '') : '';
 }
+function editReceipt(id) {
+  const r = receipts.find(x => x.id === id);
+  if (!r) return;
+  editingReceiptId = id;
+  document.getElementById('rf-date').value = r.receipt_date || '';
+  document.getElementById('rf-type').value = r.receipt_type || 'project';
+  onRcptTypeChange();
+  document.getElementById('rf-mode').value = r.payment_mode || 'Bank Transfer';
+  document.getElementById('rf-amount').value = r.amount || '';
+  document.getElementById('rf-ref').value = r.reference_no || '';
+  document.getElementById('rf-narration').value = r.narration || '';
+  if (r.receipt_type === 'project') {
+    const projSel = document.getElementById('rf-project');
+    if (r.project_id) projSel.value = r.project_id;
+    document.getElementById('rf-party-project').value = r.party_name || '';
+    document.getElementById('rf-stage').value = r.category || '';
+  } else {
+    document.getElementById('rf-party-misc').value = r.party_name || '';
+    document.getElementById('rf-category').value = r.category || '';
+  }
+  document.getElementById('rf-save-btn').textContent = '✓ Update Receipt';
+  document.getElementById('rf-cancel-btn').style.display = 'inline-block';
+  document.getElementById('rf-editing-badge').style.display = 'inline-block';
+  document.querySelector('.tbl-card .tbl-title') && (document.querySelector('#rcpt-form-body').closest('.tbl-card').querySelector('.tbl-title').textContent = '✏ Edit Receipt');
+  document.getElementById('rcpt-form-body').scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+function cancelEditReceipt() {
+  editingReceiptId = null;
+  document.getElementById('rf-save-btn').textContent = '💾 Save Receipt';
+  document.getElementById('rf-cancel-btn').style.display = 'none';
+  document.getElementById('rf-editing-badge').style.display = 'none';
+  document.getElementById('rf-amount').value = '';
+  document.getElementById('rf-ref').value = '';
+  document.getElementById('rf-narration').value = '';
+  document.getElementById('rf-party-misc').value = '';
+  document.getElementById('rf-err').style.display = 'none';
+}
 async function saveReceipt() {
   const errEl = document.getElementById('rf-err');
   errEl.style.display = 'none';
@@ -2165,33 +2205,44 @@ async function saveReceipt() {
     party    = document.getElementById('rf-party-misc').value.trim();
     category = document.getElementById('rf-category').value;
   }
-  const ym  = date.slice(0,7).replace('-','');
-  const cnt = receipts.filter(r => (r.receipt_no||'').startsWith('RCP-'+ym)).length + 1;
-  const receipt_no = `RCP-${ym}-${String(cnt).padStart(3,'0')}`;
-  const btn = document.querySelector('#rcpt-form-body .btn-primary');
+  const btn = document.getElementById('rf-save-btn');
   btn.disabled = true; btn.textContent = 'Saving…';
-  const { data, error } = await sb.from('fin_receipts').insert([{
-    receipt_date: date, receipt_no, receipt_type: type,
+  const rowData = {
+    receipt_date: date, receipt_type: type,
     party_name: party||null, project_id, project_code,
     category, amount: amt, payment_mode: mode,
     reference_no: ref||null, narration: narr||null,
-  }]).select().single();
-  btn.disabled = false; btn.textContent = '💾 Save Receipt';
-  if (error) { errEl.textContent='Save failed: '+error.message; errEl.style.display='inline'; return; }
-  receipts.unshift(data);
-  if (type === 'project' && project_id) {
-    const projTotal = receipts.filter(r=>r.project_id===project_id).reduce((s,r)=>s+parseFloat(r.amount||0),0);
-    await sb.from('proalfa_projects').update({ collected_to_date: projTotal, updated_at: new Date().toISOString() }).eq('id', project_id);
-    const p = projects.find(x=>x.id===project_id);
-    if (p) p.collected_to_date = projTotal;
+  };
+  if (editingReceiptId) {
+    const { error } = await sb.from('fin_receipts').update(rowData).eq('id', editingReceiptId);
+    btn.disabled = false; btn.textContent = '✓ Update Receipt';
+    if (error) { errEl.textContent='Update failed: '+error.message; errEl.style.display='inline'; return; }
+    const idx = receipts.findIndex(r => r.id === editingReceiptId);
+    if (idx !== -1) receipts[idx] = { ...receipts[idx], ...rowData };
+    showAlert('Receipt updated', 'ok'); setTimeout(hideAlert, 3000);
+    cancelEditReceipt();
+  } else {
+    const ym  = date.slice(0,7).replace('-','');
+    const cnt = receipts.filter(r => (r.receipt_no||'').startsWith('RCP-'+ym)).length + 1;
+    const receipt_no = `RCP-${ym}-${String(cnt).padStart(3,'0')}`;
+    const { data, error } = await sb.from('fin_receipts').insert([{ ...rowData, receipt_no }]).select().single();
+    btn.disabled = false; btn.textContent = '💾 Save Receipt';
+    if (error) { errEl.textContent='Save failed: '+error.message; errEl.style.display='inline'; return; }
+    receipts.unshift(data);
+    if (type === 'project' && project_id) {
+      const projTotal = receipts.filter(r=>r.project_id===project_id).reduce((s,r)=>s+parseFloat(r.amount||0),0);
+      await sb.from('proalfa_projects').update({ collected_to_date: projTotal, updated_at: new Date().toISOString() }).eq('id', project_id);
+      const p = projects.find(x=>x.id===project_id);
+      if (p) p.collected_to_date = projTotal;
+    }
+    document.getElementById('rf-amount').value   = '';
+    document.getElementById('rf-ref').value      = '';
+    document.getElementById('rf-narration').value = '';
+    document.getElementById('rf-party-misc').value = '';
+    showAlert(`Receipt ${receipt_no} saved — ${fmt(amt)} via ${mode}`, 'ok');
+    setTimeout(hideAlert, 3000);
   }
-  document.getElementById('rf-amount').value   = '';
-  document.getElementById('rf-ref').value      = '';
-  document.getElementById('rf-narration').value = '';
-  document.getElementById('rf-party-misc').value = '';
   renderReceipts(); renderOverview();
-  showAlert(`Receipt ${receipt_no} saved — ${fmt(amt)} via ${mode}`, 'ok');
-  setTimeout(hideAlert, 3000);
 }
 async function deleteReceipt(id) {
   if (!confirm('Delete this receipt?')) return;
@@ -2245,7 +2296,10 @@ function renderReceipts() {
         <td>${modeIcon(r.payment_mode)} ${r.payment_mode}</td>
         <td style="font-size:11px;color:var(--text2)">${r.reference_no||'—'}</td>
         <td class="amt" style="color:var(--green);font-weight:700">${fmt(r.amount)}</td>
-        <td><button class="btn btn-sm" style="color:var(--red);border-color:var(--red-bg)" onclick="deleteReceipt(${r.id})">✕</button></td>
+        <td style="white-space:nowrap">
+          <button class="btn btn-sm" onclick="editReceipt(${r.id})" style="margin-right:4px">✏</button>
+          <button class="btn btn-sm" style="color:var(--red);border-color:var(--red-bg)" onclick="deleteReceipt(${r.id})">✕</button>
+        </td>
       </tr>`).join('')
     : '<tr><td colspan="8" class="no-data">No receipts yet. Use the form above to log your first payment.</td></tr>';
 }

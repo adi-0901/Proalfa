@@ -253,6 +253,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Helvetica
     <button class="tab" onclick="switchTab('hiring',this)">Hiring Pipeline</button>
     <button class="tab" onclick="switchTab('attendance',this)">Attendance & Salary</button>
     <button class="tab" onclick="switchTab('expenses',this)">💰 Expenses</button>
+    <button class="tab" onclick="switchTab('contractors',this)">🏗 Contractors</button>
   </div>
 
   <!-- OVERVIEW -->
@@ -511,12 +512,13 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Helvetica
         </div>
         <div class="fg">
           <label>Category</label>
-          <select id="ex-cat">
+          <select id="ex-cat" onchange="onExpCatChange()">
             <option value="Labour Payment">Labour Payment</option>
             <option value="Material Purchase">Material Purchase</option>
             <option value="Factory / Production">Factory / Production</option>
             <option value="Fuel &amp; Vehicle">Fuel &amp; Vehicle</option>
             <option value="Contractor Payment">Contractor Payment</option>
+            <option value="Advance to Contractor">Advance to Contractor</option>
             <option value="Transport">Transport</option>
             <option value="Site Expenses">Site Expenses</option>
             <option value="Office &amp; Admin">Office &amp; Admin</option>
@@ -531,6 +533,14 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Helvetica
         <div class="fg">
           <label>Payee Name</label>
           <input type="text" id="ex-payee" placeholder="Who received the money">
+        </div>
+      </div>
+      <div class="fgrid" style="margin-bottom:10px;display:none" id="ex-contractor-row">
+        <div class="fg fg-full">
+          <label>Link to Contractor</label>
+          <select id="ex-contractor-id" style="padding:8px 10px;border:1px solid var(--border2);border-radius:var(--r);background:var(--card2);color:var(--text);font-size:13px;width:100%;outline:none">
+            <option value="">— Select Contractor (optional) —</option>
+          </select>
         </div>
       </div>
       <div class="fgrid" style="margin-bottom:10px">
@@ -630,11 +640,12 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Helvetica
           <input type="text" id="ex-remarks" placeholder="Optional additional notes">
         </div>
       </div>
-      <div style="display:flex;gap:8px;align-items:center">
+      <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
         <button class="btn btn-primary" id="exp-save-btn" onclick="saveExpense()">✓ Save Entry</button>
         <button class="btn" onclick="clearExpenseForm()">Clear</button>
         <button class="btn" id="exp-cancel-btn" style="display:none;color:var(--red);border-color:var(--red)" onclick="clearExpenseForm()">✕ Cancel Edit</button>
         <span id="exp-editing-badge" style="display:none;font-size:11px;color:var(--amber);font-weight:600;padding:4px 8px;border:1px solid var(--amber);border-radius:4px">Editing entry</span>
+        <button class="btn" id="exp-voucher-btn" style="display:none;color:#1a9e5c;border-color:#1a9e5c44" onclick="printLastVoucher()">🖨 Print Cash Voucher</button>
       </div>
     </div>
 
@@ -676,6 +687,206 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Helvetica
     </div>
   </div>
 
+  <!-- CONTRACTORS -->
+  <div class="panel" id="panel-contractors">
+    <!-- Sub-nav -->
+    <div style="display:flex;gap:2px;border-bottom:1px solid var(--border);margin-bottom:20px;overflow-x:auto">
+      <button class="tab active" id="ctab-list"     onclick="switchCTab('list',this)">All Contractors</button>
+      <button class="tab"        id="ctab-add"      onclick="switchCTab('add',this)">＋ Add Contractor</button>
+      <button class="tab"        id="ctab-invoices" onclick="switchCTab('invoices',this)">📄 Invoices</button>
+      <button class="tab"        id="ctab-payable"  onclick="switchCTab('payable',this)">💰 Monthly Payable</button>
+      <button class="tab"        id="ctab-tds"      onclick="switchCTab('tds',this)">🧾 TDS Sheet</button>
+    </div>
+
+    <!-- List -->
+    <div id="cpanel-list">
+      <div id="ctrs-list-body">
+        <p style="color:var(--text2);font-size:13px">Loading contractors…</p>
+      </div>
+    </div>
+
+    <!-- Detail (agreement + invoices for one contractor) -->
+    <div id="cpanel-detail" style="display:none">
+      <div id="ctrs-detail-body"></div>
+    </div>
+
+    <!-- Add / Edit form -->
+    <div id="cpanel-add" style="display:none">
+      <div class="exp-form-card">
+        <div class="exp-form-title" id="ctr-form-title">＋ Add Contractor</div>
+        <input type="hidden" id="cf-id">
+
+        <div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.07em;color:var(--text2);margin-bottom:10px">Basic Info</div>
+        <div class="fgrid" style="margin-bottom:10px">
+          <div class="fg"><label>Company / Firm Name *</label><input type="text" id="cf-company" placeholder="e.g. Ramesh Fabrication Works"></div>
+          <div class="fg"><label>Contact Person</label><input type="text" id="cf-person" placeholder="Owner or site in-charge name"></div>
+          <div class="fg"><label>Contractor Type *</label>
+            <select id="cf-type">
+              <option value="Fabrication">Fabrication</option>
+              <option value="Erection">Erection</option>
+              <option value="Transport">Transport</option>
+              <option value="Civil">Civil</option>
+              <option value="Painting">Painting</option>
+              <option value="Electrical">Electrical</option>
+              <option value="Other">Other</option>
+            </select>
+          </div>
+        </div>
+        <div class="fgrid" style="margin-bottom:10px">
+          <div class="fg"><label>Phone</label><input type="text" id="cf-phone" placeholder="Mobile number"></div>
+          <div class="fg"><label>Email</label><input type="email" id="cf-email" placeholder="Email (optional)"></div>
+          <div class="fg"><label>Status</label>
+            <select id="cf-status"><option value="active">Active</option><option value="inactive">Inactive</option></select>
+          </div>
+        </div>
+        <div class="fgrid" style="margin-bottom:10px">
+          <div class="fg"><label>GSTIN</label><input type="text" id="cf-gstin" placeholder="22AAAAA0000A1Z5" style="text-transform:uppercase"></div>
+          <div class="fg"><label>PAN</label><input type="text" id="cf-pan" placeholder="ABCDE1234F" style="text-transform:uppercase"></div>
+          <div class="fg fg-full"><label>Address</label><input type="text" id="cf-address" placeholder="Village/Town, District, State"></div>
+        </div>
+
+        <div style="height:1px;background:var(--border);margin:16px 0"></div>
+        <div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.07em;color:var(--text2);margin-bottom:10px">Rate &amp; Work</div>
+        <div class="fgrid" style="margin-bottom:10px">
+          <div class="fg"><label>Rate (₹)</label><input type="number" id="cf-rate" placeholder="0.00" min="0" step="0.01"></div>
+          <div class="fg"><label>Rate Unit</label>
+            <select id="cf-unit">
+              <option value="per ton">Per Ton</option>
+              <option value="per MT">Per MT</option>
+              <option value="per RMT">Per RMT</option>
+              <option value="per trip">Per Trip</option>
+              <option value="per day">Per Day</option>
+              <option value="per sq.ft">Per Sq.Ft</option>
+              <option value="per sq.m">Per Sq.M</option>
+              <option value="lumpsum">Lumpsum</option>
+              <option value="per piece">Per Piece</option>
+              <option value="per hour">Per Hour</option>
+            </select>
+          </div>
+          <div class="fg fg-full"><label>Work / Scope Description *</label><input type="text" id="cf-workdesc" placeholder="e.g. Supply &amp; erection of PEB structural steel at site, Raipur"></div>
+        </div>
+
+        <div style="height:1px;background:var(--border);margin:16px 0"></div>
+        <div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.07em;color:var(--text2);margin-bottom:4px">Company's Scope (what Proalfa provides)</div>
+        <div style="font-size:12px;color:var(--text2);margin-bottom:12px">Check all items that Proalfa Dynamic will provide to this contractor.</div>
+        <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:8px;margin-bottom:12px">
+          <label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer;padding:8px 10px;border:1px solid var(--border2);border-radius:var(--r);background:var(--card2)">
+            <input type="checkbox" id="cf-accommodation"> Accommodation / Staying Place
+          </label>
+          <label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer;padding:8px 10px;border:1px solid var(--border2);border-radius:var(--r);background:var(--card2)">
+            <input type="checkbox" id="cf-electricity"> Electricity
+          </label>
+          <label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer;padding:8px 10px;border:1px solid var(--border2);border-radius:var(--r);background:var(--card2)">
+            <input type="checkbox" id="cf-water"> Water Supply
+          </label>
+          <label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer;padding:8px 10px;border:1px solid var(--border2);border-radius:var(--r);background:var(--card2)">
+            <input type="checkbox" id="cf-lpg"> LPG Gas (Cylinders)
+          </label>
+          <label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer;padding:8px 10px;border:1px solid var(--border2);border-radius:var(--r);background:var(--card2)">
+            <input type="checkbox" id="cf-safety"> Safety Kits (Helmet, Gloves, Harness)
+          </label>
+          <label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer;padding:8px 10px;border:1px solid var(--border2);border-radius:var(--r);background:var(--card2)">
+            <input type="checkbox" id="cf-hydra"> Hydra / Farana (Mobile Crane)
+          </label>
+          <label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer;padding:8px 10px;border:1px solid var(--border2);border-radius:var(--r);background:var(--card2)">
+            <input type="checkbox" id="cf-scaffolding"> Scaffolding
+          </label>
+          <label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer;padding:8px 10px;border:1px solid var(--border2);border-radius:var(--r);background:var(--card2)">
+            <input type="checkbox" id="cf-tools"> Hand Tools
+          </label>
+        </div>
+        <div class="fgrid" style="margin-bottom:10px">
+          <div class="fg fg-full"><label>Machines Provided (comma-separated)</label><input type="text" id="cf-machines" placeholder="e.g. Welding machine, Grinder, Drill machine"></div>
+        </div>
+
+        <div style="height:1px;background:var(--border);margin:16px 0"></div>
+        <div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.07em;color:var(--text2);margin-bottom:10px">Contractor's Scope (what contractor provides/arranges)</div>
+        <div class="fgrid" style="margin-bottom:10px">
+          <div class="fg fg-full"><label>Contractor's Responsibilities</label>
+            <textarea id="cf-ctr-scope" rows="3" placeholder="e.g. Contractor to arrange own welders and helpers, provide own grinding discs and welding rods, arrange transport for their team..." style="width:100%;padding:8px;border:1px solid var(--border2);border-radius:var(--r);background:var(--card2);color:var(--text);font-size:13px;resize:vertical"></textarea>
+          </div>
+        </div>
+
+        <div style="height:1px;background:var(--border);margin:16px 0"></div>
+        <div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.07em;color:var(--text2);margin-bottom:10px">Payment Terms &amp; TDS</div>
+        <div class="fgrid" style="margin-bottom:10px">
+          <div class="fg"><label>Payment Terms</label>
+            <select id="cf-pay-terms">
+              <option value="Per Invoice">Per Invoice</option>
+              <option value="Monthly">Monthly</option>
+              <option value="Milestone">Milestone Based</option>
+              <option value="Weekly">Weekly</option>
+              <option value="Advance + Balance">Advance + Balance on Completion</option>
+            </select>
+          </div>
+          <div class="fg"><label>TDS Section</label>
+            <select id="cf-tds-section">
+              <option value="194C">194C — Contractor (1%/2%)</option>
+              <option value="194J">194J — Professional Services (10%)</option>
+              <option value="194I">194I — Rent (10%)</option>
+              <option value="194M">194M — Contractor &gt;50L (5%)</option>
+              <option value="None">None / Not Applicable</option>
+            </select>
+          </div>
+          <div class="fg"><label>TDS Rate (%)</label><input type="number" id="cf-tds-rate" value="1" min="0" max="30" step="0.01" placeholder="e.g. 1, 2, 10"></div>
+        </div>
+        <div class="fgrid" style="margin-bottom:10px">
+          <div class="fg"><label>Retention (%)</label><input type="number" id="cf-retention" value="0" min="0" max="20" step="0.5" placeholder="0"></div>
+          <div class="fg"><label>Advance Recoverable?</label>
+            <select id="cf-advance-rec"><option value="yes">Yes — deduct from invoices</option><option value="no">No</option></select>
+          </div>
+          <div class="fg fg-full"><label>Other Terms &amp; Conditions</label><input type="text" id="cf-other-terms" placeholder="e.g. Work to be completed within 45 days, defect liability 1 year"></div>
+        </div>
+
+        <div style="display:flex;gap:8px;margin-top:4px;flex-wrap:wrap">
+          <button class="btn btn-primary" onclick="saveContractor()">✓ Save Contractor</button>
+          <button class="btn" onclick="switchCTab('list',document.getElementById('ctab-list'))">Cancel</button>
+          <span id="ctr-save-msg" style="font-size:12px;color:var(--green);display:none;padding:6px 0"></span>
+        </div>
+      </div>
+    </div>
+
+    <!-- All Invoices -->
+    <div id="cpanel-invoices" style="display:none">
+      <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;margin-bottom:16px">
+        <div style="display:flex;align-items:center;gap:10px">
+          <span style="font-size:12px;font-weight:600;color:var(--text2)">Month</span>
+          <select id="cinv-month" onchange="renderAllInvoices()" style="padding:7px 10px;border:1px solid var(--border2);border-radius:var(--r);background:var(--card);color:var(--text);font-size:13px;outline:none"></select>
+        </div>
+        <button class="btn btn-sm" onclick="switchCTab('list',document.getElementById('ctab-list'));setTimeout(()=>document.getElementById('ctab-add').click(),100)">＋ Invoice for Contractor</button>
+      </div>
+      <div id="all-invoices-body"></div>
+    </div>
+
+    <!-- Monthly Payable -->
+    <div id="cpanel-payable" style="display:none">
+      <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;margin-bottom:16px">
+        <div style="display:flex;align-items:center;gap:10px">
+          <span style="font-size:12px;font-weight:600;color:var(--text2)">Month</span>
+          <select id="cpay-month" onchange="renderContractorPayable()" style="padding:7px 10px;border:1px solid var(--border2);border-radius:var(--r);background:var(--card);color:var(--text);font-size:13px;outline:none"></select>
+        </div>
+        <button class="btn btn-sm" style="color:#e8b84b;border-color:#e8b84b44" onclick="downloadContractorPayableSheet()">📄 Download Sheet</button>
+      </div>
+      <div id="cpay-stats" style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:16px"></div>
+      <div id="cpay-body"></div>
+    </div>
+
+    <!-- Contractor TDS -->
+    <div id="cpanel-tds" style="display:none">
+      <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;margin-bottom:16px">
+        <div style="display:flex;align-items:center;gap:10px">
+          <span style="font-size:12px;font-weight:600;color:var(--text2)">Month</span>
+          <select id="ctds-month" onchange="renderContractorTDS()" style="padding:7px 10px;border:1px solid var(--border2);border-radius:var(--r);background:var(--card);color:var(--text);font-size:13px;outline:none"></select>
+        </div>
+        <div style="display:flex;gap:8px">
+          <button class="btn btn-sm" style="color:#e8b84b;border-color:#e8b84b44" onclick="downloadCombinedTDS()">🧾 Download Combined TDS (Exp + Contractors)</button>
+        </div>
+      </div>
+      <div id="ctds-body"></div>
+    </div>
+  </div>
+
+
 <div class="footer">HR Dashboard · Proalfa Dynamic · Management access only</div>
 
 <script>
@@ -691,6 +902,10 @@ let employees = [];
 let currentId = null;
 let expenses  = [];
 let editingExpenseId = null;
+let lastSavedExpense = null;
+let contractors = [];
+let contractorInvoices = [];
+let editingContractorId = null;
 
 const DEPTS = ["Civil","Structural / PEB","MEP","Procurement","Accounts","HR / Admin","Site","Management"];
 const EMP_TYPES = ["permanent","contract","daily_wage","trainee"];
@@ -772,6 +987,7 @@ function switchTab(name, el) {
   if (name === 'leaves')  initLeaves();
   if (name === 'hiring')  initHiring();
   if (name === 'expenses') initExpenses();
+  if (name === 'contractors') initContractors();
 }
 
 // ── OVERVIEW ─────────────────────────────────────────────────────
@@ -1663,6 +1879,7 @@ function renderExpenseLedger() {
       <td style="font-size:11px;color:var(--text2)">${e.entry_by||'—'}</td>
       <td style="white-space:nowrap">
         <button class="exp-del" onclick="editExpense(${e.id})" title="Edit" style="margin-right:4px;opacity:.7">✏️</button>
+        <button class="exp-del" onclick="printExpVoucher(${e.id})" title="Print Voucher" style="margin-right:4px">🖨</button>
         <button class="exp-del" onclick="deleteExpense(${e.id})" title="Delete">🗑</button>
       </td>
     </tr>`).join('');
@@ -1745,12 +1962,16 @@ async function saveExpense() {
   const tdsRate  = tdsYes ? (parseFloat(document.getElementById('ex-tds-rate').value)||null) : null;
   const tdsAmt   = tdsYes ? (parseFloat(document.getElementById('ex-tds-amount').value)||null) : null;
   const payeePan = document.getElementById('ex-payee-pan').value.trim().toUpperCase() || null;
+  const contractorIdRaw = document.getElementById('ex-contractor-id')?.value;
+  const contractorId = contractorIdRaw ? parseInt(contractorIdRaw) : null;
   if (!date||!payee||!amount) { showAlert('Date, payee and amount are required', 'err'); return; }
   if (tdsYes && !tdsRate) { showAlert('Enter TDS rate to continue', 'err'); return; }
   const row = { date, category, payee, amount, payment_mode:mode, bill_status:bill,
     bill_no:billNo||null, gst_amount:gst||null, description:desc||null,
     reference_no:ref||null, entry_by:entryBy||null, remarks:remarks||null,
-    tds_applicable:tdsYes, tds_section:tdsSection, tds_rate:tdsRate, tds_amount:tdsAmt, payee_pan:payeePan };
+    tds_applicable:tdsYes, tds_section:tdsSection, tds_rate:tdsRate, tds_amount:tdsAmt,
+    payee_pan:payeePan };
+  if (contractorId) row.contractor_id = contractorId;
   if (editingExpenseId) {
     const { error } = await sb.from('hr_expenses').update(row).eq('id', editingExpenseId);
     if (error) { showAlert('Update failed: ' + error.message, 'err'); return; }
@@ -1760,8 +1981,17 @@ async function saveExpense() {
   } else {
     const { data, error } = await sb.from('hr_expenses').insert([row]).select();
     if (error) { showAlert('Save failed: ' + error.message, 'err'); return; }
-    if (data && data[0]) expenses.unshift(data[0]);
+    if (data && data[0]) {
+      expenses.unshift(data[0]);
+      lastSavedExpense = data[0];
+    }
     showAlert('Expense saved', 'ok');
+  }
+  // Show voucher button for Cash entries
+  const vBtn = document.getElementById('exp-voucher-btn');
+  if (vBtn && row.payment_mode === 'Cash' && !editingExpenseId) {
+    vBtn.style.display = 'inline-block';
+    setTimeout(() => { vBtn.style.display = 'none'; }, 60000);
   }
   clearExpenseForm();
   renderExpenses();
@@ -1787,6 +2017,8 @@ function clearExpenseForm() {
   document.getElementById('ex-tds-rate').value = '';
   document.getElementById('ex-tds-amount').value = '';
   document.getElementById('ex-payee-pan').value = '';
+  const csel = document.getElementById('ex-contractor-id'); if(csel) csel.value='';
+  const crow = document.getElementById('ex-contractor-row'); if(crow) crow.style.display='none';
   document.getElementById('exp-save-btn').textContent = '✓ Save Entry';
   document.getElementById('exp-cancel-btn').style.display = 'none';
   document.getElementById('exp-editing-badge').style.display = 'none';
@@ -1800,6 +2032,957 @@ async function deleteExpense(id) {
   if (error) { showAlert('Delete failed: ' + error.message, 'err'); return; }
   expenses = expenses.filter(e => e.id !== id);
   renderExpenses();
+}
+
+// ── EXPENSE CATEGORY CHANGE ──────────────────────────────────────
+function onExpCatChange() {
+  const cat = document.getElementById('ex-cat').value;
+  const row = document.getElementById('ex-contractor-row');
+  if (!row) return;
+  if (cat === 'Contractor Payment' || cat === 'Advance to Contractor') {
+    row.style.display = 'flex';
+    populateContractorExpSelect();
+  } else {
+    row.style.display = 'none';
+  }
+}
+function populateContractorExpSelect() {
+  const sel = document.getElementById('ex-contractor-id');
+  if (!sel) return;
+  const current = sel.value;
+  sel.innerHTML = '<option value="">— Select Contractor (optional) —</option>';
+  contractors.filter(c => c.status === 'active').forEach(c => {
+    const o = document.createElement('option');
+    o.value = c.id;
+    o.textContent = c.company_name + (c.contact_person ? ` (${c.contact_person})` : '');
+    sel.appendChild(o);
+  });
+  if (current) sel.value = current;
+}
+
+// ── CONTRACTOR SUB-TABS ──────────────────────────────────────────
+function switchCTab(name, el) {
+  document.querySelectorAll('[id^="ctab-"]').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('[id^="cpanel-"]').forEach(p => { p.style.display = 'none'; });
+  el.classList.add('active');
+  document.getElementById('cpanel-' + name).style.display = 'block';
+  if (name === 'list')     renderContractorList();
+  if (name === 'invoices') { buildCMonthOptions('cinv-month'); renderAllInvoices(); }
+  if (name === 'payable')  { buildCMonthOptions('cpay-month'); renderContractorPayable(); }
+  if (name === 'tds')      { buildCMonthOptions('ctds-month'); renderContractorTDS(); }
+}
+function buildCMonthOptions(selId) {
+  const sel = document.getElementById(selId);
+  if (!sel || sel.options.length > 0) return;
+  const now = new Date();
+  for (let i = 0; i < 12; i++) {
+    const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+    const val = d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0');
+    const opt = document.createElement('option');
+    opt.value = val;
+    opt.textContent = d.toLocaleString('en-IN',{month:'long',year:'numeric'});
+    sel.appendChild(opt);
+  }
+}
+
+// ── INIT CONTRACTORS ─────────────────────────────────────────────
+async function initContractors() {
+  const [{ data: ctrs }, { data: invs }] = await Promise.all([
+    sb.from('hr_contractors').select('*').order('company_name'),
+    sb.from('hr_contractor_invoices').select('*').order('invoice_date', { ascending: false })
+  ]);
+  contractors = ctrs || [];
+  contractorInvoices = invs || [];
+  renderContractorList();
+  populateContractorExpSelect();
+}
+
+// ── CONTRACTOR LIST ──────────────────────────────────────────────
+function renderContractorList() {
+  const el = document.getElementById('ctrs-list-body');
+  if (!el) return;
+  if (contractors.length === 0) {
+    el.innerHTML = `<div style="text-align:center;padding:40px;color:var(--text2)">
+      <div style="font-size:32px;margin-bottom:12px">🏗</div>
+      <div style="font-size:14px;font-weight:600;margin-bottom:6px">No contractors yet</div>
+      <div style="font-size:13px;margin-bottom:16px">Add your fabrication, erection, and transport contractors.</div>
+      <button class="btn btn-primary" onclick="switchCTab('add',document.getElementById('ctab-add'))">＋ Add First Contractor</button>
+    </div>`;
+    return;
+  }
+  const typeBadge = t => {
+    const colors = { Fabrication:'#1a4a2e,#2ecc71', Erection:'#1a2a4a,#5b9bd5', Transport:'#2a1a3a,#a78bfa',
+      Civil:'#2a1a0a,#e8a040', Painting:'#1a2a2a,#4ecdc4', Electrical:'#2a2a0a,#e8e84b', Other:'#2a2a2a,#aaa' };
+    const [bg,col] = (colors[t]||colors.Other).split(',');
+    return `<span style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;padding:2px 8px;border-radius:4px;background:${bg};color:${col}">${t}</span>`;
+  };
+  const fmt = n => '₹'+parseFloat(n||0).toLocaleString('en-IN');
+  el.innerHTML = `
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:10px">
+      <div style="font-size:13px;font-weight:700">${contractors.length} Contractor${contractors.length!==1?'s':''}</div>
+      <button class="btn btn-sm" onclick="switchCTab('add',document.getElementById('ctab-add'))">＋ Add Contractor</button>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:10px">
+    ${contractors.map(c => {
+      const myInvs = contractorInvoices.filter(i => i.contractor_id === c.id);
+      const totalInvoiced = myInvs.reduce((s,i)=>s+parseFloat(i.gross_amount||0),0);
+      const totalPaid = myInvs.reduce((s,i)=>s+parseFloat(i.paid_amount||0),0);
+      const advances = expenses.filter(e => e.contractor_id === c.id).reduce((s,e)=>s+parseFloat(e.amount||0),0);
+      const balance = totalInvoiced - totalPaid;
+      return `<div style="background:var(--card);border:1px solid var(--border);border-radius:var(--r2);padding:16px;cursor:pointer" onclick="showContractorDetail(${c.id})">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:8px">
+          <div style="display:flex;flex-direction:column;gap:4px">
+            <div style="display:flex;align-items:center;gap:8px">
+              <span style="font-size:14px;font-weight:700">${c.company_name}</span>
+              ${typeBadge(c.contractor_type||'Other')}
+              ${c.status!=='active'?`<span style="font-size:10px;color:var(--red);border:1px solid var(--red);padding:1px 6px;border-radius:3px">INACTIVE</span>`:''}
+            </div>
+            ${c.contact_person?`<div style="font-size:12px;color:var(--text2)">${c.contact_person}${c.phone?` · ${c.phone}`:''}</div>`:''}
+            <div style="font-size:12px;color:var(--text2)">${c.work_description||''}</div>
+            <div style="font-size:12px;color:var(--text2)">${c.rate?`Rate: <strong>${fmt(c.rate)}</strong> ${c.rate_unit||''}`:''} ${c.tds_section&&c.tds_section!=='None'?`· TDS: ${c.tds_section} @ ${c.tds_rate||1}%`:''}</div>
+          </div>
+          <div style="display:flex;gap:16px;text-align:right">
+            <div><div style="font-size:10px;text-transform:uppercase;letter-spacing:.06em;color:var(--text2)">Invoiced</div><div style="font-size:15px;font-weight:700">${fmt(totalInvoiced)}</div></div>
+            <div><div style="font-size:10px;text-transform:uppercase;letter-spacing:.06em;color:var(--text2)">Advances</div><div style="font-size:15px;font-weight:700;color:var(--amber)">${fmt(advances)}</div></div>
+            <div><div style="font-size:10px;text-transform:uppercase;letter-spacing:.06em;color:var(--text2)">Balance Due</div><div style="font-size:15px;font-weight:700;color:${balance>0?'var(--red)':'var(--green)'}">${fmt(balance)}</div></div>
+          </div>
+        </div>
+      </div>`;
+    }).join('')}
+    </div>`;
+}
+
+// ── CONTRACTOR DETAIL ────────────────────────────────────────────
+function showContractorDetail(id) {
+  const c = contractors.find(x => x.id === id);
+  if (!c) return;
+  switchCTab('list', document.getElementById('ctab-list'));
+  document.getElementById('cpanel-list').style.display = 'none';
+  document.getElementById('cpanel-detail').style.display = 'block';
+
+  const fmt = n => '₹'+parseFloat(n||0).toLocaleString('en-IN',{minimumFractionDigits:2});
+  const myInvs = contractorInvoices.filter(i => i.contractor_id === id);
+  const myAdv  = expenses.filter(e => e.contractor_id === id);
+  const totalInvoiced = myInvs.reduce((s,i)=>s+parseFloat(i.gross_amount||0),0);
+  const totalTDS = myInvs.reduce((s,i)=>s+parseFloat(i.tds_amount||0),0);
+  const totalAdvances = myAdv.reduce((s,e)=>s+parseFloat(e.amount||0),0);
+  const totalPaid = myInvs.reduce((s,i)=>s+parseFloat(i.paid_amount||0),0);
+  const netBalance = totalInvoiced - totalTDS - totalAdvances - totalPaid;
+
+  const scopeItems = [
+    [c.scope_accommodation,'Accommodation / Staying Place'],
+    [c.scope_electricity,'Electricity'],
+    [c.scope_water,'Water Supply'],
+    [c.scope_lpg,'LPG Gas Cylinders'],
+    [c.scope_safety,'Safety Kits (Helmet, Gloves, Harness)'],
+    [c.scope_hydra,'Hydra / Farana (Mobile Crane)'],
+    [c.scope_scaffolding,'Scaffolding'],
+    [c.scope_tools,'Hand Tools'],
+  ].filter(([v]) => v);
+  const machinesList = (c.scope_machines||'').split(',').map(s=>s.trim()).filter(Boolean);
+
+  const invRows = myInvs.map(i => `
+    <tr>
+      <td style="font-family:monospace;font-size:12px">${i.invoice_no||'—'}</td>
+      <td>${i.invoice_date||'—'}</td>
+      <td style="text-align:right">${fmt(i.gross_amount)}</td>
+      <td style="text-align:right;color:#e8b84b">${fmt(i.tds_amount)}</td>
+      <td style="text-align:right;color:var(--amber)">${fmt(i.advance_deducted)}</td>
+      <td style="text-align:right;font-weight:700">${fmt(i.net_payable)}</td>
+      <td style="text-align:right;color:var(--green)">${fmt(i.paid_amount)}</td>
+      <td style="text-align:right;color:${parseFloat(i.balance_due||0)>0?'var(--red)':'var(--green);font-weight:600'}">${fmt(i.balance_due)}</td>
+      <td><span style="font-size:10px;padding:2px 6px;border-radius:3px;background:${i.status==='paid'?'#0a2a14':i.status==='partial'?'#2a1a0a':'#2a1a1a'};color:${i.status==='paid'?'var(--green)':i.status==='partial'?'var(--amber)':'var(--red)'}">${(i.status||'pending').toUpperCase()}</span></td>
+      <td><button class="exp-del" onclick="deleteContractorInvoice(${i.id})" title="Delete">✕</button></td>
+    </tr>`).join('');
+
+  const advRows = myAdv.map(e => `
+    <tr>
+      <td>${e.date}</td>
+      <td>${e.category}</td>
+      <td style="text-align:right;color:var(--amber);font-weight:600">${fmt(e.amount)}</td>
+      <td style="font-size:12px;color:var(--text2)">${e.description||'—'}</td>
+    </tr>`).join('');
+
+  const el = document.getElementById('ctrs-detail-body');
+  el.innerHTML = `
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:10px">
+      <button class="btn btn-sm" onclick="document.getElementById('cpanel-detail').style.display='none';document.getElementById('cpanel-list').style.display='block';renderContractorList()">← Back</button>
+      <div style="display:flex;gap:8px">
+        <button class="btn btn-sm" onclick="editContractor(${c.id})">✏ Edit</button>
+        <button class="btn btn-sm" style="color:#1a9e5c;border-color:#1a9e5c44" onclick="printContractorAgreement(${c.id})">🖨 Print Agreement</button>
+      </div>
+    </div>
+
+    <!-- Summary cards -->
+    <div style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:20px">
+      <div class="exp-stat blue"><div class="exp-stat-label">Total Invoiced</div><div class="exp-stat-value">${fmt(totalInvoiced)}</div></div>
+      <div class="exp-stat" style="border-color:#e8b84b44;background:#1a1600"><div class="exp-stat-label" style="color:#a07a2a">TDS Deducted</div><div class="exp-stat-value" style="color:#e8b84b">${fmt(totalTDS)}</div></div>
+      <div class="exp-stat warn"><div class="exp-stat-label">Advances Given</div><div class="exp-stat-value">${fmt(totalAdvances)}</div></div>
+      <div class="exp-stat ${netBalance>0?'danger':'ok'}"><div class="exp-stat-label">Net Balance Due</div><div class="exp-stat-value">${fmt(Math.abs(netBalance))}</div><div class="exp-stat-sub">${netBalance>0?'payable':'settled'}</div></div>
+    </div>
+
+    <!-- Agreement summary -->
+    <div style="background:var(--card);border:1px solid var(--border);border-radius:var(--r2);padding:20px;margin-bottom:16px">
+      <div style="font-size:13px;font-weight:700;margin-bottom:14px">Agreement Summary — ${c.company_name}</div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px 24px;margin-bottom:14px">
+        <div><div style="font-size:10px;text-transform:uppercase;letter-spacing:.06em;color:var(--text2);margin-bottom:2px">Type</div><div style="font-size:13px;font-weight:600">${c.contractor_type||'—'}</div></div>
+        <div><div style="font-size:10px;text-transform:uppercase;letter-spacing:.06em;color:var(--text2);margin-bottom:2px">Rate</div><div style="font-size:13px;font-weight:600">${c.rate?fmt(c.rate)+' '+c.rate_unit:'—'}</div></div>
+        <div><div style="font-size:10px;text-transform:uppercase;letter-spacing:.06em;color:var(--text2);margin-bottom:2px">Payment Terms</div><div style="font-size:13px">${c.payment_terms||'—'}</div></div>
+        <div><div style="font-size:10px;text-transform:uppercase;letter-spacing:.06em;color:var(--text2);margin-bottom:2px">TDS</div><div style="font-size:13px">${c.tds_section&&c.tds_section!=='None'?c.tds_section+' @ '+(c.tds_rate||1)+'%':'None'}</div></div>
+        ${c.retention_percent>0?`<div><div style="font-size:10px;text-transform:uppercase;letter-spacing:.06em;color:var(--text2);margin-bottom:2px">Retention</div><div style="font-size:13px">${c.retention_percent}%</div></div>`:''}
+        <div><div style="font-size:10px;text-transform:uppercase;letter-spacing:.06em;color:var(--text2);margin-bottom:2px">Advance Recovery</div><div style="font-size:13px">${c.advance_recoverable?'Yes — from invoices':'No'}</div></div>
+        ${c.pan?`<div><div style="font-size:10px;text-transform:uppercase;letter-spacing:.06em;color:var(--text2);margin-bottom:2px">PAN</div><div style="font-size:13px;font-family:monospace">${c.pan}</div></div>`:''}
+        ${c.gstin?`<div><div style="font-size:10px;text-transform:uppercase;letter-spacing:.06em;color:var(--text2);margin-bottom:2px">GSTIN</div><div style="font-size:13px;font-family:monospace">${c.gstin}</div></div>`:''}
+      </div>
+      ${c.work_description?`<div style="margin-bottom:10px"><div style="font-size:10px;text-transform:uppercase;letter-spacing:.06em;color:var(--text2);margin-bottom:4px">Scope of Work</div><div style="font-size:13px">${c.work_description}</div></div>`:''}
+      ${scopeItems.length>0?`<div style="margin-bottom:10px"><div style="font-size:10px;text-transform:uppercase;letter-spacing:.06em;color:var(--text2);margin-bottom:6px">Proalfa Provides</div><div style="display:flex;flex-wrap:wrap;gap:6px">${scopeItems.map(([,l])=>`<span style="background:var(--card2);border:1px solid var(--border2);padding:3px 10px;border-radius:4px;font-size:12px">✓ ${l}</span>`).join('')}${machinesList.map(m=>`<span style="background:var(--card2);border:1px solid var(--border2);padding:3px 10px;border-radius:4px;font-size:12px">✓ ${m}</span>`).join('')}</div></div>`:''}
+      ${c.contractor_scope?`<div style="margin-bottom:10px"><div style="font-size:10px;text-transform:uppercase;letter-spacing:.06em;color:var(--text2);margin-bottom:4px">Contractor Provides</div><div style="font-size:13px;color:var(--text2)">${c.contractor_scope}</div></div>`:''}
+      ${c.other_terms?`<div><div style="font-size:10px;text-transform:uppercase;letter-spacing:.06em;color:var(--text2);margin-bottom:4px">Other Terms</div><div style="font-size:13px;color:var(--text2)">${c.other_terms}</div></div>`:''}
+    </div>
+
+    <!-- Add Invoice -->
+    <div style="background:var(--card);border:1px solid var(--border);border-radius:var(--r2);padding:20px;margin-bottom:16px">
+      <div style="font-size:13px;font-weight:700;margin-bottom:14px">＋ Add Invoice from ${c.company_name}</div>
+      <input type="hidden" id="inv-ctr-id" value="${c.id}">
+      <div class="fgrid" style="margin-bottom:10px">
+        <div class="fg"><label>Invoice No.</label><input type="text" id="inv-no" placeholder="e.g. INV-001"></div>
+        <div class="fg"><label>Invoice Date</label><input type="date" id="inv-date"></div>
+        <div class="fg"><label>Work Period From</label><input type="date" id="inv-from"></div>
+        <div class="fg"><label>Work Period To</label><input type="date" id="inv-to"></div>
+      </div>
+      <div class="fgrid" style="margin-bottom:10px">
+        <div class="fg"><label>Quantity</label><input type="number" id="inv-qty" placeholder="0" min="0" step="0.01" oninput="calcInvAmount(${c.id})"></div>
+        <div class="fg"><label>Unit</label><input type="text" id="inv-unit" value="${c.rate_unit||''}"></div>
+        <div class="fg"><label>Rate (₹)</label><input type="number" id="inv-rate" value="${c.rate||''}" min="0" step="0.01" oninput="calcInvAmount(${c.id})"></div>
+        <div class="fg"><label>Gross Amount (₹)</label><input type="number" id="inv-gross" placeholder="0.00" min="0" step="0.01" oninput="calcInvTDS(${c.id})"></div>
+      </div>
+      <div class="fgrid" style="margin-bottom:10px">
+        <div class="fg"><label>GST Amount (₹)</label><input type="number" id="inv-gst" placeholder="0.00" min="0" step="0.01"></div>
+        <div class="fg"><label>TDS Section</label><input type="text" id="inv-tds-sec" value="${c.tds_section&&c.tds_section!=='None'?c.tds_section:'194C'}"></div>
+        <div class="fg"><label>TDS Rate (%)</label><input type="number" id="inv-tds-rate" value="${c.tds_rate||1}" min="0" step="0.01" oninput="calcInvTDS(${c.id})"></div>
+        <div class="fg"><label>TDS Amount (₹)</label><input type="number" id="inv-tds-amt" placeholder="0.00" min="0" step="0.01" oninput="calcInvNet(${c.id})"></div>
+      </div>
+      <div class="fgrid" style="margin-bottom:10px">
+        <div class="fg"><label>Advance Deducted (₹)</label><input type="number" id="inv-adv" value="${totalAdvances>0&&c.advance_recoverable?Math.min(totalAdvances,0):''}" placeholder="0.00" min="0" step="0.01" oninput="calcInvNet(${c.id})"></div>
+        <div class="fg"><label>Retention Deducted (₹)</label><input type="number" id="inv-ret" placeholder="0.00" min="0" step="0.01" oninput="calcInvNet(${c.id})"></div>
+        <div class="fg"><label>Net Payable (₹)</label><input type="number" id="inv-net" placeholder="Auto-calculated" min="0" step="0.01" style="font-weight:700;color:var(--green)"></div>
+        <div class="fg"><label>Amount Paid (₹)</label><input type="number" id="inv-paid" placeholder="0.00" min="0" step="0.01" oninput="calcInvBalance(${c.id})"></div>
+      </div>
+      <div class="fgrid" style="margin-bottom:10px">
+        <div class="fg"><label>Balance Due (₹)</label><input type="number" id="inv-bal" placeholder="0.00" readonly style="color:var(--red)"></div>
+        <div class="fg"><label>Status</label>
+          <select id="inv-status">
+            <option value="pending">Pending</option>
+            <option value="partial">Partial Payment</option>
+            <option value="paid">Fully Paid</option>
+          </select>
+        </div>
+        <div class="fg fg-full"><label>Remarks</label><input type="text" id="inv-remarks" placeholder="Optional notes"></div>
+      </div>
+      <button class="btn btn-primary" onclick="saveContractorInvoice()">✓ Save Invoice</button>
+      <span id="inv-save-msg" style="font-size:12px;color:var(--green);margin-left:10px;display:none"></span>
+    </div>
+
+    <!-- Invoice history -->
+    ${myInvs.length>0?`
+    <div style="background:var(--card);border:1px solid var(--border);border-radius:var(--r2);padding:20px;margin-bottom:16px">
+      <div style="font-size:13px;font-weight:700;margin-bottom:14px">Invoice History</div>
+      <div style="overflow-x:auto">
+        <table class="exp-tbl">
+          <thead><tr><th>Invoice No.</th><th>Date</th><th style="text-align:right">Gross</th><th style="text-align:right">TDS</th><th style="text-align:right">Advance Ded.</th><th style="text-align:right">Net Payable</th><th style="text-align:right">Paid</th><th style="text-align:right">Balance</th><th>Status</th><th></th></tr></thead>
+          <tbody>${invRows}</tbody>
+        </table>
+      </div>
+    </div>`:''}
+
+    <!-- Advances history -->
+    ${myAdv.length>0?`
+    <div style="background:var(--card);border:1px solid var(--border);border-radius:var(--r2);padding:20px">
+      <div style="font-size:13px;font-weight:700;margin-bottom:14px">Advances / Payments Given</div>
+      <div style="overflow-x:auto">
+        <table class="exp-tbl">
+          <thead><tr><th>Date</th><th>Category</th><th style="text-align:right">Amount</th><th>Description</th></tr></thead>
+          <tbody>${advRows}</tbody>
+        </table>
+      </div>
+    </div>`:''}`;
+
+  // Set today date for invoice
+  const invDateEl = document.getElementById('inv-date');
+  if (invDateEl && !invDateEl.value) { const _n=new Date(); invDateEl.value=_n.toISOString().slice(0,10); }
+}
+
+function calcInvAmount(cid) {
+  const qty = parseFloat(document.getElementById('inv-qty')?.value)||0;
+  const rate = parseFloat(document.getElementById('inv-rate')?.value)||0;
+  if (qty && rate) {
+    document.getElementById('inv-gross').value = (qty * rate).toFixed(2);
+    calcInvTDS(cid);
+  }
+}
+function calcInvTDS(cid) {
+  const gross = parseFloat(document.getElementById('inv-gross')?.value)||0;
+  const rate = parseFloat(document.getElementById('inv-tds-rate')?.value)||0;
+  document.getElementById('inv-tds-amt').value = (gross * rate / 100).toFixed(2);
+  calcInvNet(cid);
+}
+function calcInvNet(cid) {
+  const gross = parseFloat(document.getElementById('inv-gross')?.value)||0;
+  const tds = parseFloat(document.getElementById('inv-tds-amt')?.value)||0;
+  const adv = parseFloat(document.getElementById('inv-adv')?.value)||0;
+  const ret = parseFloat(document.getElementById('inv-ret')?.value)||0;
+  const net = gross - tds - adv - ret;
+  document.getElementById('inv-net').value = Math.max(0, net).toFixed(2);
+  calcInvBalance(cid);
+}
+function calcInvBalance(cid) {
+  const net = parseFloat(document.getElementById('inv-net')?.value)||0;
+  const paid = parseFloat(document.getElementById('inv-paid')?.value)||0;
+  const bal = net - paid;
+  const balEl = document.getElementById('inv-bal');
+  if (balEl) balEl.value = Math.max(0, bal).toFixed(2);
+  const statusEl = document.getElementById('inv-status');
+  if (statusEl) {
+    if (bal <= 0) statusEl.value = 'paid';
+    else if (paid > 0) statusEl.value = 'partial';
+    else statusEl.value = 'pending';
+  }
+}
+
+async function saveContractorInvoice() {
+  const ctrId = parseInt(document.getElementById('inv-ctr-id').value);
+  const invNo = document.getElementById('inv-no').value.trim();
+  const invDate = document.getElementById('inv-date').value;
+  const gross = parseFloat(document.getElementById('inv-gross').value)||0;
+  if (!invDate || !gross) { showAlert('Invoice date and gross amount are required', 'err'); return; }
+  const row = {
+    contractor_id: ctrId,
+    invoice_no: invNo||null,
+    invoice_date: invDate,
+    work_period_from: document.getElementById('inv-from').value||null,
+    work_period_to: document.getElementById('inv-to').value||null,
+    quantity: parseFloat(document.getElementById('inv-qty').value)||null,
+    unit: document.getElementById('inv-unit').value.trim()||null,
+    rate: parseFloat(document.getElementById('inv-rate').value)||null,
+    gross_amount: gross,
+    gst_amount: parseFloat(document.getElementById('inv-gst').value)||0,
+    tds_section: document.getElementById('inv-tds-sec').value.trim()||null,
+    tds_rate: parseFloat(document.getElementById('inv-tds-rate').value)||0,
+    tds_amount: parseFloat(document.getElementById('inv-tds-amt').value)||0,
+    advance_deducted: parseFloat(document.getElementById('inv-adv').value)||0,
+    retention_amount: parseFloat(document.getElementById('inv-ret').value)||0,
+    net_payable: parseFloat(document.getElementById('inv-net').value)||0,
+    paid_amount: parseFloat(document.getElementById('inv-paid').value)||0,
+    balance_due: parseFloat(document.getElementById('inv-bal').value)||0,
+    status: document.getElementById('inv-status').value,
+    remarks: document.getElementById('inv-remarks').value.trim()||null,
+  };
+  const { data, error } = await sb.from('hr_contractor_invoices').insert([row]).select();
+  if (error) { showAlert('Save failed: ' + error.message, 'err'); return; }
+  if (data && data[0]) contractorInvoices.unshift(data[0]);
+  showAlert('Invoice saved', 'ok');
+  const msg = document.getElementById('inv-save-msg');
+  if (msg) { msg.textContent = '✓ Saved'; msg.style.display='inline'; setTimeout(()=>{msg.style.display='none'},3000); }
+  showContractorDetail(ctrId);
+}
+
+async function deleteContractorInvoice(id) {
+  if (!confirm('Delete this invoice entry?')) return;
+  const inv = contractorInvoices.find(i => i.id === id);
+  const { error } = await sb.from('hr_contractor_invoices').delete().eq('id', id);
+  if (error) { showAlert('Delete failed: ' + error.message, 'err'); return; }
+  contractorInvoices = contractorInvoices.filter(i => i.id !== id);
+  if (inv) showContractorDetail(inv.contractor_id);
+}
+
+// ── SAVE / EDIT CONTRACTOR ───────────────────────────────────────
+async function saveContractor() {
+  const company = document.getElementById('cf-company').value.trim();
+  const workdesc = document.getElementById('cf-workdesc').value.trim();
+  if (!company || !workdesc) { showAlert('Company name and work description are required', 'err'); return; }
+  const row = {
+    company_name: company,
+    contact_person: document.getElementById('cf-person').value.trim()||null,
+    contractor_type: document.getElementById('cf-type').value,
+    status: document.getElementById('cf-status').value,
+    phone: document.getElementById('cf-phone').value.trim()||null,
+    email: document.getElementById('cf-email').value.trim()||null,
+    gstin: document.getElementById('cf-gstin').value.trim().toUpperCase()||null,
+    pan: document.getElementById('cf-pan').value.trim().toUpperCase()||null,
+    address: document.getElementById('cf-address').value.trim()||null,
+    rate: parseFloat(document.getElementById('cf-rate').value)||null,
+    rate_unit: document.getElementById('cf-unit').value,
+    work_description: workdesc,
+    scope_accommodation: document.getElementById('cf-accommodation').checked,
+    scope_electricity: document.getElementById('cf-electricity').checked,
+    scope_water: document.getElementById('cf-water').checked,
+    scope_lpg: document.getElementById('cf-lpg').checked,
+    scope_safety: document.getElementById('cf-safety').checked,
+    scope_hydra: document.getElementById('cf-hydra').checked,
+    scope_scaffolding: document.getElementById('cf-scaffolding').checked,
+    scope_tools: document.getElementById('cf-tools').checked,
+    scope_machines: document.getElementById('cf-machines').value.trim()||null,
+    contractor_scope: document.getElementById('cf-ctr-scope').value.trim()||null,
+    payment_terms: document.getElementById('cf-pay-terms').value,
+    tds_section: document.getElementById('cf-tds-section').value,
+    tds_rate: parseFloat(document.getElementById('cf-tds-rate').value)||1,
+    retention_percent: parseFloat(document.getElementById('cf-retention').value)||0,
+    advance_recoverable: document.getElementById('cf-advance-rec').value === 'yes',
+    other_terms: document.getElementById('cf-other-terms').value.trim()||null,
+  };
+  const editId = parseInt(document.getElementById('cf-id').value)||null;
+  if (editId) {
+    const { error } = await sb.from('hr_contractors').update(row).eq('id', editId);
+    if (error) { showAlert('Update failed: ' + error.message, 'err'); return; }
+    const idx = contractors.findIndex(c => c.id === editId);
+    if (idx !== -1) contractors[idx] = { ...contractors[idx], ...row };
+    showAlert('Contractor updated', 'ok');
+  } else {
+    const { data, error } = await sb.from('hr_contractors').insert([row]).select();
+    if (error) { showAlert('Save failed: ' + error.message, 'err'); return; }
+    if (data && data[0]) contractors.push(data[0]);
+    showAlert('Contractor added', 'ok');
+  }
+  const msg = document.getElementById('ctr-save-msg');
+  if (msg) { msg.textContent = '✓ Saved successfully'; msg.style.display='inline'; setTimeout(()=>{msg.style.display='none'},3000); }
+  editingContractorId = null;
+  document.getElementById('cf-id').value = '';
+  populateContractorExpSelect();
+  switchCTab('list', document.getElementById('ctab-list'));
+}
+
+function editContractor(id) {
+  const c = contractors.find(x => x.id === id);
+  if (!c) return;
+  switchCTab('add', document.getElementById('ctab-add'));
+  document.getElementById('ctr-form-title').textContent = '✏ Edit Contractor — ' + c.company_name;
+  document.getElementById('cf-id').value = id;
+  document.getElementById('cf-company').value = c.company_name||'';
+  document.getElementById('cf-person').value = c.contact_person||'';
+  document.getElementById('cf-type').value = c.contractor_type||'Fabrication';
+  document.getElementById('cf-status').value = c.status||'active';
+  document.getElementById('cf-phone').value = c.phone||'';
+  document.getElementById('cf-email').value = c.email||'';
+  document.getElementById('cf-gstin').value = c.gstin||'';
+  document.getElementById('cf-pan').value = c.pan||'';
+  document.getElementById('cf-address').value = c.address||'';
+  document.getElementById('cf-rate').value = c.rate||'';
+  document.getElementById('cf-unit').value = c.rate_unit||'per ton';
+  document.getElementById('cf-workdesc').value = c.work_description||'';
+  document.getElementById('cf-accommodation').checked = !!c.scope_accommodation;
+  document.getElementById('cf-electricity').checked = !!c.scope_electricity;
+  document.getElementById('cf-water').checked = !!c.scope_water;
+  document.getElementById('cf-lpg').checked = !!c.scope_lpg;
+  document.getElementById('cf-safety').checked = !!c.scope_safety;
+  document.getElementById('cf-hydra').checked = !!c.scope_hydra;
+  document.getElementById('cf-scaffolding').checked = !!c.scope_scaffolding;
+  document.getElementById('cf-tools').checked = !!c.scope_tools;
+  document.getElementById('cf-machines').value = c.scope_machines||'';
+  document.getElementById('cf-ctr-scope').value = c.contractor_scope||'';
+  document.getElementById('cf-pay-terms').value = c.payment_terms||'Per Invoice';
+  document.getElementById('cf-tds-section').value = c.tds_section||'194C';
+  document.getElementById('cf-tds-rate').value = c.tds_rate||1;
+  document.getElementById('cf-retention').value = c.retention_percent||0;
+  document.getElementById('cf-advance-rec').value = c.advance_recoverable ? 'yes' : 'no';
+  document.getElementById('cf-other-terms').value = c.other_terms||'';
+}
+
+// ── ALL INVOICES VIEW ────────────────────────────────────────────
+function renderAllInvoices() {
+  const month = document.getElementById('cinv-month')?.value || '';
+  const fmt = n => '₹'+parseFloat(n||0).toLocaleString('en-IN',{minimumFractionDigits:2});
+  const filtered = month ? contractorInvoices.filter(i => (i.invoice_date||'').startsWith(month)) : contractorInvoices;
+  const el = document.getElementById('all-invoices-body');
+  if (!el) return;
+  if (filtered.length === 0) { el.innerHTML = '<p style="color:var(--text2);font-size:13px">No invoices for this period.</p>'; return; }
+  const rows = filtered.map(i => {
+    const c = contractors.find(x => x.id === i.contractor_id);
+    return `<tr>
+      <td style="font-size:12px;font-family:monospace">${i.invoice_no||'—'}</td>
+      <td>${i.invoice_date||'—'}</td>
+      <td><strong>${c?c.company_name:'Unknown'}</strong>${c?`<br><span style="font-size:11px;color:var(--text2)">${c.contractor_type||''}</span>`:''}</td>
+      <td style="text-align:right">${fmt(i.gross_amount)}</td>
+      <td style="text-align:right;color:#e8b84b">${fmt(i.tds_amount)}</td>
+      <td style="text-align:right;color:var(--amber)">${fmt(i.advance_deducted)}</td>
+      <td style="text-align:right;font-weight:700">${fmt(i.net_payable)}</td>
+      <td style="text-align:right;color:var(--green)">${fmt(i.paid_amount)}</td>
+      <td style="text-align:right;font-weight:700;color:${parseFloat(i.balance_due||0)>0?'var(--red)':'var(--green)'}">${fmt(i.balance_due)}</td>
+      <td><span style="font-size:10px;padding:2px 6px;border-radius:3px;background:${i.status==='paid'?'#0a2a14':i.status==='partial'?'#2a1a0a':'#2a1a1a'};color:${i.status==='paid'?'var(--green)':i.status==='partial'?'var(--amber)':'var(--red)'}">${(i.status||'pending').toUpperCase()}</span></td>
+    </tr>`;
+  }).join('');
+  el.innerHTML = `<div style="overflow-x:auto"><table class="exp-tbl">
+    <thead><tr><th>Invoice No.</th><th>Date</th><th>Contractor</th><th style="text-align:right">Gross</th><th style="text-align:right">TDS</th><th style="text-align:right">Adv. Ded.</th><th style="text-align:right">Net Payable</th><th style="text-align:right">Paid</th><th style="text-align:right">Balance</th><th>Status</th></tr></thead>
+    <tbody>${rows}</tbody>
+  </table></div>`;
+}
+
+// ── MONTHLY PAYABLE ──────────────────────────────────────────────
+function renderContractorPayable() {
+  const month = document.getElementById('cpay-month')?.value || '';
+  const fmt = n => '₹'+parseFloat(n||0).toLocaleString('en-IN',{minimumFractionDigits:2});
+  const monthInvs = month ? contractorInvoices.filter(i => (i.invoice_date||'').startsWith(month)) : contractorInvoices;
+  const statsEl = document.getElementById('cpay-stats');
+  const bodyEl = document.getElementById('cpay-body');
+  if (!statsEl || !bodyEl) return;
+
+  const totalGross = monthInvs.reduce((s,i)=>s+parseFloat(i.gross_amount||0),0);
+  const totalTDS = monthInvs.reduce((s,i)=>s+parseFloat(i.tds_amount||0),0);
+  const totalAdv = monthInvs.reduce((s,i)=>s+parseFloat(i.advance_deducted||0),0);
+  const totalNet = monthInvs.reduce((s,i)=>s+parseFloat(i.net_payable||0),0);
+  const totalBal = monthInvs.reduce((s,i)=>s+parseFloat(i.balance_due||0),0);
+
+  statsEl.innerHTML = `
+    <div class="exp-stat blue"><div class="exp-stat-label">Total Invoiced</div><div class="exp-stat-value">${fmt(totalGross)}</div><div class="exp-stat-sub">${monthInvs.length} invoices</div></div>
+    <div class="exp-stat" style="border-color:#e8b84b44;background:#1a1600"><div class="exp-stat-label" style="color:#a07a2a">TDS Deducted</div><div class="exp-stat-value" style="color:#e8b84b">${fmt(totalTDS)}</div></div>
+    <div class="exp-stat warn"><div class="exp-stat-label">Advances Deducted</div><div class="exp-stat-value">${fmt(totalAdv)}</div></div>
+    <div class="exp-stat ok"><div class="exp-stat-label">Net Payable</div><div class="exp-stat-value">${fmt(totalNet)}</div></div>
+    <div class="exp-stat ${totalBal>0?'danger':'ok'}"><div class="exp-stat-label">Balance Due</div><div class="exp-stat-value">${fmt(totalBal)}</div></div>`;
+
+  if (monthInvs.length === 0) {
+    bodyEl.innerHTML = '<p style="color:var(--text2);font-size:13px">No invoices for this period.</p>';
+    return;
+  }
+
+  const byContractor = {};
+  monthInvs.forEach(i => {
+    if (!byContractor[i.contractor_id]) byContractor[i.contractor_id] = [];
+    byContractor[i.contractor_id].push(i);
+  });
+
+  const rows = Object.entries(byContractor).map(([cid, invs]) => {
+    const c = contractors.find(x => x.id === parseInt(cid));
+    const gross = invs.reduce((s,i)=>s+parseFloat(i.gross_amount||0),0);
+    const tds = invs.reduce((s,i)=>s+parseFloat(i.tds_amount||0),0);
+    const adv = invs.reduce((s,i)=>s+parseFloat(i.advance_deducted||0),0);
+    const net = invs.reduce((s,i)=>s+parseFloat(i.net_payable||0),0);
+    const paid = invs.reduce((s,i)=>s+parseFloat(i.paid_amount||0),0);
+    const bal = invs.reduce((s,i)=>s+parseFloat(i.balance_due||0),0);
+    return `<tr>
+      <td><strong>${c?c.company_name:'Unknown'}</strong>${c&&c.pan?`<br><span style="font-size:11px;font-family:monospace;color:var(--text2)">PAN: ${c.pan}</span>`:''}</td>
+      <td>${c?c.contractor_type||'—':'—'}</td>
+      <td style="text-align:center">${invs.length}</td>
+      <td style="text-align:right">${fmt(gross)}</td>
+      <td style="text-align:right;color:#e8b84b">${fmt(tds)}</td>
+      <td style="text-align:right;color:var(--amber)">${fmt(adv)}</td>
+      <td style="text-align:right;font-weight:700">${fmt(net)}</td>
+      <td style="text-align:right;color:var(--green)">${fmt(paid)}</td>
+      <td style="text-align:right;font-weight:700;color:${bal>0?'var(--red)':'var(--green)'}">${fmt(bal)}</td>
+    </tr>`;
+  }).join('');
+
+  bodyEl.innerHTML = `<div style="overflow-x:auto"><table class="exp-tbl">
+    <thead><tr><th>Contractor</th><th>Type</th><th style="text-align:center">Invoices</th><th style="text-align:right">Gross</th><th style="text-align:right">TDS</th><th style="text-align:right">Adv. Ded.</th><th style="text-align:right">Net Payable</th><th style="text-align:right">Paid</th><th style="text-align:right">Balance Due</th></tr></thead>
+    <tbody>${rows}
+    <tr style="font-weight:700;border-top:2px solid var(--border)">
+      <td colspan="3">TOTAL</td>
+      <td style="text-align:right">${fmt(totalGross)}</td>
+      <td style="text-align:right;color:#e8b84b">${fmt(totalTDS)}</td>
+      <td style="text-align:right">${fmt(totalAdv)}</td>
+      <td style="text-align:right">${fmt(totalNet)}</td>
+      <td></td>
+      <td style="text-align:right;color:${totalBal>0?'var(--red)':'var(--green)'}">${fmt(totalBal)}</td>
+    </tr>
+    </tbody>
+  </table></div>`;
+}
+
+function downloadContractorPayableSheet() {
+  const month = document.getElementById('cpay-month')?.value || '';
+  const d = month ? new Date(month+'-01') : new Date();
+  const monthLabel = d.toLocaleString('en-IN',{month:'long',year:'numeric'});
+  const fmt = n => '₹'+parseFloat(n||0).toLocaleString('en-IN',{minimumFractionDigits:2});
+  const monthInvs = month ? contractorInvoices.filter(i=>(i.invoice_date||'').startsWith(month)) : contractorInvoices;
+  const byContractor = {};
+  monthInvs.forEach(i => { if(!byContractor[i.contractor_id]) byContractor[i.contractor_id]=[]; byContractor[i.contractor_id].push(i); });
+
+  const rows = Object.entries(byContractor).map(([cid, invs], idx) => {
+    const c = contractors.find(x=>x.id===parseInt(cid));
+    const gross=invs.reduce((s,i)=>s+parseFloat(i.gross_amount||0),0);
+    const tds=invs.reduce((s,i)=>s+parseFloat(i.tds_amount||0),0);
+    const adv=invs.reduce((s,i)=>s+parseFloat(i.advance_deducted||0),0);
+    const net=invs.reduce((s,i)=>s+parseFloat(i.net_payable||0),0);
+    const paid=invs.reduce((s,i)=>s+parseFloat(i.paid_amount||0),0);
+    const bal=invs.reduce((s,i)=>s+parseFloat(i.balance_due||0),0);
+    return `<tr><td>${idx+1}</td><td><strong>${c?c.company_name:'Unknown'}</strong>${c&&c.pan?`<br><small>PAN: ${c.pan}</small>`:''}</td><td>${c?c.contractor_type||'—':'—'}</td><td style="text-align:center">${invs.length}</td><td style="text-align:right">${fmt(gross)}</td><td style="text-align:right">${fmt(tds)}</td><td style="text-align:right">${fmt(adv)}</td><td style="text-align:right;font-weight:700">${fmt(net)}</td><td style="text-align:right">${fmt(paid)}</td><td style="text-align:right;font-weight:700;color:${bal>0?'#c00':'#1a9e5c'}">${fmt(bal)}</td></tr>`;
+  }).join('');
+  const totGross=monthInvs.reduce((s,i)=>s+parseFloat(i.gross_amount||0),0);
+  const totTDS=monthInvs.reduce((s,i)=>s+parseFloat(i.tds_amount||0),0);
+  const totAdv=monthInvs.reduce((s,i)=>s+parseFloat(i.advance_deducted||0),0);
+  const totNet=monthInvs.reduce((s,i)=>s+parseFloat(i.net_payable||0),0);
+  const totBal=monthInvs.reduce((s,i)=>s+parseFloat(i.balance_due||0),0);
+
+  const w = window.open('','_blank','width=1100,height=750');
+  w.document.write(`<!DOCTYPE html><html><head><meta charset="utf-8"><title>Contractor Payable — ${monthLabel}</title>
+  <style>body{font-family:Arial,sans-serif;font-size:13px;padding:32px;color:#111;max-width:1100px;margin:auto}
+  h1{font-size:20px;margin:0 0 4px}.sub{color:#666;font-size:12px;margin-bottom:20px}
+  table{border-collapse:collapse;width:100%;margin-bottom:20px}
+  th,td{border:1px solid #ddd;padding:7px 10px;text-align:left}th{background:#f5f5f3;font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:#555}
+  tr:nth-child(even) td{background:#fafafa}.total-row{background:#f0f0ee!important;font-weight:700}
+  @media print{button{display:none}body{padding:16px}}</style></head><body>
+  <div style="display:flex;justify-content:space-between;align-items:flex-start">
+    <div><h1>Proalfa Dynamic — Contractor Payable Sheet</h1><div class="sub">${monthLabel} · Generated ${new Date().toLocaleDateString('en-IN')}</div></div>
+    <button onclick="window.print()" style="padding:8px 16px;background:#111;color:#fff;border:none;border-radius:4px;cursor:pointer;font-size:13px">🖨 Print / PDF</button>
+  </div>
+  <table><thead><tr><th>Sr.</th><th>Contractor / Firm</th><th>Type</th><th style="text-align:center">Invoices</th><th style="text-align:right">Gross (₹)</th><th style="text-align:right">TDS (₹)</th><th style="text-align:right">Adv. Ded. (₹)</th><th style="text-align:right">Net Payable (₹)</th><th style="text-align:right">Paid (₹)</th><th style="text-align:right">Balance Due (₹)</th></tr></thead>
+  <tbody>${rows}<tr class="total-row"><td colspan="4">TOTAL</td><td style="text-align:right">${fmt(totGross)}</td><td style="text-align:right">${fmt(totTDS)}</td><td style="text-align:right">${fmt(totAdv)}</td><td style="text-align:right">${fmt(totNet)}</td><td></td><td style="text-align:right">${fmt(totBal)}</td></tr></tbody></table>
+  <div style="margin-top:32px;border-top:2px solid #ddd;padding-top:16px;display:grid;grid-template-columns:1fr 1fr 1fr;gap:40px;font-size:12px">
+    <div><div style="border-bottom:1px solid #999;margin-bottom:4px;padding-bottom:20px"></div>Prepared by (Accounts)</div>
+    <div><div style="border-bottom:1px solid #999;margin-bottom:4px;padding-bottom:20px"></div>Checked by</div>
+    <div><div style="border-bottom:1px solid #999;margin-bottom:4px;padding-bottom:20px"></div>Authorised by</div>
+  </div></body></html>`);
+  w.document.close();
+}
+
+// ── CONTRACTOR TDS ────────────────────────────────────────────────
+function renderContractorTDS() {
+  const month = document.getElementById('ctds-month')?.value || '';
+  const fmt = n => '₹'+parseFloat(n||0).toLocaleString('en-IN',{minimumFractionDigits:2});
+  const monthInvs = month ? contractorInvoices.filter(i=>(i.invoice_date||'').startsWith(month)&&parseFloat(i.tds_amount||0)>0) : contractorInvoices.filter(i=>parseFloat(i.tds_amount||0)>0);
+  const el = document.getElementById('ctds-body');
+  if (!el) return;
+  const totalTDS = monthInvs.reduce((s,i)=>s+parseFloat(i.tds_amount||0),0);
+  const rows = monthInvs.map((i,idx) => {
+    const c = contractors.find(x=>x.id===i.contractor_id);
+    return `<div style="background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:12px 16px;display:grid;grid-template-columns:2fr 1fr 1fr 1fr 1fr 1fr;gap:10px;align-items:center;font-size:12px">
+      <div><strong>${c?c.company_name:'Unknown'}</strong><br><span style="color:var(--text2)">${i.invoice_no||'—'} · ${i.invoice_date||'—'}</span></div>
+      <div><div style="font-size:10px;color:var(--text2);text-transform:uppercase;letter-spacing:.06em">PAN</div><strong style="font-family:monospace">${c&&c.pan?c.pan:'<span style="color:var(--red)">MISSING</span>'}</strong></div>
+      <div><div style="font-size:10px;color:var(--text2);text-transform:uppercase;letter-spacing:.06em">Section</div><strong>${i.tds_section||'194C'}</strong></div>
+      <div><div style="font-size:10px;color:var(--text2);text-transform:uppercase;letter-spacing:.06em">Gross</div>${fmt(i.gross_amount)}</div>
+      <div><div style="font-size:10px;color:var(--text2);text-transform:uppercase;letter-spacing:.06em">Rate</div>${i.tds_rate||1}%</div>
+      <div><div style="font-size:10px;color:var(--text2);text-transform:uppercase;letter-spacing:.06em">TDS</div><strong style="color:#e8b84b;font-size:14px">${fmt(i.tds_amount)}</strong></div>
+    </div>`;
+  }).join('');
+  el.innerHTML = (monthInvs.length===0?'<p style="color:var(--text2);font-size:13px">No contractor TDS for this period.</p>':
+    `<div style="background:#1a1600;border:1px solid #e8b84b44;border-radius:var(--r2);padding:14px 18px;margin-bottom:16px;display:flex;justify-content:space-between;align-items:center">
+      <div style="font-size:12px;color:#a07a2a;font-weight:600">Contractor TDS Payable — ${month}</div>
+      <div style="font-size:22px;font-weight:700;color:#e8b84b">${fmt(totalTDS)}</div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:6px">${rows}</div>`);
+}
+
+function downloadCombinedTDS() {
+  const month = document.getElementById('ctds-month')?.value || document.getElementById('exp-month')?.value || '';
+  const d = month ? new Date(month+'-01') : new Date();
+  const monthLabel = d.toLocaleString('en-IN',{month:'long',year:'numeric'});
+  const dueD = new Date(d.getFullYear(), d.getMonth()+1, 7);
+  const dueLabel = dueD.toLocaleDateString('en-IN',{day:'2-digit',month:'long',year:'numeric'});
+  const fmt = n => '₹'+parseFloat(n||0).toLocaleString('en-IN',{minimumFractionDigits:2});
+
+  const expTDS = expenses.filter(e => e.tds_applicable && (e.date||'').startsWith(month));
+  const ctrTDS = contractorInvoices.filter(i => parseFloat(i.tds_amount||0)>0 && (i.invoice_date||'').startsWith(month));
+
+  const totalExpTDS = expTDS.reduce((s,e)=>s+parseFloat(e.tds_amount||0),0);
+  const totalCtrTDS = ctrTDS.reduce((s,i)=>s+parseFloat(i.tds_amount||0),0);
+  const grandTotal = totalExpTDS + totalCtrTDS;
+
+  const expRows = expTDS.map((e,i)=>`<tr><td>${i+1}</td><td>${e.date}</td><td><strong>${e.payee}</strong><br><small>${e.category}</small></td><td style="font-family:monospace">${e.payee_pan||'<span style="color:#c00">NOT PROVIDED</span>'}</td><td>${e.tds_section||'—'}</td><td style="text-align:right">${fmt(e.amount)}</td><td style="text-align:center">${e.tds_rate||''}%</td><td style="text-align:right;font-weight:700;color:#b8860b">${fmt(e.tds_amount||0)}</td></tr>`).join('');
+  const ctrRows = ctrTDS.map((i,idx)=>{ const c=contractors.find(x=>x.id===i.contractor_id); return `<tr><td>${idx+1}</td><td>${i.invoice_date}</td><td><strong>${c?c.company_name:'Unknown'}</strong><br><small>Invoice: ${i.invoice_no||'—'}</small></td><td style="font-family:monospace">${c&&c.pan?c.pan:'<span style="color:#c00">NOT PROVIDED</span>'}</td><td>${i.tds_section||'194C'}</td><td style="text-align:right">${fmt(i.gross_amount)}</td><td style="text-align:center">${i.tds_rate||1}%</td><td style="text-align:right;font-weight:700;color:#b8860b">${fmt(i.tds_amount||0)}</td></tr>`; }).join('');
+
+  const w = window.open('','_blank','width=1100,height=750');
+  w.document.write(`<!DOCTYPE html><html><head><meta charset="utf-8"><title>Combined TDS Sheet — ${monthLabel}</title>
+  <style>body{font-family:Arial,sans-serif;font-size:13px;padding:32px;color:#111;max-width:1100px;margin:auto}
+  h1{font-size:20px;margin:0 0 4px}h2{font-size:14px;text-transform:uppercase;letter-spacing:.06em;color:#8a6d00;margin:20px 0 10px}
+  .sub{color:#666;font-size:12px;margin-bottom:20px}.notice{background:#fff8e1;border:1px solid #f0c040;border-radius:6px;padding:12px 16px;font-size:12px;margin-bottom:20px}
+  table{border-collapse:collapse;width:100%;margin-bottom:20px}th,td{border:1px solid #ddd;padding:7px 10px;text-align:left}
+  th{background:#f9f5e0;font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:#8a6d00}
+  tr:nth-child(even) td{background:#fdfbf3}.total-row{background:#fff8e1!important;font-weight:700}
+  .grand{background:#b8860b;color:#fff;padding:16px 20px;border-radius:6px;text-align:center;margin-bottom:20px}
+  @media print{button{display:none}body{padding:16px}}</style></head><body>
+  <div style="display:flex;justify-content:space-between;align-items:flex-start">
+    <div><h1>Proalfa Dynamic — Combined TDS Sheet</h1><div class="sub">${monthLabel} · Generated ${new Date().toLocaleDateString('en-IN')}</div></div>
+    <button onclick="window.print()" style="padding:8px 16px;background:#b8860b;color:#fff;border:none;border-radius:4px;cursor:pointer;font-size:13px">🖨 Print / PDF</button>
+  </div>
+  <div class="notice"><strong>⚠ TDS Deposit Due:</strong> ${dueLabel} · Pay via Challan 281 on TIN-NSDL / Income Tax portal.</div>
+  <div class="grand"><div style="font-size:12px;text-transform:uppercase;letter-spacing:.07em;margin-bottom:6px">Grand Total TDS Payable — ${monthLabel}</div><div style="font-size:36px;font-weight:700">${fmt(grandTotal)}</div><div style="font-size:12px;margin-top:6px">Expenses: ${fmt(totalExpTDS)} &nbsp;+&nbsp; Contractors: ${fmt(totalCtrTDS)}</div></div>
+  ${expTDS.length>0?`<h2>Section A — Expense / Vendor TDS (${expTDS.length} entries)</h2>
+  <table><thead><tr><th>Sr.</th><th>Date</th><th>Payee</th><th>PAN</th><th>Section</th><th style="text-align:right">Gross</th><th style="text-align:center">Rate</th><th style="text-align:right">TDS</th></tr></thead>
+  <tbody>${expRows}<tr class="total-row"><td colspan="7">Subtotal A</td><td style="text-align:right">${fmt(totalExpTDS)}</td></tr></tbody></table>`:''}
+  ${ctrTDS.length>0?`<h2>Section B — Contractor Invoice TDS (${ctrTDS.length} entries)</h2>
+  <table><thead><tr><th>Sr.</th><th>Date</th><th>Contractor</th><th>PAN</th><th>Section</th><th style="text-align:right">Gross</th><th style="text-align:center">Rate</th><th style="text-align:right">TDS</th></tr></thead>
+  <tbody>${ctrRows}<tr class="total-row"><td colspan="7">Subtotal B</td><td style="text-align:right">${fmt(totalCtrTDS)}</td></tr></tbody></table>`:''}
+  <div style="margin-top:32px;border-top:2px solid #ddd;padding-top:16px;display:grid;grid-template-columns:1fr 1fr 1fr;gap:40px;font-size:12px">
+    <div><div style="border-bottom:1px solid #999;margin-bottom:4px;padding-bottom:20px"></div>Prepared by (Accounts)</div>
+    <div><div style="border-bottom:1px solid #999;margin-bottom:4px;padding-bottom:20px"></div>Checked by</div>
+    <div><div style="border-bottom:1px solid #999;margin-bottom:4px;padding-bottom:20px"></div>Authorised by</div>
+  </div></body></html>`);
+  w.document.close();
+}
+
+// ── PRINT CONTRACTOR AGREEMENT ────────────────────────────────────
+function printContractorAgreement(id) {
+  const c = contractors.find(x => x.id === id);
+  if (!c) return;
+  const today = new Date();
+  const fmtD = s => s ? new Date(s).toLocaleDateString('en-IN',{day:'2-digit',month:'long',year:'numeric'}) : '___________';
+  const scopeItems = [
+    [c.scope_accommodation,'Accommodation / Staying Place'],
+    [c.scope_electricity,'Electricity supply at site'],
+    [c.scope_water,'Water supply'],
+    [c.scope_lpg,'LPG gas cylinders'],
+    [c.scope_safety,'Safety kits (helmet, gloves, harness, safety boots)'],
+    [c.scope_hydra,'Hydra / Farana (mobile crane) arrangement'],
+    [c.scope_scaffolding,'Scaffolding and staging'],
+    [c.scope_tools,'Hand tools'],
+  ].filter(([v])=>v).map(([,l])=>l);
+  const machines = (c.scope_machines||'').split(',').map(s=>s.trim()).filter(Boolean);
+  const allScope = [...scopeItems, ...machines];
+
+  const w = window.open('','_blank','width=960,height=900');
+  w.document.write(`<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8">
+<title>Contractor Agreement — ${c.company_name}</title>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:-apple-system,BlinkMacSystemFont,'Helvetica Neue',sans-serif;background:#f5f5f3;padding:32px 16px;}
+  .toolbar{max-width:190mm;margin:0 auto 16px;display:flex;justify-content:space-between;align-items:center;}
+  .toolbar-info{font-size:12px;color:#888;}
+  .print-btn{padding:8px 20px;background:#111;color:#fff;border:none;border-radius:6px;font-size:13px;cursor:pointer;font-family:inherit;}
+  .doc{width:190mm;margin:0 auto;background:#fff;border-radius:4px;box-shadow:0 1px 4px rgba(0,0,0,.08);padding:14mm 13mm 12mm;}
+  .hdr{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:18px;}
+  .co-logo{height:22px;width:auto;display:block;margin-bottom:6px;}
+  .co-name{font-size:11px;color:#888;letter-spacing:.04em;}
+  .hdr-right{text-align:right;}
+  .tag-label{font-size:9px;font-weight:600;text-transform:uppercase;letter-spacing:.1em;color:#888;}
+  .doc-title{font-size:26px;font-weight:700;letter-spacing:-.5px;color:#111;line-height:1.1;margin-top:4px;}
+  .doc-ref{font-size:11px;color:#888;margin-top:5px;font-family:'SF Mono','Courier New',monospace;}
+  .rule{height:1px;background:#e5e5e5;margin:14px 0;}
+  .sec-lbl{font-size:9px;font-weight:600;text-transform:uppercase;letter-spacing:.1em;color:#888;margin-bottom:10px;}
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:10px 32px;margin-bottom:4px;}
+  .ef-label{font-size:9px;font-weight:500;text-transform:uppercase;letter-spacing:.08em;color:#aaa;margin-bottom:2px;}
+  .ef-val{font-size:12.5px;font-weight:500;color:#111;}
+  .scope-list{list-style:none;margin:0;padding:0;}
+  .scope-list li{font-size:11.5px;color:#333;padding:5px 0 5px 14px;border-bottom:1px solid #f5f5f5;position:relative;}
+  .scope-list li:last-child{border-bottom:none;}
+  .scope-list li::before{content:"✓";position:absolute;left:0;color:#1a9e5c;font-weight:700;}
+  .body-text{font-size:12px;color:#333;line-height:1.65;margin-bottom:10px;}
+  .nonneg-box{background:#f9f9f7;border-left:2px solid #111;padding:10px 12px;margin:12px 0;font-size:11px;color:#444;line-height:1.6;}
+  .sig-row{display:flex;justify-content:space-between;margin-top:4px;gap:40px;}
+  .sig-block{flex:1;}
+  .sig-line{height:1px;background:#ccc;margin-bottom:6px;margin-top:28px;}
+  .sig-lbl{font-size:10px;color:#888;line-height:1.5;}
+  .slip-footer{font-size:9.5px;color:#aaa;font-style:italic;text-align:center;padding-top:10px;border-top:1px solid #f0f0f0;margin-top:14px;}
+  .toolbar-info{font-size:12px;color:#888;}
+  @media print{body{background:#fff;padding:0;}.toolbar{display:none;}.doc{box-shadow:none;border-radius:0;margin:0;}}
+  @page{size:A4;margin:8mm;}
+</style></head><body>
+<div class="toolbar">
+  <div class="toolbar-info">Contractor Agreement · ${c.company_name} · Proalfa Dynamic Pvt. Ltd.</div>
+  <button class="print-btn" onclick="window.print()">Print / Save PDF</button>
+</div>
+<div class="doc">
+  <div class="hdr">
+    <div>
+      <img class="co-logo" src="${LOGO_BLACK}" alt="Proalfa">
+      <div class="co-name">PROALFA DYNAMIC PRIVATE LIMITED</div>
+    </div>
+    <div class="hdr-right">
+      <div class="tag-label">Document</div>
+      <div class="doc-title">Contractor<br>Agreement</div>
+      <div class="doc-ref">PD/CTR/${String(c.id).padStart(3,'0')}/${today.getFullYear()}</div>
+    </div>
+  </div>
+  <div class="rule"></div>
+
+  <div class="sec-lbl">Contractor Details</div>
+  <div class="grid" style="margin-bottom:14px">
+    <div><div class="ef-label">Firm / Company Name</div><div class="ef-val">${c.company_name}</div></div>
+    <div><div class="ef-label">Contact Person</div><div class="ef-val">${c.contact_person||'—'}</div></div>
+    <div><div class="ef-label">Phone</div><div class="ef-val">${c.phone||'—'}</div></div>
+    <div><div class="ef-label">Type of Work</div><div class="ef-val">${c.contractor_type||'—'}</div></div>
+    ${c.pan?`<div><div class="ef-label">PAN</div><div class="ef-val" style="font-family:monospace">${c.pan}</div></div>`:''}
+    ${c.gstin?`<div><div class="ef-label">GSTIN</div><div class="ef-val" style="font-family:monospace">${c.gstin}</div></div>`:''}
+    ${c.address?`<div style="grid-column:span 2"><div class="ef-label">Address</div><div class="ef-val">${c.address}</div></div>`:''}
+  </div>
+  <div class="rule"></div>
+
+  <div class="sec-lbl">Scope of Work &amp; Rate</div>
+  <div class="grid" style="margin-bottom:10px">
+    <div style="grid-column:span 2"><div class="ef-label">Work Description</div><div class="ef-val">${c.work_description||'—'}</div></div>
+    <div><div class="ef-label">Rate</div><div class="ef-val">${c.rate?'₹'+parseFloat(c.rate).toLocaleString('en-IN')+' '+c.rate_unit:'—'}</div></div>
+    <div><div class="ef-label">Payment Terms</div><div class="ef-val">${c.payment_terms||'Per Invoice'}</div></div>
+  </div>
+  <div class="rule"></div>
+
+  <div class="sec-lbl">Company's Scope (what Proalfa Dynamic provides)</div>
+  ${allScope.length>0?`<ul class="scope-list" style="margin-bottom:14px">${allScope.map(s=>`<li>${s}</li>`).join('')}</ul>`:`<p class="body-text">No items specifically provided by Proalfa Dynamic for this contractor.</p>`}
+  <div class="rule"></div>
+
+  <div class="sec-lbl">Contractor's Scope (what ${c.company_name} provides / arranges)</div>
+  <p class="body-text">${c.contractor_scope||'Contractor to arrange all other items, labour, and materials required for the scope of work not listed above.'}</p>
+  <div class="rule"></div>
+
+  <div class="sec-lbl">Financial Terms</div>
+  <div class="grid" style="margin-bottom:10px">
+    <div><div class="ef-label">TDS Applicable</div><div class="ef-val">${c.tds_section&&c.tds_section!=='None'?c.tds_section+' @ '+(c.tds_rate||1)+'%':'Not Applicable'}</div></div>
+    <div><div class="ef-label">Advance Recovery</div><div class="ef-val">${c.advance_recoverable?'Yes — to be deducted from invoices':'No'}</div></div>
+    ${c.retention_percent>0?`<div><div class="ef-label">Retention</div><div class="ef-val">${c.retention_percent}% of each invoice (released on defect-free completion)</div></div>`:''}
+  </div>
+  ${c.other_terms?`<div class="nonneg-box">${c.other_terms}</div>`:''}
+  <div class="rule"></div>
+
+  <div class="sig-row">
+    <div class="sig-block">
+      <div class="sig-line"></div>
+      <div class="sig-lbl">For ${c.company_name}<br>${c.contact_person||'Authorised Signatory'} &nbsp;·&nbsp; Date: ___________</div>
+    </div>
+    <div class="sig-block">
+      <div class="sig-line"></div>
+      <div class="sig-lbl">For Proalfa Dynamic Private Limited<br>Authorised Signatory &nbsp;·&nbsp; Date: ${today.toLocaleDateString('en-IN',{day:'2-digit',month:'long',year:'numeric'})}</div>
+    </div>
+  </div>
+
+  <div class="slip-footer">Proalfa Dynamic Private Limited &nbsp;·&nbsp; Contractor Agreement &nbsp;·&nbsp; Confidential &nbsp;·&nbsp; ${today.getFullYear()}</div>
+</div>
+</body></html>`);
+  w.document.close();
+}
+
+function printLastVoucher() {
+  if (lastSavedExpense) printExpVoucher(lastSavedExpense.id);
+}
+
+function printExpVoucher(id) {
+  const e = expenses.find(x => x.id === id);
+  if (!e) { alert('Entry not found.'); return; }
+
+  const fmt2 = n => parseFloat(n||0).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  const fmtDate = s => { if (!s) return '—'; const d = new Date(s); return d.toLocaleDateString('en-IN', { day:'2-digit', month:'long', year:'numeric' }); };
+
+  // Amount in words
+  const ones = ['','One','Two','Three','Four','Five','Six','Seven','Eight','Nine','Ten','Eleven','Twelve','Thirteen','Fourteen','Fifteen','Sixteen','Seventeen','Eighteen','Nineteen'];
+  const tens = ['','','Twenty','Thirty','Forty','Fifty','Sixty','Seventy','Eighty','Ninety'];
+  function numToWords(n) {
+    n = Math.round(n);
+    if (n === 0) return 'Zero';
+    if (n < 0) return 'Minus ' + numToWords(-n);
+    let words = '';
+    if (n >= 10000000) { words += numToWords(Math.floor(n/10000000)) + ' Crore '; n %= 10000000; }
+    if (n >= 100000)   { words += numToWords(Math.floor(n/100000))   + ' Lakh ';  n %= 100000; }
+    if (n >= 1000)     { words += numToWords(Math.floor(n/1000))     + ' Thousand '; n %= 1000; }
+    if (n >= 100)      { words += ones[Math.floor(n/100)] + ' Hundred '; n %= 100; }
+    if (n >= 20)       { words += tens[Math.floor(n/10)] + ' '; n %= 10; }
+    if (n > 0)         { words += ones[n] + ' '; }
+    return words.trim();
+  }
+
+  const amt      = parseFloat(e.amount || 0);
+  const tdsAmt   = parseFloat(e.tds_amount || 0);
+  const netAmt   = amt - tdsAmt;
+  const amtWords = numToWords(Math.round(netAmt)) + ' Only';
+  const modeLabel = e.payment_mode || 'Cash';
+  const voucherNo = `VCH-${(e.date||'').replace(/-/g,'').slice(0,6)}-${String(e.id).padStart(4,'0')}`;
+
+  const w = window.open('', '_blank', 'width=960,height=860');
+  w.document.write(`<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8">
+<title>${modeLabel === 'Cash' ? 'Cash' : 'Payment'} Voucher — ${voucherNo}</title>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text','Helvetica Neue',sans-serif;background:#f5f5f3;padding:32px 16px;}
+  .toolbar{max-width:190mm;margin:0 auto 16px;display:flex;justify-content:space-between;align-items:center;}
+  .toolbar-info{font-size:12px;color:#888;}
+  .print-btn{padding:8px 20px;background:#111;color:#fff;border:none;border-radius:6px;font-size:13px;cursor:pointer;font-family:inherit;}
+  .doc{width:190mm;margin:0 auto;background:#fff;border-radius:4px;box-shadow:0 1px 4px rgba(0,0,0,.08);padding:14mm 13mm 12mm;}
+  .hdr{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:18px;}
+  .co-logo{height:22px;width:auto;display:block;margin-bottom:6px;}
+  .co-name{font-size:11px;color:#888;letter-spacing:.04em;}
+  .hdr-right{text-align:right;}
+  .tag-label{font-size:9px;font-weight:600;text-transform:uppercase;letter-spacing:.1em;color:#888;}
+  .doc-title{font-size:26px;font-weight:700;letter-spacing:-.5px;color:#111;line-height:1.1;margin-top:4px;}
+  .doc-ref{font-size:11px;color:#888;margin-top:5px;font-family:'SF Mono','Courier New',monospace;}
+  .rule{height:1px;background:#e5e5e5;margin:14px 0;}
+  .sec-lbl{font-size:9px;font-weight:600;text-transform:uppercase;letter-spacing:.1em;color:#888;margin-bottom:10px;}
+  .meta-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px 24px;margin-bottom:4px;}
+  .ef-label{font-size:9px;font-weight:500;text-transform:uppercase;letter-spacing:.08em;color:#aaa;margin-bottom:2px;}
+  .ef-val{font-size:12.5px;font-weight:500;color:#111;}
+  .ef-val.mono{font-family:'SF Mono','Courier New',monospace;font-size:12px;}
+  table{width:100%;border-collapse:collapse;margin:4px 0 12px;}
+  th{background:#f9f9f7;text-align:left;padding:7px 10px;font-size:9px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:#888;border-bottom:1px solid #e5e5e5;}
+  td{padding:9px 10px;font-size:12.5px;color:#111;border-bottom:1px solid #f0f0f0;vertical-align:top;}
+  td strong{font-weight:600;}
+  td .sub{font-size:10px;color:#888;margin-top:2px;}
+  tr:last-child td{border-bottom:none;}
+  .amt-block{background:#f9f9f7;border-left:2px solid #111;padding:12px 14px;margin:14px 0;}
+  .amt-label{font-size:9px;font-weight:600;text-transform:uppercase;letter-spacing:.1em;color:#888;margin-bottom:6px;}
+  .amt-fig{font-size:24px;font-weight:700;letter-spacing:-.5px;color:#111;margin-bottom:3px;}
+  .amt-words{font-size:11.5px;color:#555;font-style:italic;}
+  .tds-note{font-size:10.5px;color:#888;margin-top:8px;padding-top:8px;border-top:1px solid #e5e5e5;}
+  .sig-row{display:flex;justify-content:space-between;margin-top:4px;gap:32px;}
+  .sig-block{flex:1;}
+  .sig-line{height:1px;background:#ccc;margin-bottom:6px;margin-top:36px;}
+  .sig-lbl{font-size:10px;color:#888;line-height:1.5;}
+  .sig-name{font-size:11px;font-weight:600;color:#111;}
+  .slip-footer{font-size:9.5px;color:#aaa;font-style:italic;text-align:center;padding-top:10px;border-top:1px solid #f0f0f0;margin-top:20px;}
+  @media print{body{background:#fff;padding:0;}.toolbar{display:none;}.doc{box-shadow:none;border-radius:0;margin:0;}}
+  @page{size:A4;margin:8mm;}
+</style></head><body>
+
+<div class="toolbar">
+  <div class="toolbar-info">${modeLabel === 'Cash' ? 'Cash' : 'Payment'} Voucher &nbsp;·&nbsp; ${voucherNo} &nbsp;·&nbsp; Proalfa Dynamic Pvt. Ltd.</div>
+  <button class="print-btn" onclick="window.print()">Print / Save PDF</button>
+</div>
+
+<div class="doc">
+  <div class="hdr">
+    <div>
+      <img class="co-logo" src="${LOGO_BLACK}" alt="Proalfa">
+      <div class="co-name">PROALFA DYNAMIC PRIVATE LIMITED</div>
+    </div>
+    <div class="hdr-right">
+      <div class="tag-label">Document</div>
+      <div class="doc-title">${modeLabel === 'Cash' ? 'Cash' : 'Payment'}<br>Voucher</div>
+      <div class="doc-ref">${voucherNo}</div>
+    </div>
+  </div>
+  <div class="rule"></div>
+
+  <div class="sec-lbl">Voucher Details</div>
+  <div class="meta-grid">
+    <div><div class="ef-label">Date</div><div class="ef-val">${fmtDate(e.date)}</div></div>
+    <div><div class="ef-label">Payment Mode</div><div class="ef-val">${modeLabel}</div></div>
+    <div><div class="ef-label">Category</div><div class="ef-val">${e.category||'—'}</div></div>
+    ${e.reference_no ? `<div><div class="ef-label">Reference</div><div class="ef-val mono">${e.reference_no}</div></div>` : `<div></div>`}
+  </div>
+  <div class="rule"></div>
+
+  <div class="sec-lbl">Payment Details</div>
+  <table>
+    <thead><tr><th>Paid To</th><th>Purpose / Description</th>${e.bill_no?'<th>Bill No.</th>':''}</tr></thead>
+    <tbody><tr>
+      <td><strong>${e.payee||'—'}</strong>${e.payee_pan?`<div class="sub">PAN: ${e.payee_pan}</div>`:''}</td>
+      <td>${e.description||'—'}${e.remarks?`<div class="sub">${e.remarks}</div>`:''}</td>
+      ${e.bill_no?`<td><span class="mono">${e.bill_no}</span></td>`:''}
+    </tr></tbody>
+  </table>
+
+  <div class="amt-block">
+    <div class="amt-label">Amount Paid</div>
+    <div class="amt-fig">₹ ${fmt2(netAmt)}</div>
+    <div class="amt-words">Rupees ${amtWords}</div>
+    ${tdsAmt > 0 ? `<div class="tds-note">Gross Amount: ₹ ${fmt2(amt)} &nbsp;&nbsp;|&nbsp;&nbsp; TDS Deducted (${e.tds_section||''}): ₹ ${fmt2(tdsAmt)} &nbsp;&nbsp;|&nbsp;&nbsp; Net Paid: ₹ ${fmt2(netAmt)}</div>` : ''}
+  </div>
+
+  <div class="rule" style="margin-top:32px"></div>
+  <div class="sig-row">
+    <div class="sig-block">
+      <div class="sig-line"></div>
+      <div class="sig-lbl">Received By</div>
+      <div class="sig-name">${e.payee||'_______________'}</div>
+    </div>
+    <div class="sig-block">
+      <div class="sig-line"></div>
+      <div class="sig-lbl">Prepared By</div>
+      <div class="sig-name">${e.entry_by||'_______________'}</div>
+    </div>
+    <div class="sig-block">
+      <div class="sig-line"></div>
+      <div class="sig-lbl">Authorized By</div>
+      <div class="sig-name">_______________</div>
+    </div>
+  </div>
+
+  <div class="slip-footer">Proalfa Dynamic Private Limited &nbsp;·&nbsp; Internal Finance Document &nbsp;·&nbsp; Generated ${new Date().toLocaleDateString('en-IN',{day:'2-digit',month:'long',year:'numeric'})}</div>
+</div>
+</body></html>`);
+  w.document.close();
 }
 
 function exportExpensesCSV() {
