@@ -474,7 +474,9 @@ const WO_DAY  = { thursday:4, sunday:0 }; // JS getDay() 0=Sun,4=Thu
 function localToday(){ const d=new Date(); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; }
 
 // ── Init ──────────────────────────────────────────────────────
+let _appInited = false;
 async function initApp(){
+  if (_appInited) return; _appInited = true;
   if(!sb){ const {createClient}=supabase; sb=createClient(SUPABASE_URL,SUPABASE_KEY); }
   const today = new Date();
   const todayStr = localToday();
@@ -636,8 +638,16 @@ async function removeEmployee(emp_id, name){
 let todayData = [];
 async function loadToday(){
   const today = localToday();
-  const {data,error} = await sb.from('attendance').select('*').eq('date', today);
-  todayData = data||[];
+  const body = document.getElementById('todayBody');
+  if (body) body.innerHTML = '<tr><td colspan="8" class="loading">Loading…</td></tr>';
+  try {
+    const {data, error} = await sb.from('attendance').select('*').eq('date', today);
+    if (error) throw error;
+    todayData = data || [];
+  } catch(err) {
+    if (body) body.innerHTML = `<tr><td colspan="8" class="empty" style="color:var(--red)">Failed to load attendance: ${err.message || err}. Check your connection and try the ↻ Refresh button.</td></tr>`;
+    return;
+  }
   renderToday();
   updateMetrics();
 }
@@ -1891,6 +1901,19 @@ async function showEmpDetail(empId, m, y) {
 function closeEmpDetail() {
   document.getElementById('empDetailOverlay').style.display = 'none';
 }
+
+// ── Auto-init fallback ────────────────────────────────────────
+// Runs at bottom of page after all scripts are parsed — catches cases
+// where the early DOMContentLoaded listener fired before initApp was defined.
+(function() {
+  if (sessionStorage.getItem('pal_auth')) {
+    const overlay = document.getElementById('loginOverlay');
+    if (overlay) overlay.style.display = 'none';
+    if (typeof initApp === 'function') {
+      initApp();
+    }
+  }
+})();
 </script>
 </body>
 </html>

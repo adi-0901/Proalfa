@@ -982,11 +982,7 @@ function switchTab(name, el) {
   if (name === 'onboarding') populateObSelect();
   if (name === 'attendance') {
     const f = document.getElementById('attFrame');
-    if (!f.src || f.src === window.location.href) {
-      f.src = '/staff/attendance.html';
-    } else if (f.contentWindow && typeof f.contentWindow.loadToday === 'function') {
-      f.contentWindow.loadToday();
-    }
+    f.src = '/staff/attendance.html';
   }
   if (name === 'leaves')  initLeaves();
   if (name === 'hiring')  initHiring();
