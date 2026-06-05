@@ -470,13 +470,17 @@ let advances  = [];
 const MONTHS  = ['','January','February','March','April','May','June','July','August','September','October','November','December'];
 const WO_DAY  = { thursday:4, sunday:0 }; // JS getDay() 0=Sun,4=Thu
 
+// local YYYY-MM-DD using device clock (avoids UTC offset shifting date in IST)
+function localToday(){ const d=new Date(); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; }
+
 // ── Init ──────────────────────────────────────────────────────
 async function initApp(){
   if(!sb){ const {createClient}=supabase; sb=createClient(SUPABASE_URL,SUPABASE_KEY); }
   const today = new Date();
-  document.getElementById('todayDate').textContent   = fmtDate(today.toISOString().split('T')[0]);
-  document.getElementById('todayLabel').textContent  = `Today: ${fmtDate(today.toISOString().split('T')[0])} · ${today.toLocaleString('en-IN',{weekday:'long'})}`;
-  document.getElementById('adv-date').value          = today.toISOString().split('T')[0];
+  const todayStr = localToday();
+  document.getElementById('todayDate').textContent   = fmtDate(todayStr);
+  document.getElementById('todayLabel').textContent  = `Today: ${fmtDate(todayStr)} · ${today.toLocaleString('en-IN',{weekday:'long'})}`;
+  document.getElementById('adv-date').value          = todayStr;
 
   // Set current month in selects
   const m = today.getMonth()+1, y = today.getFullYear();
@@ -631,7 +635,7 @@ async function removeEmployee(emp_id, name){
 // ── Today's attendance ────────────────────────────────────────
 let todayData = [];
 async function loadToday(){
-  const today = new Date().toISOString().split('T')[0];
+  const today = localToday();
   const {data,error} = await sb.from('attendance').select('*').eq('date', today);
   todayData = data||[];
   renderToday();
@@ -640,7 +644,7 @@ async function loadToday(){
 
 function renderToday(){
   const filter=document.getElementById('todayFilter').value;
-  const today = new Date().toISOString().split('T')[0];
+  const today = localToday();
   const body=document.getElementById('todayBody');
 
   const empFiltered = employees.filter(e=>!filter||e.type===filter);
@@ -668,7 +672,7 @@ function renderToday(){
 }
 
 function updateMetrics(){
-  const today=new Date().toISOString().split('T')[0];
+  const today=localToday();
   const present = todayData.filter(r=>r.status==='present').length;
   const absent  = employees.length - todayData.filter(r=>r.status!=='absent'&&r.status).length;
   const half    = todayData.filter(r=>r.status==='half_day').length;
