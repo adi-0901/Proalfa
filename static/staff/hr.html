@@ -2209,7 +2209,8 @@ function showContractorDetail(id) {
       <button class="btn btn-sm" onclick="document.getElementById('cpanel-detail').style.display='none';document.getElementById('cpanel-list').style.display='block';renderContractorList()">← Back</button>
       <div style="display:flex;gap:8px">
         <button class="btn btn-sm" onclick="editContractor(${c.id})">✏ Edit</button>
-        <button class="btn btn-sm" style="color:#1a9e5c;border-color:#1a9e5c44" onclick="printContractorAgreement(${c.id})">🖨 Print Agreement</button>
+        <button class="btn btn-sm" onclick="printContractorRegistration(${c.id})">🖨 Registration</button>
+        <button class="btn btn-sm" style="color:#1a9e5c;border-color:#1a9e5c44" onclick="printContractorAgreement(${c.id})">🖨 Agreement</button>
       </div>
     </div>
 
@@ -2708,6 +2709,190 @@ function downloadCombinedTDS() {
   w.document.close();
 }
 
+// ── PRINT CONTRACTOR REGISTRATION ────────────────────────────────
+function printContractorRegistration(id) {
+  const c = contractors.find(x => x.id === id);
+  if (!c) return;
+  const today = new Date();
+  const regNo = `PD/CTR-REG/${String(c.id).padStart(3,'0')}/${today.getFullYear()}`;
+  const scopeItems = [
+    [c.scope_accommodation,'Accommodation / Staying Place'],
+    [c.scope_electricity,'Electricity supply'],
+    [c.scope_water,'Water supply'],
+    [c.scope_lpg,'LPG gas cylinders'],
+    [c.scope_safety,'Safety kits (helmet, gloves, harness, safety boots)'],
+    [c.scope_hydra,'Hydra / Farana (mobile crane)'],
+    [c.scope_scaffolding,'Scaffolding and staging'],
+    [c.scope_tools,'Hand tools'],
+  ].filter(([v])=>v).map(([,l])=>l);
+  const machines = (c.scope_machines||'').split(',').map(s=>s.trim()).filter(Boolean);
+  const allScope = [...scopeItems, ...machines];
+
+  const row = (label, value) => value ? `
+    <tr>
+      <td class="field-label">${label}</td>
+      <td class="field-val">${value}</td>
+    </tr>` : '';
+
+  const myInvs = contractorInvoices.filter(i => i.contractor_id === id);
+  const totalInvoiced = myInvs.reduce((s,i)=>s+parseFloat(i.gross_amount||0),0);
+  const fmt = n => '₹'+parseFloat(n||0).toLocaleString('en-IN',{minimumFractionDigits:2});
+
+  const w = window.open('','_blank','width=960,height=1000');
+  w.document.write(`<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8">
+<title>Contractor Registration — ${c.company_name}</title>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:-apple-system,BlinkMacSystemFont,'Helvetica Neue',sans-serif;background:#f5f5f3;padding:32px 16px;}
+  .toolbar{max-width:190mm;margin:0 auto 16px;display:flex;justify-content:space-between;align-items:center;}
+  .toolbar-info{font-size:12px;color:#888;}
+  .print-btn{padding:8px 20px;background:#111;color:#fff;border:none;border-radius:6px;font-size:13px;cursor:pointer;font-family:inherit;}
+  .doc{width:190mm;margin:0 auto;background:#fff;border-radius:4px;box-shadow:0 1px 4px rgba(0,0,0,.08);padding:14mm 13mm 12mm;}
+  .hdr{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:18px;}
+  .co-logo{height:22px;width:auto;display:block;margin-bottom:6px;}
+  .co-name{font-size:11px;color:#555;letter-spacing:.04em;}
+  .hdr-right{text-align:right;}
+  .tag-label{font-size:9px;font-weight:600;text-transform:uppercase;letter-spacing:.1em;color:#555;}
+  .doc-title{font-size:26px;font-weight:700;letter-spacing:-.5px;color:#111;line-height:1.1;margin-top:4px;}
+  .doc-ref{font-size:11px;color:#555;margin-top:5px;font-family:'SF Mono','Courier New',monospace;}
+  .rule{height:1px;background:#ddd;margin:14px 0;}
+  .sec-lbl{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.12em;color:#555;margin-bottom:8px;margin-top:14px;}
+  table.fields{width:100%;border-collapse:collapse;margin-bottom:4px;}
+  .field-label{width:38%;font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:#555;padding:6px 0;border-bottom:1px solid #f0f0f0;vertical-align:top;padding-right:12px;}
+  .field-val{font-size:12.5px;color:#111;padding:6px 0;border-bottom:1px solid #f0f0f0;vertical-align:top;}
+  table.fields tr:last-child .field-label,
+  table.fields tr:last-child .field-val{border-bottom:none;}
+  .scope-wrap{display:flex;flex-wrap:wrap;gap:6px;margin:6px 0 10px;}
+  .scope-tag{font-size:11px;color:#333;padding:4px 10px;border:1px solid #ddd;border-radius:3px;background:#fafafa;}
+  .scope-tag::before{content:"✓ ";color:#1a9e5c;font-weight:700;}
+  .nonneg-box{background:#f7f7f5;border-left:2px solid #111;padding:10px 12px;margin:10px 0;font-size:11.5px;color:#444;line-height:1.65;}
+  .status-badge{display:inline-block;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;padding:3px 10px;border-radius:3px;background:${c.status==='active'?'#e8f5ee':'#fdecea'};color:${c.status==='active'?'#1a7a40':'#c00'};border:1px solid ${c.status==='active'?'#b5d9c4':'#f5bcba'};}
+  .sig-row{display:flex;justify-content:space-between;margin-top:8px;gap:32px;}
+  .sig-block{flex:1;}
+  .sig-line{height:1px;background:#bbb;margin-bottom:6px;margin-top:28px;}
+  .sig-lbl{font-size:10px;color:#555;line-height:1.5;}
+  .slip-footer{font-size:9.5px;color:#888;font-style:italic;text-align:center;padding-top:10px;border-top:1px solid #eee;margin-top:14px;}
+  @media print{
+    body{background:#fff;padding:0;}
+    .toolbar{display:none;}
+    .doc{box-shadow:none;border-radius:0;margin:0;}
+    .field-label,.sec-lbl,.tag-label,.co-name,.doc-ref,.sig-lbl,.slip-footer{color:#444!important;}
+    .rule{background:#bbb!important;}
+    .sig-line{background:#999!important;}
+  }
+  @page{size:A4;margin:8mm;}
+</style></head><body>
+<div class="toolbar">
+  <div class="toolbar-info">Contractor Registration · ${c.company_name} · Proalfa Dynamic Pvt. Ltd.</div>
+  <button class="print-btn" onclick="window.print()">Print / Save PDF</button>
+</div>
+<div class="doc">
+
+  <div class="hdr">
+    <div>
+      <img class="co-logo" src="${LOGO_BLACK}" alt="Proalfa">
+      <div class="co-name">PROALFA DYNAMIC PRIVATE LIMITED</div>
+    </div>
+    <div class="hdr-right">
+      <div class="tag-label">Document</div>
+      <div class="doc-title">Contractor<br>Registration</div>
+      <div class="doc-ref">${regNo}</div>
+    </div>
+  </div>
+  <div class="rule"></div>
+
+  <!-- Status strip -->
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
+    <div style="font-size:13px;font-weight:700;color:#111">${c.company_name}</div>
+    <span class="status-badge">${c.status||'active'}</span>
+  </div>
+
+  <!-- 1. Contractor Identity -->
+  <div class="sec-lbl">1. Contractor Identity</div>
+  <table class="fields">
+    ${row('Firm / Company Name', `<strong>${c.company_name}</strong>`)}
+    ${row('Contact Person', c.contact_person)}
+    ${row('Phone', c.phone)}
+    ${row('Email', c.email)}
+    ${row('Address', c.address)}
+    ${row('GSTIN', c.gstin ? `<span style="font-family:monospace">${c.gstin}</span>` : '<span style="color:#c00">Not provided</span>')}
+    ${row('PAN', c.pan ? `<span style="font-family:monospace">${c.pan}</span>` : '<span style="color:#c00">Not provided — TDS @20% under Sec 206AA</span>')}
+  </table>
+  <div class="rule"></div>
+
+  <!-- 2. Work Profile -->
+  <div class="sec-lbl">2. Work Profile</div>
+  <table class="fields">
+    ${row('Contractor Type', `<strong>${c.contractor_type||'—'}</strong>`)}
+    ${row('Scope of Work', c.work_description)}
+    ${row('Rate', c.rate ? `<strong>₹${parseFloat(c.rate).toLocaleString('en-IN')}</strong> ${c.rate_unit||''}` : '—')}
+  </table>
+  <div class="rule"></div>
+
+  <!-- 3. Company's Scope -->
+  <div class="sec-lbl">3. Items Provided by Proalfa Dynamic</div>
+  ${allScope.length > 0
+    ? `<div class="scope-wrap">${allScope.map(s=>`<span class="scope-tag">${s}</span>`).join('')}</div>`
+    : `<p style="font-size:12px;color:#888;margin-bottom:10px">No items specifically provided by Proalfa Dynamic.</p>`}
+  <div class="rule"></div>
+
+  <!-- 4. Contractor's Responsibilities -->
+  <div class="sec-lbl">4. Contractor's Responsibilities</div>
+  <p style="font-size:12px;color:#333;line-height:1.65;margin-bottom:10px">${c.contractor_scope||'Contractor to arrange all other items, labour, and materials required for the scope of work not listed above.'}</p>
+  <div class="rule"></div>
+
+  <!-- 5. Payment & Compliance -->
+  <div class="sec-lbl">5. Payment &amp; Compliance Details</div>
+  <table class="fields">
+    ${row('Payment Terms', c.payment_terms||'Per Invoice')}
+    ${row('TDS Applicable', c.tds_section&&c.tds_section!=='None' ? `${c.tds_section} @ ${c.tds_rate||1}%` : 'Not Applicable')}
+    ${row('Retention', c.retention_percent>0 ? `${c.retention_percent}% of each invoice` : 'None')}
+    ${row('Advance Recovery', c.advance_recoverable ? 'Yes — to be deducted from invoices' : 'No')}
+  </table>
+  ${c.other_terms ? `<div class="nonneg-box">${c.other_terms}</div>` : ''}
+  <div class="rule"></div>
+
+  <!-- 6. Bank Details (fill manually) -->
+  <div class="sec-lbl">6. Bank Details</div>
+  <table class="fields">
+    <tr><td class="field-label">Bank Name</td><td class="field-val">___________________________________</td></tr>
+    <tr><td class="field-label">Account No.</td><td class="field-val">___________________________________</td></tr>
+    <tr><td class="field-label">IFSC Code</td><td class="field-val">___________________________________</td></tr>
+    <tr><td class="field-label">Account Type</td><td class="field-val">Current &nbsp;/&nbsp; Savings</td></tr>
+  </table>
+  <div class="rule"></div>
+
+  <!-- 7. Activity Summary -->
+  <div class="sec-lbl">7. Activity Summary (as of ${today.toLocaleDateString('en-IN',{day:'2-digit',month:'long',year:'numeric'})})</div>
+  <table class="fields">
+    ${row('Total Invoices', String(myInvs.length))}
+    ${row('Total Invoiced Value', myInvs.length > 0 ? fmt(totalInvoiced) : '—')}
+    ${row('Registration Date', today.toLocaleDateString('en-IN',{day:'2-digit',month:'long',year:'numeric'}))}
+  </table>
+  <div class="rule" style="margin-top:20px"></div>
+
+  <!-- Signatures -->
+  <div class="sig-row">
+    <div class="sig-block">
+      <div class="sig-line"></div>
+      <div class="sig-lbl">Registered By<br>HR / Admin — Proalfa Dynamic Pvt. Ltd.</div>
+    </div>
+    <div class="sig-block">
+      <div class="sig-line"></div>
+      <div class="sig-lbl">Verified By<br>Accounts — Proalfa Dynamic Pvt. Ltd.</div>
+    </div>
+    <div class="sig-block">
+      <div class="sig-line"></div>
+      <div class="sig-lbl">Approved By<br>Director / Management</div>
+    </div>
+  </div>
+
+  <div class="slip-footer">Proalfa Dynamic Private Limited &nbsp;·&nbsp; Contractor Registration &nbsp;·&nbsp; Internal Record &nbsp;·&nbsp; ${today.getFullYear()}</div>
+</div>
+</body></html>`);
+  w.document.close();
+}
+
 // ── PRINT CONTRACTOR AGREEMENT ────────────────────────────────────
 function printContractorAgreement(id) {
   const c = contractors.find(x => x.id === id);
@@ -2911,7 +3096,16 @@ function printExpVoucher(id) {
   .sig-lbl{font-size:10px;color:#888;line-height:1.5;}
   .sig-name{font-size:11px;font-weight:600;color:#111;}
   .slip-footer{font-size:9.5px;color:#aaa;font-style:italic;text-align:center;padding-top:10px;border-top:1px solid #f0f0f0;margin-top:20px;}
-  @media print{body{background:#fff;padding:0;}.toolbar{display:none;}.doc{box-shadow:none;border-radius:0;margin:0;}}
+  @media print{
+    body{background:#fff;padding:0;}
+    .toolbar{display:none;}
+    .doc{box-shadow:none;border-radius:0;margin:0;}
+    .ef-label,.sec-lbl,.tag-label,.co-name,.doc-ref,.sig-lbl,.amt-label,.slip-footer{color:#555!important;}
+    .rule{background:#bbb!important;}
+    .amt-block{background:#f2f2f0!important;}
+    th{background:#ebebea!important;color:#444!important;}
+    .sig-line{background:#999!important;}
+  }
   @page{size:A4;margin:8mm;}
 </style></head><body>
 
