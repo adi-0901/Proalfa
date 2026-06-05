@@ -64,8 +64,9 @@ def get_attendance():
 
 # ── PROCESS RECORDS ──────────────────────────────────────────────────────────
 def t2m(t):
-    """Convert HH:MM string to minutes."""
-    h, m = map(int, t.split(":"))
+    """Convert HH:MM or HH:MM:SS string to minutes."""
+    parts = t.split(":")
+    h, m = int(parts[0]), int(parts[1])
     return h * 60 + m
 
 def calc_ot(ci_str, co_str):
