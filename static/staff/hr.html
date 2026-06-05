@@ -2106,7 +2106,10 @@ function renderContractorList() {
       <div style="font-size:32px;margin-bottom:12px">🏗</div>
       <div style="font-size:14px;font-weight:600;margin-bottom:6px">No contractors yet</div>
       <div style="font-size:13px;margin-bottom:16px">Add your fabrication, erection, and transport contractors.</div>
-      <button class="btn btn-primary" onclick="switchCTab('add',document.getElementById('ctab-add'))">＋ Add First Contractor</button>
+      <div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap">
+        <button class="btn" onclick="printBlankContractorForm()">🖨 Print Blank Registration Form</button>
+        <button class="btn btn-primary" onclick="switchCTab('add',document.getElementById('ctab-add'))">＋ Add First Contractor</button>
+      </div>
     </div>`;
     return;
   }
@@ -2120,7 +2123,10 @@ function renderContractorList() {
   el.innerHTML = `
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:10px">
       <div style="font-size:13px;font-weight:700">${contractors.length} Contractor${contractors.length!==1?'s':''}</div>
-      <button class="btn btn-sm" onclick="switchCTab('add',document.getElementById('ctab-add'))">＋ Add Contractor</button>
+      <div style="display:flex;gap:8px">
+        <button class="btn btn-sm" onclick="printBlankContractorForm()">🖨 Blank Registration Form</button>
+        <button class="btn btn-sm" onclick="switchCTab('add',document.getElementById('ctab-add'))">＋ Add Contractor</button>
+      </div>
     </div>
     <div style="display:flex;flex-direction:column;gap:10px">
     ${contractors.map(c => {
@@ -2706,6 +2712,180 @@ function downloadCombinedTDS() {
     <div><div style="border-bottom:1px solid #999;margin-bottom:4px;padding-bottom:20px"></div>Checked by</div>
     <div><div style="border-bottom:1px solid #999;margin-bottom:4px;padding-bottom:20px"></div>Authorised by</div>
   </div></body></html>`);
+  w.document.close();
+}
+
+// ── PRINT BLANK CONTRACTOR REGISTRATION FORM ─────────────────────
+function printBlankContractorForm() {
+  const today = new Date();
+  const line = (n=1) => `<div style="border-bottom:1px solid #bbb;margin-bottom:${n===2?'14px':'6px'};height:${n===2?'32px':'22px'}"></div>`;
+  const field = (label, lines=1) => `
+    <div style="margin-bottom:12px">
+      <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:#444;margin-bottom:4px">${label}</div>
+      ${Array.from({length:lines},()=>line(lines)).join('')}
+    </div>`;
+  const checkItem = label => `
+    <label style="display:flex;align-items:center;gap:8px;font-size:12px;color:#333;margin-bottom:7px">
+      <span style="display:inline-block;width:14px;height:14px;border:1.5px solid #888;border-radius:2px;flex-shrink:0"></span>
+      ${label}
+    </label>`;
+
+  const w = window.open('','_blank','width=960,height=1100');
+  w.document.write(`<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8">
+<title>Contractor Registration Form — Proalfa Dynamic</title>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:-apple-system,BlinkMacSystemFont,'Helvetica Neue',sans-serif;background:#f5f5f3;padding:32px 16px;}
+  .toolbar{max-width:190mm;margin:0 auto 16px;display:flex;justify-content:space-between;align-items:center;}
+  .print-btn{padding:8px 20px;background:#111;color:#fff;border:none;border-radius:6px;font-size:13px;cursor:pointer;font-family:inherit;}
+  .toolbar-info{font-size:12px;color:#888;}
+  .doc{width:190mm;margin:0 auto;background:#fff;border-radius:4px;box-shadow:0 1px 4px rgba(0,0,0,.08);padding:14mm 13mm 12mm;}
+  .hdr{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:18px;}
+  .co-logo{height:22px;width:auto;display:block;margin-bottom:6px;}
+  .co-name{font-size:11px;color:#555;letter-spacing:.04em;}
+  .hdr-right{text-align:right;}
+  .tag-label{font-size:9px;font-weight:600;text-transform:uppercase;letter-spacing:.1em;color:#555;}
+  .doc-title{font-size:26px;font-weight:700;letter-spacing:-.5px;color:#111;line-height:1.1;margin-top:4px;}
+  .doc-sub{font-size:11px;color:#555;margin-top:5px;}
+  .rule{height:1px;background:#ddd;margin:16px 0;}
+  .sec-lbl{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.12em;color:#444;margin-bottom:10px;margin-top:2px;}
+  .two-col{display:grid;grid-template-columns:1fr 1fr;gap:0 24px;}
+  .three-col{display:grid;grid-template-columns:1fr 1fr 1fr;gap:0 20px;}
+  .notice{background:#f7f7f5;border-left:2px solid #111;padding:9px 12px;font-size:11px;color:#444;line-height:1.6;margin-bottom:14px;}
+  .sig-row{display:flex;justify-content:space-between;gap:32px;margin-top:8px;}
+  .sig-block{flex:1;}
+  .sig-line{height:1px;background:#bbb;margin-bottom:6px;margin-top:28px;}
+  .sig-lbl{font-size:10px;color:#555;line-height:1.5;}
+  .slip-footer{font-size:9.5px;color:#888;font-style:italic;text-align:center;padding-top:10px;border-top:1px solid #eee;margin-top:14px;}
+  @media print{
+    body{background:#fff;padding:0;}
+    .toolbar{display:none;}
+    .doc{box-shadow:none;border-radius:0;margin:0;}
+    .sec-lbl,.tag-label,.co-name,.doc-sub,.sig-lbl,.slip-footer{color:#444!important;}
+    .rule{background:#bbb!important;}
+    .sig-line{background:#999!important;}
+  }
+  @page{size:A4;margin:8mm;}
+</style></head><body>
+<div class="toolbar">
+  <div class="toolbar-info">Blank Contractor Registration Form · Proalfa Dynamic Pvt. Ltd.</div>
+  <button class="print-btn" onclick="window.print()">Print / Save PDF</button>
+</div>
+<div class="doc">
+
+  <div class="hdr">
+    <div>
+      <img class="co-logo" src="${LOGO_BLACK}" alt="Proalfa">
+      <div class="co-name">PROALFA DYNAMIC PRIVATE LIMITED</div>
+    </div>
+    <div class="hdr-right">
+      <div class="tag-label">Document</div>
+      <div class="doc-title">Contractor<br>Registration</div>
+      <div class="doc-sub">Date: _____ / _____ / _________</div>
+    </div>
+  </div>
+  <div class="rule"></div>
+
+  <!-- Section 1 -->
+  <div class="sec-lbl">1. Contractor / Firm Details</div>
+  ${field('Firm / Company Name')}
+  <div class="two-col">
+    ${field('Contact Person (Owner / In-Charge)')}
+    ${field('Phone Number')}
+  </div>
+  <div class="two-col">
+    ${field('Email Address')}
+    ${field('Contractor Type &nbsp; ☐ Fabrication &nbsp; ☐ Erection &nbsp; ☐ Transport &nbsp; ☐ Civil &nbsp; ☐ Other')}
+  </div>
+  ${field('Address (Village / Town, District, State, PIN)', 2)}
+  <div class="two-col">
+    ${field('GSTIN')}
+    ${field('PAN')}
+  </div>
+  <div class="rule"></div>
+
+  <!-- Section 2 -->
+  <div class="sec-lbl">2. Work Profile</div>
+  ${field('Scope / Description of Work', 2)}
+  <div class="three-col">
+    ${field('Rate (₹)')}
+    ${field('Rate Unit (per ton / per trip / lumpsum…)')}
+    ${field('Payment Terms')}
+  </div>
+  <div class="rule"></div>
+
+  <!-- Section 3 -->
+  <div class="sec-lbl">3. Items Provided by Proalfa Dynamic &nbsp;<span style="font-size:10px;font-weight:400;color:#888">(tick whichever applies)</span></div>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:0 32px;margin-bottom:10px">
+    <div>
+      ${checkItem('Accommodation / Staying Place')}
+      ${checkItem('Electricity Supply')}
+      ${checkItem('Water Supply')}
+      ${checkItem('LPG Gas Cylinders')}
+      ${checkItem('Safety Kits (Helmet, Gloves, Harness, Boots)')}
+    </div>
+    <div>
+      ${checkItem('Hydra / Farana (Mobile Crane)')}
+      ${checkItem('Scaffolding &amp; Staging')}
+      ${checkItem('Hand Tools')}
+      ${checkItem('Welding Machine')}
+      ${checkItem('Grinding Machine')}
+    </div>
+  </div>
+  ${field('Other Machines / Equipment Provided (if any)')}
+  <div class="rule"></div>
+
+  <!-- Section 4 -->
+  <div class="sec-lbl">4. Contractor's Responsibilities (what contractor arranges / provides)</div>
+  ${field('', 2)}
+  <div class="rule"></div>
+
+  <!-- Section 5 -->
+  <div class="sec-lbl">5. Bank Details</div>
+  <div class="two-col">
+    ${field('Bank Name')}
+    ${field('Account Number')}
+  </div>
+  <div class="two-col">
+    ${field('IFSC Code')}
+    ${field('Account Type &nbsp; ☐ Current &nbsp; ☐ Savings')}
+  </div>
+  <div class="rule"></div>
+
+  <!-- Section 6 -->
+  <div class="sec-lbl">6. TDS &amp; Compliance</div>
+  <div class="three-col">
+    ${field('TDS Section (194C / 194J / None)')}
+    ${field('TDS Rate (%)')}
+    ${field('Retention (%) if any')}
+  </div>
+  ${field('Other Terms &amp; Conditions')}
+  <div class="rule"></div>
+
+  <!-- Declaration -->
+  <div class="notice">
+    I / We confirm that the above information is accurate and complete. I / We agree to comply with all applicable laws, safety regulations, and the terms set by Proalfa Dynamic Private Limited for the duration of this engagement.
+  </div>
+
+  <!-- Signatures -->
+  <div class="sig-row">
+    <div class="sig-block">
+      <div class="sig-line"></div>
+      <div class="sig-lbl">Contractor's Signature &amp; Stamp<br>Name: ___________________________</div>
+    </div>
+    <div class="sig-block">
+      <div class="sig-line"></div>
+      <div class="sig-lbl">Registered By — Proalfa Dynamic<br>Name &amp; Designation: _______________</div>
+    </div>
+    <div class="sig-block">
+      <div class="sig-line"></div>
+      <div class="sig-lbl">Approved By — Management<br>Name: ___________________________</div>
+    </div>
+  </div>
+
+  <div class="slip-footer">Proalfa Dynamic Private Limited &nbsp;·&nbsp; Contractor Registration Form &nbsp;·&nbsp; For Office Use Only</div>
+</div>
+</body></html>`);
   w.document.close();
 }
 
