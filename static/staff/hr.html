@@ -3778,7 +3778,16 @@ function printAppointmentLetter() {
   .toolbar{max-width:190mm;margin:0 auto 16px;display:flex;justify-content:space-between;align-items:center;}
   .print-btn{padding:8px 20px;background:#111;color:#fff;border:none;border-radius:6px;font-size:13px;cursor:pointer;font-family:inherit;}
   .toolbar-info{font-size:12px;color:#888;}
-  @media print{body{background:#fff;padding:0;}.toolbar{display:none;}.doc{box-shadow:none;border-radius:0;margin:0;}}
+  @media print{
+    body{background:#fff;padding:0;}
+    .toolbar{display:none;}
+    .doc{box-shadow:none;border-radius:0;margin:0;}
+    .sec-lbl,.tag-label,.co-name,.ef-label,.tag-val,.term-label,.sig-lbl,.slip-footer,.toolbar-info{color:#444!important;}
+    .rule{background:#bbb!important;}
+    .sig-line{background:#999!important;}
+    .nonneg-box{background:#f2f2f0!important;}
+    .resp-list li::before{color:#555!important;}
+  }
   @page{size:A4;margin:8mm;}
 </style>
 </head><body>
@@ -3951,7 +3960,15 @@ function printIncrementLetter() {
   .toolbar{max-width:190mm;margin:0 auto 16px;display:flex;justify-content:space-between;align-items:center;}
   .print-btn{padding:8px 20px;background:#111;color:#fff;border:none;border-radius:6px;font-size:13px;cursor:pointer;font-family:inherit;}
   .toolbar-info{font-size:12px;color:#888;}
-  @media print{body{background:#fff;padding:0;}.toolbar{display:none;}.doc{box-shadow:none;border-radius:0;margin:0;}}
+  @media print{
+    body{background:#fff;padding:0;}
+    .toolbar{display:none;}
+    .doc{box-shadow:none;border-radius:0;margin:0;}
+    .sec-lbl,.tag-label,.co-name,.ef-label,.ctc-cell-sub,.sig-lbl,.slip-footer,.toolbar-info{color:#444!important;}
+    .rule{background:#bbb!important;}
+    .sig-line{background:#999!important;}
+    .nonneg-box{background:#f2f2f0!important;}
+  }
   @page{size:A4;margin:8mm;}
 </style>
 </head><body>
