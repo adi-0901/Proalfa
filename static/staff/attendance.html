@@ -639,15 +639,24 @@ let todayData = [];
 async function loadToday(){
   const today = localToday();
   const body = document.getElementById('todayBody');
-  if (body) body.innerHTML = '<tr><td colspan="8" class="loading">Loading…</td></tr>';
+  if (body) body.innerHTML = `<tr><td colspan="8" class="loading">Connecting to database… (${today})</td></tr>`;
+  let data, error;
   try {
-    const {data, error} = await sb.from('attendance').select('*').eq('date', today);
-    if (error) throw error;
-    todayData = data || [];
+    const res = await Promise.race([
+      sb.from('attendance').select('*').eq('date', today),
+      new Promise((_,rej) => setTimeout(()=>rej(new Error('Query timed out after 15s')), 15000))
+    ]);
+    data = res.data; error = res.error;
   } catch(err) {
     if (body) body.innerHTML = `<tr><td colspan="8" class="empty" style="color:var(--red)">Failed to load attendance: ${err.message || err}. Check your connection and try the ↻ Refresh button.</td></tr>`;
     return;
   }
+  if (error) {
+    if (body) body.innerHTML = `<tr><td colspan="8" class="empty" style="color:var(--red)">Supabase error: ${error.message}. Try the ↻ Refresh button.</td></tr>`;
+    return;
+  }
+  todayData = data || [];
+  if (body) body.innerHTML = `<tr><td colspan="8" class="loading">Rendering ${employees.length} employees…</td></tr>`;
   try {
     renderToday();
   } catch(renderErr) {

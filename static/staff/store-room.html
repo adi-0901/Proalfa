@@ -206,14 +206,86 @@
     font-size: 14px; padding: 3px 7px; border-radius: 4px; line-height: 1;
   }
   .del-btn:hover { color: var(--red-mid); background: var(--red-bg); }
+  .edit-btn {
+    background: none; border: none; cursor: pointer; color: var(--text-secondary);
+    font-size: 12px; padding: 3px 8px; border-radius: 4px; line-height: 1;
+    border: 0.5px solid var(--border);
+  }
+  .edit-btn:hover { color: var(--blue-mid); background: var(--blue-bg); border-color: var(--blue-mid); }
+  .stock-btn {
+    background: none; border: 0.5px solid var(--border); cursor: pointer; color: var(--text-secondary);
+    font-size: 12px; padding: 3px 8px; border-radius: 4px; line-height: 1;
+  }
+  .stock-btn:hover { color: var(--green-mid); background: var(--green-bg); border-color: var(--green-mid); }
+
+  /* Edit modal */
+  .modal-overlay {
+    position: fixed; inset: 0; background: rgba(0,0,0,0.45); display: none;
+    align-items: center; justify-content: center; z-index: 500;
+  }
+  .modal-overlay.open { display: flex; }
+  .modal-card {
+    background: var(--bg-primary); border: 0.5px solid var(--border);
+    border-radius: var(--radius-lg); padding: 28px 32px; width: 100%; max-width: 480px;
+    box-shadow: 0 8px 40px rgba(0,0,0,0.18);
+  }
+  .modal-title { font-size: 16px; font-weight: 600; margin-bottom: 18px; }
+  .modal-actions { display: flex; gap: 8px; margin-top: 18px; justify-content: flex-end; }
 
   .footer {
     max-width: 1100px; margin: 24px auto 0; text-align: center;
     font-size: 11px; color: var(--text-secondary);
   }
 
+  /* ── Guide ── */
+  .guide-card {
+    max-width: 1100px; margin: 0 auto 18px;
+    background: var(--bg-primary); border: 0.5px solid var(--border);
+    border-radius: var(--radius-lg); overflow: hidden;
+  }
+  .guide-header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 14px 20px; cursor: pointer; user-select: none;
+    border-bottom: 0.5px solid transparent; transition: border-color 0.15s;
+  }
+  .guide-header.open { border-bottom-color: var(--border); }
+  .guide-header-left { display: flex; align-items: center; gap: 10px; }
+  .guide-badge {
+    font-size: 11px; font-weight: 600; padding: 2px 8px;
+    background: var(--blue-bg); color: var(--blue-text);
+    border-radius: 20px; letter-spacing: .03em;
+  }
+  .guide-title { font-size: 13px; font-weight: 600; }
+  .guide-chevron { font-size: 11px; color: var(--text-secondary); transition: transform 0.2s; }
+  .guide-chevron.open { transform: rotate(180deg); }
+  .guide-body { display: none; padding: 20px 20px 24px; }
+  .guide-body.open { display: block; }
+  .guide-steps { display: flex; flex-direction: column; gap: 0; }
+  .guide-step {
+    display: flex; gap: 16px; padding: 14px 0;
+    border-bottom: 0.5px solid var(--border);
+  }
+  .guide-step:last-child { border-bottom: none; }
+  .guide-step-num {
+    flex-shrink: 0; width: 26px; height: 26px; border-radius: 50%;
+    background: var(--bg-secondary); border: 0.5px solid var(--border);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 11px; font-weight: 700; color: var(--text-secondary); margin-top: 1px;
+  }
+  .guide-step-content { flex: 1; }
+  .guide-step-title { font-size: 13px; font-weight: 600; margin-bottom: 4px; }
+  .guide-step-desc { font-size: 12px; color: var(--text-secondary); line-height: 1.6; }
+  .guide-step-desc strong { color: var(--text-primary); }
+  .guide-step-tag {
+    display: inline-block; margin-top: 6px; font-size: 11px; font-weight: 500;
+    padding: 2px 9px; border-radius: 5px; cursor: pointer;
+    background: var(--bg-secondary); border: 0.5px solid var(--border);
+    color: var(--text-secondary);
+  }
+  .guide-step-tag:hover { background: var(--blue-bg); color: var(--blue-mid); border-color: var(--blue-mid); }
+
   @media print {
-    #loginOverlay { display: none !important; }
+    #loginOverlay, .guide-card { display: none !important; }
     .btn, .del-btn, .export-btn, .logout-btn, .filter-row select, .filter-row input { display: none !important; }
   }
 </style>
@@ -247,6 +319,20 @@
   <div class="header-actions">
     <button class="export-btn" onclick="exportCSV()">⬇ Export CSV</button>
     <button class="logout-btn" onclick="doLogout()">Sign out</button>
+  </div>
+</div>
+
+<!-- GUIDE -->
+<div class="guide-card" id="guideCard">
+  <div class="guide-header" id="guideHeader" onclick="toggleGuide()">
+    <div class="guide-header-left">
+      <span class="guide-badge">How to use</span>
+      <span class="guide-title">Store Room — Step-by-step guide</span>
+    </div>
+    <span class="guide-chevron" id="guideChevron">▼</span>
+  </div>
+  <div class="guide-body" id="guideBody">
+    <div class="guide-steps" id="guideSteps"></div>
   </div>
 </div>
 
@@ -424,14 +510,18 @@
     </div>
 
     <div class="divider"></div>
-    <div class="section-label">All items (<span id="itemCount">0</span>)</div>
+    <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:12px">
+      <div class="section-label" style="margin-bottom:0">All items (<span id="itemCount">0</span>)</div>
+      <input type="text" id="catalogSearch" placeholder="Search by name…" oninput="renderCatalog()"
+        style="width:200px;padding:5px 10px;font-size:12px;border:0.5px solid var(--border-strong);border-radius:var(--radius-md);background:var(--bg-primary);color:var(--text-primary);outline:none;font-family:inherit">
+    </div>
     <div class="tbl-wrapper">
       <table>
         <thead><tr>
           <th>Item name</th><th>Category</th><th>Unit</th>
           <th style="text-align:right">Min Level</th>
           <th style="text-align:right">Opening Stock</th>
-          <th>Added on</th><th></th>
+          <th>Added on</th><th>Actions</th>
         </tr></thead>
         <tbody id="catalogBody"></tbody>
       </table>
@@ -473,6 +563,86 @@
   ☁ Data synced to cloud · Store Room Tracker · <span id="txnCount">0</span> transactions recorded
 </div>
 
+<!-- Edit Item Modal -->
+<div class="modal-overlay" id="editModal">
+  <div class="modal-card">
+    <div class="modal-title">Edit Item</div>
+    <div class="form-grid">
+      <div class="field">
+        <label>Item name</label>
+        <input type="text" id="em-name" placeholder="Item name">
+      </div>
+      <div class="field">
+        <label>Category</label>
+        <select id="em-cat">
+          <option>Plasma Consumables</option>
+          <option>H-Beam Machine</option>
+          <option>Welding (CO2)</option>
+          <option>Fasteners &amp; Hardware</option>
+          <option>Cutting Tools</option>
+          <option>Safety Items</option>
+          <option>General Store</option>
+          <option>Other</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Unit</label>
+        <select id="em-unit">
+          <option value="pcs">pcs</option>
+          <option value="sets">sets</option>
+          <option value="kg">kg</option>
+          <option value="m">m</option>
+          <option value="L">L</option>
+          <option value="box">box</option>
+          <option value="roll">roll</option>
+          <option value="pair">pair</option>
+          <option value="nos">nos</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Min. stock level</label>
+        <input type="number" id="em-min" placeholder="0" min="0" step="any">
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn" onclick="closeEditModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="saveItemEdit()">Save Changes</button>
+    </div>
+  </div>
+</div>
+
+<!-- Add Stock Modal -->
+<div class="modal-overlay" id="stockModal">
+  <div class="modal-card">
+    <div class="modal-title">Add Stock — <span id="sm-item-name" style="font-weight:400;color:var(--text-secondary)"></span></div>
+    <div class="form-grid">
+      <div class="field">
+        <label>Date</label>
+        <input type="date" id="sm-date">
+      </div>
+      <div class="field">
+        <label>Quantity to add</label>
+        <input type="number" id="sm-qty" placeholder="0" min="0.01" step="any">
+      </div>
+      <div class="field">
+        <label>Supplier / Source</label>
+        <input type="text" id="sm-supplier" placeholder="e.g. Local market">
+      </div>
+      <div class="field">
+        <label>Remarks (optional)</label>
+        <input type="text" id="sm-remarks" placeholder="">
+      </div>
+    </div>
+    <div style="margin-top:10px;font-size:12px;color:var(--text-secondary)">
+      Current stock: <strong id="sm-current-stock">—</strong>
+    </div>
+    <div class="modal-actions">
+      <button class="btn" onclick="closeStockModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="saveStockIn()">＋ Add Stock</button>
+    </div>
+  </div>
+</div>
+
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
   const PASS        = 'Proalfa@50';
@@ -480,6 +650,97 @@
   const SB_KEY      = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imd6anp1dWRodHZsanB3Y3F5Z3RrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzgzOTY4NTksImV4cCI6MjA5Mzk3Mjg1OX0.pCBKZwMDvu8UAfKEXL8_hgkuG95A-MtVKK6sM2qFxEs';
   const { createClient } = supabase;
   const sb = createClient(SB_URL, SB_KEY);
+
+  // ── Guide ────────────────────────────────────────────────────
+  // Edit this array to update the guide — steps reference tab IDs so
+  // clicking a tag navigates directly to that section.
+  const GUIDE_STEPS = [
+    {
+      title: '1. Add items to the catalog first',
+      tab: 'catalog',
+      tabLabel: '📋 Item Catalog',
+      desc: 'Before recording any movement, every consumable must exist in the catalog. Go to <strong>Item Catalog</strong>, fill in the item name, category, unit of measurement, and minimum stock level. Set the <strong>Opening Stock</strong> qty if you already have existing stock — this becomes the starting balance.',
+    },
+    {
+      title: '2. Receive new stock (Stock In)',
+      tab: 'txn',
+      tabLabel: '➕ New Transaction',
+      desc: 'When items arrive from a supplier or purchase: open <strong>New Transaction</strong>, select <strong>Stock In — received into store</strong>, pick the item, enter quantity, put the supplier name in the Machine/Location field, and save.',
+    },
+    {
+      title: '3. Issue items from store (Issue Out)',
+      tab: 'txn',
+      tabLabel: '➕ New Transaction',
+      desc: 'When a worker takes an item for use: open <strong>New Transaction</strong>, select <strong>Issue Out — taken from store</strong>, pick the item, enter quantity, fill in the person\'s name and which machine or area it\'s going to, and save.',
+    },
+    {
+      title: '4. Old, damaged, or returned items',
+      tab: 'txn',
+      tabLabel: '➕ New Transaction',
+      desc: '<strong>Item returned to store (used but reusable):</strong> New Transaction → Stock In → write "RETURNED" in Remarks. This adds it back to stock.<br><br><strong>Damaged / broken / scrap item returned:</strong> New Transaction → Stock In → Remarks = "RETURNED — DAMAGED". Adds it to stock count.<br><br><strong>Disposing scrap (removing from stock permanently):</strong> New Transaction → Issue Out → Person = "Scrap Disposal" → Remarks = "Discarded — damaged". This deducts it from stock.',
+    },
+    {
+      title: '5. Check current stock levels',
+      tab: 'stock',
+      tabLabel: '📦 Stock Register',
+      desc: 'The <strong>Stock Register</strong> shows real-time stock for every item. Items shown in red are at or below the minimum stock level you set — order those soon. Use the category filter to focus on one section (e.g. Plasma Consumables).',
+    },
+    {
+      title: '6. Edit or restock an item from the catalog',
+      tab: 'catalog',
+      tabLabel: '📋 Item Catalog',
+      desc: 'In <strong>Item Catalog</strong>, each row has two action buttons: <strong>＋ Stock</strong> to quickly add a stock-in quantity without going to New Transaction, and <strong>✎ Edit</strong> to change the item name, category, unit, or minimum stock level.',
+    },
+    {
+      title: '7. Monthly consumption report',
+      tab: 'report',
+      tabLabel: '📊 Monthly Report',
+      desc: 'The <strong>Monthly Report</strong> shows how much of each item was consumed each month. Use this to spot high-usage items, plan reorders, and compare month-on-month consumption trends. Filter by category to focus on one section.',
+    },
+  ];
+
+  function renderGuide() {
+    const container = document.getElementById('guideSteps');
+    if (!container) return;
+    container.innerHTML = GUIDE_STEPS.map((s, idx) => `
+      <div class="guide-step">
+        <div class="guide-step-num">${idx + 1}</div>
+        <div class="guide-step-content">
+          <div class="guide-step-title">${s.title}</div>
+          <div class="guide-step-desc">${s.desc}</div>
+          <span class="guide-step-tag" onclick="goToTab('${s.tab}')">${s.tabLabel} →</span>
+        </div>
+      </div>`).join('');
+  }
+
+  function toggleGuide() {
+    const body    = document.getElementById('guideBody');
+    const header  = document.getElementById('guideHeader');
+    const chevron = document.getElementById('guideChevron');
+    const open    = body.classList.toggle('open');
+    header.classList.toggle('open', open);
+    chevron.classList.toggle('open', open);
+    localStorage.setItem('sr_guide_open', open ? '1' : '0');
+  }
+
+  function goToTab(name) {
+    const btn = document.querySelector(`.tab[onclick="switchTab('${name}',this)"]`);
+    if (btn) btn.click();
+  }
+
+  function initGuide() {
+    renderGuide();
+    const saved = localStorage.getItem('sr_guide_open');
+    if (saved === null || saved === '1') {
+      // open by default on first visit
+      const body    = document.getElementById('guideBody');
+      const header  = document.getElementById('guideHeader');
+      const chevron = document.getElementById('guideChevron');
+      body.classList.add('open');
+      header.classList.add('open');
+      chevron.classList.add('open');
+    }
+  }
 
   function doLogin() {
     if (document.getElementById('loginPass').value === PASS) {
@@ -512,6 +773,7 @@
   let txns  = [];
 
   async function initApp() {
+    initGuide();
     showLoading(true);
     try {
       const [ir, tr] = await Promise.all([
@@ -697,6 +959,92 @@
     showAlert('Item deleted.');
   }
 
+  // ── Edit Item ──
+  let editingItemId = null;
+
+  function openEditModal(id) {
+    const item = itemById(id);
+    if (!item) return;
+    editingItemId = id;
+    document.getElementById('em-name').value = item.name;
+    document.getElementById('em-cat').value  = item.category;
+    document.getElementById('em-unit').value = item.unit;
+    document.getElementById('em-min').value  = item.minStock || '';
+    document.getElementById('editModal').classList.add('open');
+    document.getElementById('em-name').focus();
+  }
+
+  function closeEditModal() {
+    editingItemId = null;
+    document.getElementById('editModal').classList.remove('open');
+  }
+
+  async function saveItemEdit() {
+    const id   = editingItemId;
+    const name = document.getElementById('em-name').value.trim();
+    const cat  = document.getElementById('em-cat').value;
+    const unit = document.getElementById('em-unit').value;
+    const min  = parseFloat(document.getElementById('em-min').value) || 0;
+    if (!name) { showAlert('Item name cannot be empty.', 'error'); return; }
+    const duplicate = items.find(i => i.id !== id && i.name.toLowerCase() === name.toLowerCase());
+    if (duplicate) { showAlert('Another item with this name already exists.', 'error'); return; }
+
+    const { error } = await sb.from('store_items').update({ name, category: cat, unit, min_stock: min }).eq('id', id);
+    if (error) { showAlert('Save failed: ' + error.message, 'error'); return; }
+
+    const item = itemById(id);
+    item.name = name; item.category = cat; item.unit = unit; item.minStock = min;
+    closeEditModal();
+    rebuildItemSelect();
+    renderCatalog();
+    showAlert('"' + name + '" updated.');
+  }
+
+  // ── Quick Stock-In ──
+  let stockModalItemId = null;
+
+  function openStockModal(id) {
+    const item = itemById(id);
+    if (!item) return;
+    stockModalItemId = id;
+    document.getElementById('sm-item-name').textContent = item.name;
+    document.getElementById('sm-date').value = today();
+    document.getElementById('sm-qty').value  = '';
+    document.getElementById('sm-supplier').value  = '';
+    document.getElementById('sm-remarks').value   = '';
+    document.getElementById('sm-current-stock').textContent = fmtQty(currentStock(id)) + ' ' + item.unit;
+    document.getElementById('stockModal').classList.add('open');
+    document.getElementById('sm-qty').focus();
+  }
+
+  function closeStockModal() {
+    stockModalItemId = null;
+    document.getElementById('stockModal').classList.remove('open');
+  }
+
+  async function saveStockIn() {
+    const id       = stockModalItemId;
+    const date     = document.getElementById('sm-date').value;
+    const qty      = parseFloat(document.getElementById('sm-qty').value);
+    const supplier = document.getElementById('sm-supplier').value.trim();
+    const remarks  = document.getElementById('sm-remarks').value.trim();
+    if (!date) { showAlert('Please pick a date.', 'error'); return; }
+    if (!qty || qty <= 0) { showAlert('Enter a valid quantity.', 'error'); return; }
+
+    const tid = Date.now();
+    const trow = { id: tid, date, item_id: id, type: 'IN', qty,
+                   person: '', machine: supplier || '', entryby: 'Stock-in', remarks: remarks || '' };
+    const { error } = await sb.from('store_transactions').insert(trow);
+    if (error) { showAlert('Save failed: ' + error.message, 'error'); return; }
+
+    txns.unshift({ id: tid, date, itemId: id, type: 'IN', qty,
+                   person: '', machine: supplier || '', entryby: 'Stock-in', remarks: remarks || '' });
+    closeStockModal();
+    updateMetrics();
+    renderCatalog();
+    showAlert('Stock added successfully.');
+  }
+
   // ── Add Transaction ──
   async function addTxn() {
     const date    = document.getElementById('t-date').value;
@@ -851,9 +1199,17 @@
       body.innerHTML = `<tr><td colspan="7" class="empty-state">No items yet. Add your first item above.</td></tr>`;
       return;
     }
-    const sorted = [...items].sort((a,b) => a.category.localeCompare(b.category) || a.name.localeCompare(b.name));
+    const q = (document.getElementById('catalogSearch')?.value || '').toLowerCase().trim();
+    const sorted = [...items]
+      .filter(i => !q || i.name.toLowerCase().includes(q))
+      .sort((a,b) => a.category.localeCompare(b.category) || a.name.localeCompare(b.name));
+    if (sorted.length === 0) {
+      body.innerHTML = `<tr><td colspan="7" class="empty-state">No items match "${q}".</td></tr>`;
+      return;
+    }
     body.innerHTML = sorted.map(i => {
       const opening = txns.find(t => t.itemId === i.id && t.type === 'OPEN');
+      const stock = currentStock(i.id);
       return `<tr>
         <td style="font-weight:500">${i.name}</td>
         <td><span class="badge ${catClass(i.category)}">${i.category}</span></td>
@@ -861,7 +1217,11 @@
         <td style="text-align:right;color:var(--text-secondary)">${i.minStock || '—'}</td>
         <td style="text-align:right;color:var(--text-secondary)">${opening ? fmtQty(opening.qty) : '—'}</td>
         <td style="color:var(--text-secondary)">${i.createdAt || '—'}</td>
-        <td><button class="del-btn" onclick="deleteItem(${i.id})" title="Delete item">✕</button></td>
+        <td style="white-space:nowrap;display:flex;gap:4px;align-items:center">
+          <button class="stock-btn" onclick="openStockModal(${i.id})" title="Add stock">＋ Stock</button>
+          <button class="edit-btn" onclick="openEditModal(${i.id})" title="Edit item">✎ Edit</button>
+          <button class="del-btn" onclick="deleteItem(${i.id})" title="Delete item">✕</button>
+        </td>
       </tr>`;
     }).join('');
   }
@@ -979,6 +1339,14 @@
     a.download = 'StoreRoom_Ledger_' + today() + '.csv';
     a.click();
   }
+
+  // Close modals on backdrop click
+  document.getElementById('editModal').addEventListener('click', function(e) {
+    if (e.target === this) closeEditModal();
+  });
+  document.getElementById('stockModal').addEventListener('click', function(e) {
+    if (e.target === this) closeStockModal();
+  });
 </script>
 </body>
 </html>

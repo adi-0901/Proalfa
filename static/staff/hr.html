@@ -654,7 +654,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Helvetica
       <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;margin-bottom:14px">
         <div style="font-size:13px;font-weight:700">All Entries — <span id="exp-ledger-month"></span></div>
         <div class="exp-filter-row" style="margin:0">
-          <select id="exp-filter-cat" onchange="renderExpenseLedger()">
+          <select id="exp-filter-cat" onchange="renderExpenseLedger(true)">
             <option value="">All Categories</option>
             <option>Labour Payment</option><option>Material Purchase</option>
             <option>Factory / Production</option><option>Fuel &amp; Vehicle</option>
@@ -663,12 +663,12 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Helvetica
             <option>Advance to Staff</option><option>Utilities</option>
             <option>Asset Purchase</option><option>Repairs &amp; Maintenance</option><option>Petty Cash</option><option>Other</option>
           </select>
-          <select id="exp-filter-mode" onchange="renderExpenseLedger()">
+          <select id="exp-filter-mode" onchange="renderExpenseLedger(true)">
             <option value="">All Modes</option>
             <option>Cash</option><option>UPI</option>
             <option>Bank Transfer</option><option>Cheque</option><option>IMPS</option>
           </select>
-          <select id="exp-filter-bill" onchange="renderExpenseLedger()">
+          <select id="exp-filter-bill" onchange="renderExpenseLedger(true)">
             <option value="">All Bill Status</option>
             <option>No Bill</option><option>Bill Received</option><option>Bill Pending</option>
           </select>
@@ -752,6 +752,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Helvetica
           <div class="fg"><label>Rate Unit</label>
             <select id="cf-unit">
               <option value="per ton">Per Ton</option>
+              <option value="per kg">Per Kg</option>
               <option value="per MT">Per MT</option>
               <option value="per RMT">Per RMT</option>
               <option value="per trip">Per Trip</option>
@@ -982,6 +983,15 @@ function switchTab(name, el) {
   if (name === 'onboarding') populateObSelect();
   if (name === 'attendance') {
     const f = document.getElementById('attFrame');
+    f.onload = function () {
+      try {
+        const cw = f.contentWindow;
+        if (cw && typeof cw.initApp === 'function') {
+          cw._appInited = false;
+          cw.initApp();
+        }
+      } catch (e) { /* cross-origin guard */ }
+    };
     f.src = '/staff/attendance.html';
   }
   if (name === 'leaves')  initLeaves();
@@ -1046,13 +1056,19 @@ function renderList() {
   const q  = (document.getElementById('srch').value || '').toLowerCase();
   const sf = document.getElementById('fStatus').value;
   const df = document.getElementById('fDept').value;
-  const list = employees.filter(e =>
-    (!q || (e.full_name||'').toLowerCase().includes(q) ||
-           (e.emp_id||'').toLowerCase().includes(q) ||
-           (e.designation||'').toLowerCase().includes(q)) &&
-    (!sf || e.status === sf) &&
-    (!df || e.department === df)
-  );
+  const list = employees
+    .filter(e =>
+      (!q || (e.full_name||'').toLowerCase().includes(q) ||
+             (e.emp_id||'').toLowerCase().includes(q) ||
+             (e.designation||'').toLowerCase().includes(q)) &&
+      (!sf || e.status === sf) &&
+      (!df || e.department === df)
+    )
+    .sort((a, b) => {
+      const na = parseInt((a.emp_id||'').replace(/\D/g,'')) || 0;
+      const nb = parseInt((b.emp_id||'').replace(/\D/g,'')) || 0;
+      return na - nb;
+    });
   const grid = document.getElementById('empGrid');
   if (!list.length) { grid.innerHTML = '<div class="empty">No employees found.</div>'; return; }
   grid.innerHTML = list.map(e => {
@@ -1769,7 +1785,7 @@ function renderExpenses() {
   const monthExp = expenses.filter(e => (e.date||'').startsWith(month));
   renderExpenseStats(monthExp);
   renderExpenseCharts(monthExp);
-  renderExpenseLedger();
+  renderExpenseLedger(true);
 }
 
 function renderExpenseStats(monthExp) {
@@ -1847,7 +1863,11 @@ function renderExpenseCharts(monthExp) {
     </div>`;
 }
 
-function renderExpenseLedger() {
+let expLedgerPage = 1;
+const EXP_PAGE_SIZE = 13;
+
+function renderExpenseLedger(resetPage) {
+  if (resetPage) expLedgerPage = 1;
   const _nld=new Date(); const _dlm=_nld.getFullYear()+'-'+String(_nld.getMonth()+1).padStart(2,'0');
   const month = document.getElementById('exp-month')?.value || _dlm;
   const catF  = document.getElementById('exp-filter-cat')?.value  || '';
@@ -1857,6 +1877,7 @@ function renderExpenseLedger() {
   if (catF)  rows = rows.filter(e => e.category === catF);
   if (modeF) rows = rows.filter(e => e.payment_mode === modeF);
   if (billF) rows = rows.filter(e => e.bill_status === billF);
+  rows.sort((a, b) => (a.date||'') < (b.date||'') ? -1 : (a.date||'') > (b.date||'') ? 1 : 0);
   const el = document.getElementById('exp-ledger-body');
   const monthEl = document.getElementById('exp-ledger-month');
   if (monthEl) {
@@ -1864,9 +1885,18 @@ function renderExpenseLedger() {
     monthEl.textContent = d.toLocaleString('en-IN', { month: 'long', year: 'numeric' });
   }
   if (!el) return;
-  if (!rows.length) { el.innerHTML = '<tr><td colspan="10" style="text-align:center;padding:24px;color:var(--text2)">No entries for this period</td></tr>'; return; }
+  if (!rows.length) {
+    el.innerHTML = '<tr><td colspan="10" style="text-align:center;padding:24px;color:var(--text2)">No entries for this period</td></tr>';
+    const footer = document.getElementById('exp-ledger-footer');
+    if (footer) footer.innerHTML = '';
+    return;
+  }
+  const totalPages = Math.ceil(rows.length / EXP_PAGE_SIZE);
+  if (expLedgerPage > totalPages) expLedgerPage = totalPages;
+  const start = (expLedgerPage - 1) * EXP_PAGE_SIZE;
+  const pageRows = rows.slice(start, start + EXP_PAGE_SIZE);
   const billColor = s => s==='No Bill'?'var(--red)':s==='Bill Pending'?'var(--amber)':'var(--green)';
-  el.innerHTML = rows.map(e => `
+  el.innerHTML = pageRows.map(e => `
     <tr style="${editingExpenseId===e.id?'background:var(--amber)11;outline:1px solid var(--amber)':''}">
       <td>${e.date}</td>
       <td>${e.category}</td>
@@ -1885,7 +1915,19 @@ function renderExpenseLedger() {
     </tr>`).join('');
   const ledgerTotal = rows.reduce((s,e)=>s+parseFloat(e.amount||0),0);
   const footer = document.getElementById('exp-ledger-footer');
-  if (footer) footer.textContent = `${rows.length} entries · Total: ₹${Math.round(ledgerTotal).toLocaleString('en-IN')}`;
+  if (footer) {
+    const prevDis = expLedgerPage <= 1 ? 'opacity:.35;pointer-events:none' : '';
+    const nextDis = expLedgerPage >= totalPages ? 'opacity:.35;pointer-events:none' : '';
+    footer.innerHTML = `
+      <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px">
+        <span style="color:var(--text2)">${rows.length} entries · Total: ₹${Math.round(ledgerTotal).toLocaleString('en-IN')}</span>
+        ${totalPages > 1 ? `<div style="display:flex;align-items:center;gap:8px">
+          <button onclick="expLedgerPage--;renderExpenseLedger()" style="${prevDis};padding:4px 12px;font-size:12px;border:0.5px solid var(--border2);border-radius:6px;background:var(--card);color:var(--text);cursor:pointer">← Prev</button>
+          <span style="font-size:12px;color:var(--text2)">Page ${expLedgerPage} of ${totalPages}</span>
+          <button onclick="expLedgerPage++;renderExpenseLedger()" style="${nextDis};padding:4px 12px;font-size:12px;border:0.5px solid var(--border2);border-radius:6px;background:var(--card);color:var(--text);cursor:pointer">Next →</button>
+        </div>` : ''}
+      </div>`;
+  }
 }
 
 function onExpBillChange() {
@@ -1941,7 +1983,7 @@ function editExpense(id) {
   document.getElementById('exp-editing-badge').style.display = '';
   document.querySelector('.exp-form-title').textContent = '✏️ Edit Expense Entry';
   document.querySelector('.exp-form-card').scrollIntoView({ behavior: 'smooth', block: 'start' });
-  renderExpenseLedger();
+  renderExpenseLedger(true);
 }
 
 async function saveExpense() {
@@ -2023,7 +2065,7 @@ function clearExpenseForm() {
   document.getElementById('exp-cancel-btn').style.display = 'none';
   document.getElementById('exp-editing-badge').style.display = 'none';
   document.querySelector('.exp-form-title').textContent = '＋ Record Expense / Purchase';
-  renderExpenseLedger();
+  renderExpenseLedger(true);
 }
 
 async function deleteExpense(id) {
