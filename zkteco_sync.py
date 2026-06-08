@@ -24,8 +24,8 @@ from datetime import datetime, date, timedelta
 DEVICE_IP   = "192.168.31.201"
 DEVICE_PORT = 4370
 
-# How many past days to sync (1 = today only, 7 = last week)
-SYNC_DAYS   = 1
+# How many past days to sync (3 = today + 2 previous days, handles OT workers past midnight)
+SYNC_DAYS   = 3
 
 SUPABASE_URL = "https://gzjzuudhtvljpwcqygtk.supabase.co"
 SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imd6anp1dWRodHZsanB3Y3F5Z3RrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzgzOTY4NTksImV4cCI6MjA5Mzk3Mjg1OX0.pCBKZwMDvu8UAfKEXL8_hgkuG95A-MtVKK6sM2qFxEs"
