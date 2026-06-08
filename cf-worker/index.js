@@ -37,9 +37,9 @@ export default {
       return ok('OK');
     }
 
-    // ── Command poll (device asks "any commands for me?") ─────────────
+    // ── Command poll — push correct IST time to device on every poll ──
     if (path === '/iclock/getrequest') {
-      return ok('OK');
+      return timeSyncCommand();
     }
 
     // ── Device info / heartbeat / anything else ───────────────────────
@@ -64,6 +64,20 @@ function registration(sn) {
     `Encrypt=None`,
   ].join('\n');
   return new Response(body, { status: 200, headers: { 'Content-Type': 'text/plain' } });
+}
+
+// ── Time sync command — sends current IST time to device ─────────────────────
+function timeSyncCommand() {
+  // IST = UTC + 5:30
+  const now = new Date(Date.now() + 5.5 * 60 * 60 * 1000);
+  const yyyy = now.getUTCFullYear();
+  const mm   = String(now.getUTCMonth() + 1).padStart(2, '0');
+  const dd   = String(now.getUTCDate()).padStart(2, '0');
+  const hh   = String(now.getUTCHours()).padStart(2, '0');
+  const min  = String(now.getUTCMinutes()).padStart(2, '0');
+  const ss   = String(now.getUTCSeconds()).padStart(2, '0');
+  const istStr = `${yyyy}-${mm}-${dd} ${hh}:${min}:${ss}`;
+  return ok(`C:1:DATE TIME ${istStr}`);
 }
 
 // ── Parse & upsert attendance ─────────────────────────────────────────────────
