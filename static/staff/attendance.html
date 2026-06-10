@@ -721,7 +721,12 @@ async function renderMonthly(){
   const {data,error}=await sb.from('attendance').select('*').gte('date',startD).lte('date',endD);
   if(error){ body.innerHTML='<tr><td colspan="9" class="empty">Error loading data.</td></tr>'; return; }
 
-  window._mvData={data:data||[],m,y}; // cache for detail modal
+  // Pre-fetch site punch requests for the whole month so detail modal opens instantly
+  const {data:siteData} = await sb.from('site_attendance_requests')
+    .select('emp_id,date,punch_type,punch_time,latitude,longitude,status')
+    .eq('status','approved').gte('date',startD).lte('date',endD);
+
+  window._mvData={data:data||[],siteData:siteData||[],m,y}; // cache for detail modal
 
   const cal=daysInMonth(m,y);
   body.innerHTML=employees.map(emp=>{
@@ -1805,20 +1810,11 @@ async function showEmpDetail(empId, m, y) {
   document.getElementById('edEmpMeta').textContent =
     (emp.designation || '—') + '  ·  ' +
     new Date(y, m-1, 1).toLocaleString('en-IN',{month:'long'}) + ' ' + y;
-  document.getElementById('edBody').innerHTML = '<div class="loading">Loading…</div>';
   document.getElementById('empDetailOverlay').style.display = 'block';
 
-  // Fetch site portal punches for this employee this month
-  const startD = `${y}-${String(m).padStart(2,'0')}-01`;
-  const endD   = `${y}-${String(m).padStart(2,'0')}-${String(daysInMonth(m,y)).padStart(2,'0')}`;
-  const { data: siteReqs } = await sb.from('site_attendance_requests')
-    .select('date,punch_type,punch_time,latitude,longitude,status')
-    .eq('emp_id', String(empId))
-    .eq('status', 'approved')
-    .gte('date', startD).lte('date', endD);
-
+  // Use pre-cached site punch data from renderMonthly (no extra network call)
   const siteMap = {};
-  (siteReqs || []).forEach(r => {
+  (cached.siteData || []).filter(r => String(r.emp_id) === String(empId)).forEach(r => {
     if (!siteMap[r.date]) siteMap[r.date] = [];
     siteMap[r.date].push(r);
   });
@@ -1881,9 +1877,9 @@ async function showEmpDetail(empId, m, y) {
       locCell = '<span style="color:#ccc;font-size:11px">Machine</span>';
     }
 
-    const rowBg = status === 'absent' ? 'background:#fff5f5' :
-                  status === 'half_day' ? 'background:#fffbeb' :
-                  status === 'weekly_off' ? 'background:#fafafa' : '';
+    const rowBg = status === 'absent' ? 'background:var(--red-bg)' :
+                  status === 'half_day' ? 'background:var(--amber-bg)' :
+                  status === 'weekly_off' ? 'background:var(--card2)' : '';
 
     rows += `<tr style="${rowBg}">
       <td style="font-weight:500;white-space:nowrap">${d} ${dayName}</td>

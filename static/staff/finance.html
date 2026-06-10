@@ -691,7 +691,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Helvetica
             </div>
             <div class="mfg" style="margin:0">
               <label>GST Rate</label>
-              <select id="pm-gst-rate" onchange="calcTotalCost()">
+              <select id="pm-gst-rate" onchange="document.getElementById('pm-pricing-type').value==='rate_based'?calcContractValue():calcTotalCost()">
                 <option value="18">18% (Fabrication / Structural)</option>
                 <option value="12">12%</option>
                 <option value="28">28%</option>
@@ -1608,14 +1608,23 @@ function onPricingTypeChange() {
 }
 
 function calcContractValue() {
-  const qty  = parseFloat(document.getElementById('pm-qty').value)  || 0;
-  const rate = parseFloat(document.getElementById('pm-rate').value) || 0;
-  const unit = document.getElementById('pm-unit').value;
-  const val  = qty * rate;
-  document.getElementById('pm-contract-preview').textContent = val > 0
-    ? `${qty.toLocaleString('en-IN')} ${unit} × ₹${rate.toLocaleString('en-IN')} = ₹${Math.round(val).toLocaleString('en-IN')}`
-    : '—';
-  document.getElementById('pm-contract').value = val > 0 ? val : '';
+  const qty     = parseFloat(document.getElementById('pm-qty').value)  || 0;
+  const rate    = parseFloat(document.getElementById('pm-rate').value) || 0;
+  const unit    = document.getElementById('pm-unit').value;
+  const gstRate = parseFloat(document.getElementById('pm-gst-rate').value) || 0;
+  const base    = qty * rate;
+  const gstAmt  = base * (gstRate / 100);
+  const incl    = base + gstAmt;
+  const prev    = document.getElementById('pm-contract-preview');
+  if (base > 0) {
+    const gstPart = gstRate > 0
+      ? ` + GST ${gstRate}% ₹${Math.round(gstAmt).toLocaleString('en-IN')} = <strong>₹${Math.round(incl).toLocaleString('en-IN')}</strong>`
+      : ` = <strong>₹${Math.round(incl).toLocaleString('en-IN')}</strong>`;
+    prev.innerHTML = `${qty.toLocaleString('en-IN')} ${unit} × ₹${rate.toLocaleString('en-IN')}${gstPart}`;
+  } else {
+    prev.innerHTML = '—';
+  }
+  document.getElementById('pm-contract').value = incl > 0 ? Math.round(incl) : '';
   calcTotalCost();
 }
 

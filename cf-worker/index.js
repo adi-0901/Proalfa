@@ -37,9 +37,9 @@ export default {
       return ok('OK');
     }
 
-    // ── Command poll — push correct IST time to device on every poll ──
+    // ── Command poll ──────────────────────────────────────────────────
     if (path === '/iclock/getrequest') {
-      return timeSyncCommand();
+      return ok('OK');
     }
 
     // ── Device info / heartbeat / anything else ───────────────────────
@@ -66,18 +66,25 @@ function registration(sn) {
   return new Response(body, { status: 200, headers: { 'Content-Type': 'text/plain' } });
 }
 
-// ── Time sync command — sends current IST time to device ─────────────────────
+// ── Time sync command — sends current UTC time to device ─────────────────────
+// Device stores time in UTC and applies its own timezone offset for display.
+// Sending UTC lets the device display the correct local time via its timezone setting.
+// Only fires at the top of each minute (seconds 0–4) to avoid a rapid loop.
+// Uses epoch-minutes as command ID so each minute's command is unique.
 function timeSyncCommand() {
-  // IST = UTC + 5:30
-  const now = new Date(Date.now() + 5.5 * 60 * 60 * 1000);
+  const now  = new Date();
+  const secs = now.getUTCSeconds();
+  if (secs > 4) return ok('OK'); // only sync once per minute
+
   const yyyy = now.getUTCFullYear();
   const mm   = String(now.getUTCMonth() + 1).padStart(2, '0');
   const dd   = String(now.getUTCDate()).padStart(2, '0');
   const hh   = String(now.getUTCHours()).padStart(2, '0');
   const min  = String(now.getUTCMinutes()).padStart(2, '0');
   const ss   = String(now.getUTCSeconds()).padStart(2, '0');
-  const istStr = `${yyyy}-${mm}-${dd} ${hh}:${min}:${ss}`;
-  return ok(`C:1:DATE TIME ${istStr}`);
+  const utcStr = `${yyyy}-${mm}-${dd} ${hh}:${min}:${ss}`;
+  const cmdId  = Math.floor(Date.now() / 60000); // unique per minute
+  return ok(`C:${cmdId}:DATE TIME ${utcStr}`);
 }
 
 // ── Parse & upsert attendance ─────────────────────────────────────────────────
@@ -94,7 +101,7 @@ async function handleAttendance(request, env) {
     if (parts.length < 2) continue;
     const userId = parts[0].trim();
     const tsRaw  = parts[1].trim(); // "YYYY-MM-DD HH:MM:SS"
-    const ts     = new Date(tsRaw.replace(' ', 'T') + '+05:30'); // IST
+    const ts     = new Date(tsRaw.replace(' ', 'T') + '+05:00'); // device clock is UTC+5:00 (firmware bug)
     if (isNaN(ts.getTime())) continue;
     punches.push({ userId, ts });
   }
@@ -143,12 +150,18 @@ async function handleAttendance(request, env) {
     let ci = first.timeStr;
     let co = g.punches.length > 1 && first.timeStr !== last.timeStr ? last.timeStr : null;
 
-    // Merge: if existing record has a check_in and we only have one punch, keep existing
+    // Merge with existing Supabase record
     const ex = existing[key];
     if (ex) {
-      if (ex.check_in && !co && ci === ex.check_in) co = null;
-      if (ex.check_in && !ex.check_out && co) {
-        ci = ex.check_in; // preserve original check-in
+      if (ex.check_in && !ex.check_out) {
+        if (co) {
+          ci = ex.check_in; // device sent both punches — preserve original check-in
+        } else if (ci !== ex.check_in) {
+          // Device sent a single new punch after check-in already exists → treat as check-out
+          co = ci;
+          ci = ex.check_in;
+        }
+        // ci === ex.check_in with no co: same punch re-sent, nothing to do
       }
     }
 

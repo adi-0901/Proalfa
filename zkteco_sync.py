@@ -101,11 +101,14 @@ def process_attendance(raw_logs, from_date):
     # Punches before NIGHT_CUTOFF are attributed to the previous day's shift
     grouped = {}
     for log in raw_logs:
-        punch_mins = log.timestamp.hour * 60 + log.timestamp.minute
+        # Device firmware has UTC+5:00 hardcoded instead of IST UTC+5:30 — add 30 min to correct
+        ts = log.timestamp + timedelta(minutes=30)
+
+        punch_mins = ts.hour * 60 + ts.minute
         if punch_mins < cutoff_mins:
-            log_date = log.timestamp.date() - timedelta(days=1)
+            log_date = ts.date() - timedelta(days=1)
         else:
-            log_date = log.timestamp.date()
+            log_date = ts.date()
 
         if log_date < from_date:
             continue
@@ -113,7 +116,7 @@ def process_attendance(raw_logs, from_date):
         key = (str(log.user_id), log_date)
         if key not in grouped:
             grouped[key] = []
-        grouped[key].append(log.timestamp)
+        grouped[key].append(ts)
 
     records = []
     for (user_id, log_date), punches in grouped.items():
