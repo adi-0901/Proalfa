@@ -163,11 +163,22 @@ function Get-Vouchers() {
         Write-Host "  ⚠  XML parse error (vouchers)" -ForegroundColor Yellow; return @()
     }
 
+    $dbgNodes = $doc.SelectNodes("//*[local-name()='VOUCHER']")
+    Write-Host "  DEBUG raw response length : $($raw.Length)" -ForegroundColor Magenta
+    Write-Host "  DEBUG VOUCHER nodes found : $($dbgNodes.Count)" -ForegroundColor Magenta
+    if ($dbgNodes.Count -gt 0) {
+        $n = $dbgNodes[0]
+        Write-Host "  DEBUG first node children : $(($n.ChildNodes | ForEach-Object { $_.LocalName }) -join ', ')" -ForegroundColor DarkGray
+        Write-Host "  DEBUG first node attrs    : $(($n.Attributes | ForEach-Object { $_.Name }) -join ', ')" -ForegroundColor DarkGray
+    } else {
+        Write-Host "  DEBUG response snippet    : $($raw.Substring(0,[Math]::Min(400,$raw.Length)))" -ForegroundColor DarkGray
+    }
+
     $valid = "Sales","Receipt","Purchase","Payment","Credit Note","Debit Note","Journal","Contra","Delivery Note"
     $rows  = @()
     $seen  = @{}
 
-    foreach ($v in $doc.SelectNodes("//VOUCHER")) {
+    foreach ($v in $doc.SelectNodes("//*[local-name()='VOUCHER']")) {
         $vt = XText $v "VOUCHERTYPENAME"
         if (-not $vt) { $vt = $v.GetAttribute("VCHTYPE") }
         if ($valid -notcontains $vt) { continue }
@@ -214,6 +225,13 @@ function Get-BankBalances() {
 "@
     $raw = Invoke-Tally $xml
     try { [xml]$doc = $raw } catch { return @() }
+
+    $allLed = $doc.SelectNodes("//*[local-name()='LEDGER']")
+    Write-Host "  DEBUG LEDGER nodes found  : $($allLed.Count)" -ForegroundColor Magenta
+    for ($i = 0; $i -lt [Math]::Min(3, $allLed.Count); $i++) {
+        $n = $allLed[$i]
+        Write-Host "  DEBUG ledger[$i]: Name=$(XText $n 'NAME') Parent=$(XText $n 'PARENT') children=$(($n.ChildNodes | ForEach-Object { $_.LocalName }) -join ',')" -ForegroundColor DarkGray
+    }
 
     $rows = @()
     foreach ($l in $doc.SelectNodes("//*[local-name()='LEDGER']")) {
