@@ -305,6 +305,7 @@
   .badge-out { background: var(--red-bg); color: var(--red-text); }
   .badge-wip { background: var(--amber-bg); color: var(--amber-text); }
   .badge-from { background: var(--green-bg); color: var(--green-text); }
+  .badge-scrap { background: #f3f4f6; color: #6b7280; }
 
   .del-btn {
     background: none;
@@ -535,7 +536,8 @@
           <option value="INWARD">Inward – Raw material received</option>
           <option value="OUTWARD">Outward – Finished goods dispatched</option>
           <option value="TO_WIP">To WIP – Issued to production</option>
-          <option value="FROM_WIP">From WIP – Returned / completed</option>
+          <option value="FROM_WIP">From WIP – Completed assemblies</option>
+          <option value="SCRAP">Scrap – Waste returned from shop floor</option>
         </select>
       </div>
       <div class="field">
@@ -612,7 +614,8 @@
       <tbody>
         <tr><td><span class="badge badge-in">Inward</span></td><td>Raw material arrives at weighbridge</td><td>+Stock</td></tr>
         <tr><td><span class="badge badge-wip">To WIP</span></td><td>Material issued from store to shop floor</td><td>−Stock, +WIP</td></tr>
-        <tr><td><span class="badge badge-from">From WIP</span></td><td>Completed assemblies / scrap returned</td><td>−WIP</td></tr>
+        <tr><td><span class="badge badge-from">From WIP</span></td><td>Completed assemblies returned / dispatched</td><td>−WIP, +Production</td></tr>
+        <tr><td><span class="badge badge-scrap">Scrap</span></td><td>Waste / rejected material from shop floor</td><td>−WIP (not counted as production)</td></tr>
         <tr><td><span class="badge badge-out">Outward</span></td><td>Finished goods dispatched to site</td><td>+Outward</td></tr>
       </tbody>
     </table>
@@ -629,6 +632,7 @@
           <option value="OUTWARD">Outward</option>
           <option value="TO_WIP">To WIP</option>
           <option value="FROM_WIP">From WIP</option>
+          <option value="SCRAP">Scrap</option>
         </select>
         <input type="text" id="filterJob" oninput="renderLedger()" placeholder="Filter by job..." style="font-size:12px;padding:5px 10px;width:180px;">
       </div>
@@ -649,10 +653,11 @@
 
   <!-- MONTHLY PRODUCTION -->
   <div class="panel" id="panel-production">
+    <div id="prodDashCard"></div>
     <div class="filter-row" style="margin-bottom:16px">
       <div>
-        <div class="section-label" style="margin:0">Monthly production achieved</div>
-        <div style="font-size:12px;color:var(--text-secondary);margin-top:4px">Production = weight completed from shop floor (From WIP entries) · Click ✎ to set a monthly target</div>
+        <div class="section-label" style="margin:0">Monthly production log</div>
+        <div style="font-size:12px;color:var(--text-secondary);margin-top:4px">Production = weight completed from shop floor (From WIP entries) · Scrap is tracked separately · Click ✎ to set a monthly target</div>
       </div>
     </div>
     <div class="tbl-wrapper">
@@ -662,6 +667,7 @@
           <th style="text-align:right">Target (MT)</th>
           <th style="text-align:right">Produced (MT)</th>
           <th style="text-align:right">Dispatched (MT)</th>
+          <th style="text-align:right">Scrap (MT)</th>
           <th style="text-align:right">Achievement</th>
           <th></th>
         </tr></thead>
@@ -920,7 +926,8 @@
           <option value="INWARD">Inward – Raw material received</option>
           <option value="OUTWARD">Outward – Finished goods dispatched</option>
           <option value="TO_WIP">To WIP – Issued to production</option>
-          <option value="FROM_WIP">From WIP – Returned / completed</option>
+          <option value="FROM_WIP">From WIP – Completed assemblies</option>
+          <option value="SCRAP">Scrap – Waste returned from shop floor</option>
         </select>
       </div>
       <div class="field">
@@ -1286,11 +1293,11 @@
   }
 
   function typeLabel(t) {
-    return { INWARD: 'Inward', OUTWARD: 'Outward', TO_WIP: 'To WIP', FROM_WIP: 'From WIP' }[t] || t;
+    return { INWARD: 'Inward', OUTWARD: 'Outward', TO_WIP: 'To WIP', FROM_WIP: 'From WIP', SCRAP: 'Scrap' }[t] || t;
   }
 
   function badgeClass(t) {
-    return { INWARD: 'badge-in', OUTWARD: 'badge-out', TO_WIP: 'badge-wip', FROM_WIP: 'badge-from' }[t] || '';
+    return { INWARD: 'badge-in', OUTWARD: 'badge-out', TO_WIP: 'badge-wip', FROM_WIP: 'badge-from', SCRAP: 'badge-scrap' }[t] || '';
   }
 
   function fmt(v, decimals) {
@@ -1305,8 +1312,9 @@
     const outward = entries.filter(e => e.type === 'OUTWARD').reduce((s,e) => s + e.net, 0);
     const toWip   = entries.filter(e => e.type === 'TO_WIP').reduce((s,e) => s + e.net, 0);
     const fromWip = entries.filter(e => e.type === 'FROM_WIP').reduce((s,e) => s + e.net, 0);
+    const scrap   = entries.filter(e => e.type === 'SCRAP').reduce((s,e) => s + e.net, 0);
     const stock   = Math.max(0, inward - toWip - outward);
-    const wip     = Math.max(0, toWip - fromWip);
+    const wip     = Math.max(0, toWip - fromWip - scrap);
 
     function fmtMetric(v) {
       if (v >= 1000) return (v/1000).toFixed(2) + ' <span class="metric-unit">MT</span>';
@@ -1413,9 +1421,10 @@
     const mat = {};
     entries.forEach(e => {
       const key = e.material + '|||' + (e.job || '—');
-      if (!mat[key]) mat[key] = { material: e.material, job: e.job || '—', toWip: 0, fromWip: 0 };
+      if (!mat[key]) mat[key] = { material: e.material, job: e.job || '—', toWip: 0, fromWip: 0, scrap: 0 };
       if (e.type === 'TO_WIP')   mat[key].toWip   += e.net;
       if (e.type === 'FROM_WIP') mat[key].fromWip  += e.net;
+      if (e.type === 'SCRAP')    mat[key].scrap    += e.net;
     });
     const keys = Object.keys(mat).filter(k => mat[k].toWip > 0);
     const body = document.getElementById('wipBody');
@@ -1424,14 +1433,14 @@
       return;
     }
     body.innerHTML = keys.map(k => {
-      const inProc = Math.max(0, mat[k].toWip - mat[k].fromWip);
+      const inProc = Math.max(0, mat[k].toWip - mat[k].fromWip - mat[k].scrap);
       return `<tr>
         <td>${mat[k].material}</td>
         <td style="color:var(--text-secondary)">${mat[k].job}</td>
         <td style="text-align:right">${fmt(mat[k].toWip)}</td>
         <td style="text-align:right">${fmt(mat[k].fromWip)}</td>
-        <td style="text-align:right;font-weight:600">${fmt(inProc)}</td>
-        <td style="text-align:right">${fmtMT(inProc)}</td>
+        <td style="text-align:right">${fmt(inProc)}</td>
+        <td style="text-align:right;font-weight:600">${fmtMT(inProc)}</td>
       </tr>`;
     }).join('');
   }
@@ -1449,27 +1458,66 @@
   }
 
   function renderProduction() {
+    const today = new Date().toISOString().slice(0, 10);
+    const curMonth = today.slice(0, 7);
     const months = {};
+    let todayProduced = 0, todayScrap = 0;
     entries.forEach(e => {
       const m = e.date.substring(0, 7);
-      if (!months[m]) months[m] = { produced: 0, dispatched: 0 };
-      if (e.type === 'FROM_WIP') months[m].produced  += e.net;
+      if (!months[m]) months[m] = { produced: 0, dispatched: 0, scrap: 0 };
+      if (e.type === 'FROM_WIP') { months[m].produced  += e.net; if (e.date === today) todayProduced += e.net; }
       if (e.type === 'OUTWARD')  months[m].dispatched += e.net;
+      if (e.type === 'SCRAP')    { months[m].scrap    += e.net; if (e.date === today) todayScrap += e.net; }
     });
     Object.keys(targets).forEach(m => {
-      if (!months[m]) months[m] = { produced: 0, dispatched: 0 };
+      if (!months[m]) months[m] = { produced: 0, dispatched: 0, scrap: 0 };
     });
+
+    // Daily dashboard card
+    const curData    = months[curMonth] || { produced: 0, dispatched: 0, scrap: 0 };
+    const curTarget  = targets[curMonth] || 0;
+    const curPct     = curTarget > 0 ? Math.min(100, curData.produced / 1000 / curTarget * 100) : 0;
+    const [cyr, cmo] = curMonth.split('-');
+    const curMonthName = new Date(cyr, cmo - 1, 1).toLocaleString('en-IN', { month: 'long', year: 'numeric' });
+    const barColor = curPct >= 100 ? 'var(--green-mid)' : curPct >= 75 ? 'var(--amber-mid)' : 'var(--blue-mid,#2563eb)';
+    let dashCard = `
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;margin-bottom:20px;padding:16px;background:var(--bg-secondary);border-radius:var(--radius-lg);border:1px solid var(--border-strong)">
+        <div>
+          <div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--text-secondary);margin-bottom:4px">Today's Output</div>
+          <div style="font-size:22px;font-weight:700;color:var(--text-primary)">${(todayProduced/1000).toFixed(3)} <span style="font-size:13px;font-weight:400;color:var(--text-secondary)">MT</span></div>
+          ${todayScrap > 0 ? `<div style="font-size:11px;color:var(--text-secondary);margin-top:2px">Scrap today: ${(todayScrap/1000).toFixed(3)} MT</div>` : ''}
+        </div>
+        <div>
+          <div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--text-secondary);margin-bottom:4px">${curMonthName} — MTD</div>
+          <div style="font-size:22px;font-weight:700;color:var(--text-primary)">${(curData.produced/1000).toFixed(3)} <span style="font-size:13px;font-weight:400;color:var(--text-secondary)">MT</span></div>
+          ${curData.scrap > 0 ? `<div style="font-size:11px;color:var(--text-secondary);margin-top:2px">Scrap MTD: ${(curData.scrap/1000).toFixed(3)} MT</div>` : ''}
+        </div>
+        <div>
+          <div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--text-secondary);margin-bottom:4px">Target Progress</div>
+          ${curTarget > 0 ? `
+            <div style="font-size:22px;font-weight:700;color:${barColor}">${curPct.toFixed(1)}%</div>
+            <div style="height:6px;background:var(--border-strong);border-radius:3px;margin-top:8px;overflow:hidden">
+              <div style="height:100%;width:${curPct}%;background:${barColor};border-radius:3px;transition:width .3s"></div>
+            </div>
+            <div style="font-size:11px;color:var(--text-secondary);margin-top:4px">of ${curTarget.toFixed(1)} MT target</div>
+          ` : `<div style="font-size:13px;color:var(--text-secondary);margin-top:4px">No target set — <span style="cursor:pointer;color:var(--blue-mid,#2563eb)" onclick="setTarget('${curMonth}')">set one</span></div>`}
+        </div>
+      </div>`;
+
+    const dashEl = document.getElementById('prodDashCard');
+    if (dashEl) dashEl.innerHTML = dashCard;
 
     const sorted = Object.keys(months).sort().reverse();
     const body = document.getElementById('productionBody');
     if (sorted.length === 0) {
-      body.innerHTML = `<tr><td colspan="6" class="empty-state">No data yet. Production is tracked from "From WIP" entries.</td></tr>`;
+      body.innerHTML = `<tr><td colspan="7" class="empty-state">No data yet. Production is tracked from "From WIP" entries.</td></tr>`;
       return;
     }
 
     body.innerHTML = sorted.map(m => {
       const producedMT   = months[m].produced  / 1000;
       const dispatchedMT = months[m].dispatched / 1000;
+      const scrapMT      = months[m].scrap      / 1000;
       const target       = targets[m] || 0;
       const pct          = target > 0 ? (producedMT / target * 100) : null;
 
@@ -1490,6 +1538,7 @@
         <td style="text-align:right">${target > 0 ? target.toFixed(3) : '—'}</td>
         <td style="text-align:right;font-weight:600">${producedMT.toFixed(3)}</td>
         <td style="text-align:right">${dispatchedMT.toFixed(3)}</td>
+        <td style="text-align:right;color:var(--text-secondary)">${scrapMT > 0 ? scrapMT.toFixed(3) : '—'}</td>
         <td style="text-align:right;${pctStyle}">${pctDisplay}</td>
         <td><button class="del-btn" onclick="setTarget('${m}')" title="Set target" style="font-size:11px;padding:3px 9px;">✎ Target</button></td>
       </tr>`;

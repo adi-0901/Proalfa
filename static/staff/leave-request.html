@@ -75,24 +75,27 @@
 
     <div class="field">
       <label>Leave Type</label>
-      <select id="lv-type">
+      <select id="lv-type" onchange="updateBalanceDisplay()">
+        <option value="PL">Paid Leave (PL) — 1 per month</option>
         <option value="CL">Casual Leave (CL)</option>
         <option value="SL">Sick Leave (SL)</option>
         <option value="EL">Earned Leave (EL)</option>
         <option value="LWP">Leave Without Pay (LWP)</option>
       </select>
+      <div id="balance-display" style="margin-top:6px;padding:8px 10px;border-radius:8px;background:#f5f5f3;font-size:12px;color:#555;display:none"></div>
     </div>
 
     <div class="row-2">
       <div class="field">
         <label>From Date</label>
-        <input type="date" id="lv-from">
+        <input type="date" id="lv-from" onchange="updateDayCount()">
       </div>
       <div class="field">
         <label>To Date</label>
-        <input type="date" id="lv-to">
+        <input type="date" id="lv-to" onchange="updateDayCount()">
       </div>
     </div>
+    <div id="day-count-display" style="display:none;margin:-6px 0 12px;padding:8px 10px;border-radius:8px;background:#eff6ff;font-size:12px;color:#1e40af;line-height:1.6"></div>
 
     <div class="field">
       <label>Half Day?</label>
@@ -127,10 +130,94 @@ const SB_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJ
 const { createClient } = supabase;
 const sb = createClient(SB_URL, SB_KEY);
 
-let currentEmp = null; // { id, full_name, designation, emp_id }
+const WEEKLY_OFF_DOW = 4; // Thursday = 4 (0=Sun…6=Sat)
+const PL_PER_MONTH   = 1; // 1 Paid Leave accrues per calendar month
 
+let currentEmp = null;
+let empBalance = null; // { cl_total, cl_used, sl_total, sl_used, el_total, el_used, pl_accrued, pl_used }
+
+// ── Calculate leave days applying sandwich policy ──────────────────────────────
+// Thursdays (WO) are excluded UNLESS they are sandwiched between leave days
+// (i.e., not the first or last day of the range) — prevents gaming the WO.
+function calcLeaveDays(from, to, isHalf) {
+  if (isHalf) return 0.5;
+  let days = 0;
+  let sandwichedWOs = 0;
+  let cur = new Date(from + 'T00:00:00');
+  const end = new Date(to   + 'T00:00:00');
+  while (cur <= end) {
+    const dow    = cur.getDay();
+    const curStr = cur.toISOString().slice(0, 10);
+    if (dow === WEEKLY_OFF_DOW) {
+      // Sandwich rule: Thursday in the MIDDLE of a leave range counts as leave
+      if (curStr !== from && curStr !== to) { days++; sandwichedWOs++; }
+    } else {
+      days++;
+    }
+    cur.setDate(cur.getDate() + 1);
+  }
+  return { days, sandwichedWOs };
+}
+
+// ── Compute PL balance from leave history ──────────────────────────────────────
+function plAccrued() {
+  const now = new Date();
+  return Math.min(now.getMonth() + 1, 12); // months elapsed this year (1 PL per month)
+}
+
+async function fetchBalance(empHrId) {
+  const year = new Date().getFullYear();
+  const [balRes, leaveRes] = await Promise.all([
+    sb.from('hr_leave_balances').select('*').eq('emp_id', empHrId).eq('year', year).single(),
+    sb.from('hr_leaves').select('type,days').eq('emp_id', empHrId)
+      .gte('from_date', year + '-01-01').in('status', ['approved', 'pending'])
+  ]);
+  const bal = balRes.data || { cl_total:12, cl_used:0, sl_total:8, sl_used:0, el_total:15, el_used:0 };
+  const plUsed = (leaveRes.data || []).filter(l => l.type === 'PL').reduce((s,l) => s + parseFloat(l.days||0), 0);
+  return { ...bal, pl_accrued: plAccrued(), pl_used: plUsed };
+}
+
+function balanceFor(type) {
+  if (!empBalance) return null;
+  if (type === 'PL')  return { avail: Math.max(0, empBalance.pl_accrued  - empBalance.pl_used),  total: empBalance.pl_accrued };
+  if (type === 'CL')  return { avail: Math.max(0, empBalance.cl_total - empBalance.cl_used),  total: empBalance.cl_total };
+  if (type === 'SL')  return { avail: Math.max(0, empBalance.sl_total - empBalance.sl_used),  total: empBalance.sl_total };
+  if (type === 'EL')  return { avail: Math.max(0, empBalance.el_total - empBalance.el_used),  total: empBalance.el_total };
+  return null; // LWP — no balance check
+}
+
+function updateBalanceDisplay() {
+  const type = document.getElementById('lv-type').value;
+  const el   = document.getElementById('balance-display');
+  if (!empBalance || type === 'LWP') { el.style.display = 'none'; return; }
+  const b = balanceFor(type);
+  if (!b) { el.style.display = 'none'; return; }
+  const color = b.avail <= 0 ? '#991b1b' : b.avail <= 1 ? '#92400e' : '#065f46';
+  const bg    = b.avail <= 0 ? '#fef2f2' : b.avail <= 1 ? '#fffbeb' : '#ecfdf5';
+  el.style.background = bg;
+  el.style.color      = color;
+  const typeLabels = { PL:'Paid Leave', CL:'Casual Leave', SL:'Sick Leave', EL:'Earned Leave' };
+  el.textContent = `${typeLabels[type]} balance: ${b.avail} of ${b.total} day${b.total===1?'':'s'} available`;
+  el.style.display = 'block';
+  updateDayCount();
+}
+
+function updateDayCount() {
+  const from = document.getElementById('lv-from').value;
+  const to   = document.getElementById('lv-to').value;
+  const half = document.getElementById('lv-half').value === 'yes';
+  const el   = document.getElementById('day-count-display');
+  if (!from || !to || to < from) { el.style.display = 'none'; return; }
+  const { days, sandwichedWOs } = calcLeaveDays(from, to, half);
+  let msg = `${days} leave day${days === 1 ? '' : 's'} will be deducted`;
+  if (sandwichedWOs > 0) msg += ` (includes ${sandwichedWOs} Thursday WO sandwiched between leave days — company sandwich policy applies)`;
+  el.textContent = msg;
+  el.style.display = 'block';
+}
+
+// ── Verify employee ────────────────────────────────────────────────────────────
 async function verifyEmp() {
-  const val = document.getElementById('empIdInput').value.trim();
+  const val   = document.getElementById('empIdInput').value.trim();
   const errEl = document.getElementById('idErr');
   const btn   = document.getElementById('verifyBtn');
   errEl.style.display = 'none';
@@ -138,12 +225,8 @@ async function verifyEmp() {
 
   btn.disabled = true; btn.textContent = 'Checking…';
 
-  // Look up hr_employees by emp_id field
-  const { data, error } = await sb
-    .from('hr_employees')
-    .select('id,full_name,designation,emp_id,status')
-    .eq('emp_id', val)
-    .single();
+  const { data, error } = await sb.from('hr_employees')
+    .select('id,full_name,designation,emp_id,status').eq('emp_id', val).single();
 
   btn.disabled = false; btn.textContent = 'Continue →';
 
@@ -153,16 +236,19 @@ async function verifyEmp() {
   }
 
   currentEmp = data;
+  empBalance  = await fetchBalance(data.id);
+
   document.getElementById('empName').textContent  = data.full_name;
   document.getElementById('empDesig').textContent = data.designation || '';
 
-  // Default dates to today
   const today = new Date().toISOString().slice(0, 10);
   document.getElementById('lv-from').value = today;
   document.getElementById('lv-to').value   = today;
 
   document.getElementById('stepId').style.display   = 'none';
   document.getElementById('stepForm').style.display = 'block';
+  updateBalanceDisplay();
+  updateDayCount();
 }
 
 function showIdErr(msg) {
@@ -170,22 +256,34 @@ function showIdErr(msg) {
   el.textContent = msg; el.style.display = 'block';
 }
 
+// ── Submit leave ───────────────────────────────────────────────────────────────
 async function submitLeave() {
-  const btn    = document.getElementById('submitBtn');
-  const errEl  = document.getElementById('formErr');
+  const btn   = document.getElementById('submitBtn');
+  const errEl = document.getElementById('formErr');
   errEl.style.display = 'none';
 
-  const type  = document.getElementById('lv-type').value;
-  const from  = document.getElementById('lv-from').value;
-  const to    = document.getElementById('lv-to').value;
-  const half  = document.getElementById('lv-half').value === 'yes';
-  const reason= document.getElementById('lv-reason').value.trim();
+  const type   = document.getElementById('lv-type').value;
+  const from   = document.getElementById('lv-from').value;
+  const to     = document.getElementById('lv-to').value;
+  const half   = document.getElementById('lv-half').value === 'yes';
+  const reason = document.getElementById('lv-reason').value.trim();
 
-  if (!from || !to) { showFormErr('Please select both From and To dates.'); return; }
-  if (to < from)    { showFormErr('To date cannot be before From date.'); return; }
+  if (!from || !to)  { showFormErr('Please select both From and To dates.'); return; }
+  if (to < from)     { showFormErr('To date cannot be before From date.'); return; }
 
-  const diffDays = (new Date(to) - new Date(from)) / 86400000 + 1;
-  const days     = half ? 0.5 : diffDays;
+  const { days, sandwichedWOs } = calcLeaveDays(from, to, half);
+
+  if (days === 0) { showFormErr('Selected dates fall entirely on your weekly off (Thursday). No leave required.'); return; }
+
+  // Balance check (skip for LWP)
+  if (type !== 'LWP' && empBalance) {
+    const b = balanceFor(type);
+    if (b && b.avail < days) {
+      const typeLabels = { PL:'Paid Leave', CL:'Casual Leave', SL:'Sick Leave', EL:'Earned Leave' };
+      showFormErr(`Insufficient ${typeLabels[type]} balance. Available: ${b.avail} day${b.avail===1?'':'s'}, requested: ${days} day${days===1?'':'s'}. Use LWP for remaining days.`);
+      return;
+    }
+  }
 
   btn.disabled = true; btn.textContent = 'Submitting…';
 
@@ -204,11 +302,12 @@ async function submitLeave() {
 
   if (error) { showFormErr('Submission failed: ' + error.message); return; }
 
-  const typeLabels = { CL:'Casual Leave', SL:'Sick Leave', EL:'Earned Leave', LWP:'Leave Without Pay' };
+  const typeLabels = { PL:'Paid Leave', CL:'Casual Leave', SL:'Sick Leave', EL:'Earned Leave', LWP:'Leave Without Pay' };
+  const sandwichNote = sandwichedWOs > 0 ? `<br><span style="font-size:11px;color:#92400e">⚠ Includes ${sandwichedWOs} Thursday WO (sandwich policy)</span>` : '';
   document.getElementById('doneMsg').innerHTML = `
     <div class="alert alert-ok">
       <strong>Leave request submitted</strong><br>
-      ${typeLabels[type]} · ${days} day${days === 1 ? '' : 's'}<br>
+      ${typeLabels[type]} · ${days} day${days === 1 ? '' : 's'}${sandwichNote}<br>
       ${from === to ? from : from + ' → ' + to}<br>
       Pending HR approval.
     </div>
@@ -226,10 +325,12 @@ function showFormErr(msg) {
 }
 
 function reset() {
-  currentEmp = null;
+  currentEmp = null; empBalance = null;
   document.getElementById('empIdInput').value = '';
-  document.getElementById('idErr').style.display  = 'none';
-  document.getElementById('formErr').style.display = 'none';
+  document.getElementById('idErr').style.display        = 'none';
+  document.getElementById('formErr').style.display      = 'none';
+  document.getElementById('balance-display').style.display  = 'none';
+  document.getElementById('day-count-display').style.display = 'none';
   document.getElementById('lv-reason').value = '';
   document.getElementById('lv-half').value   = 'no';
   document.getElementById('stepId').style.display   = 'block';

@@ -336,6 +336,9 @@
   </div>
 </div>
 
+<!-- TOP ALERT BANNER -->
+<div id="topBanner" style="display:none;background:#fef3c7;border:1px solid #f59e0b;border-radius:10px;padding:12px 16px;margin-bottom:12px;font-size:13px;color:#78350f;line-height:1.7"></div>
+
 <!-- METRICS -->
 <div class="metric-grid">
   <div class="metric blue"><div class="metric-label">📦 Total Item Types</div><div class="metric-value" id="m-total">0</div></div>
@@ -454,7 +457,7 @@
           <th>Item</th><th>Category</th><th>Unit</th>
           <th style="text-align:right">In Stock</th>
           <th style="text-align:right">Min Level</th>
-          <th>Status</th><th>Last Activity</th>
+          <th>Status</th><th>Unit Cost</th><th>Expiry Date</th><th>Last Activity</th>
         </tr></thead>
         <tbody id="stockBody"></tbody>
       </table>
@@ -503,6 +506,14 @@
       <div class="field">
         <label>Opening stock quantity</label>
         <input type="number" id="c-opening" placeholder="0" min="0" step="any">
+      </div>
+      <div class="field">
+        <label>Unit cost (₹, optional)</label>
+        <input type="number" id="c-cost" placeholder="e.g. 250" min="0" step="any">
+      </div>
+      <div class="field">
+        <label>Expiry / shelf-life date (optional)</label>
+        <input type="date" id="c-expiry">
       </div>
     </div>
     <div class="btn-row">
@@ -602,6 +613,14 @@
       <div class="field">
         <label>Min. stock level</label>
         <input type="number" id="em-min" placeholder="0" min="0" step="any">
+      </div>
+      <div class="field">
+        <label>Unit cost (₹, optional)</label>
+        <input type="number" id="em-cost" placeholder="e.g. 250" min="0" step="any">
+      </div>
+      <div class="field">
+        <label>Expiry / shelf-life date</label>
+        <input type="date" id="em-expiry">
       </div>
     </div>
     <div class="modal-actions">
@@ -797,6 +816,7 @@
     document.getElementById('t-date').value = today();
     rebuildItemSelect();
     updateMetrics();
+    renderTopBanner();
     renderRecent();
   }
 
@@ -905,6 +925,45 @@
     document.getElementById('txnCount').textContent = txns.filter(t => t.type !== 'OPEN').length;
   }
 
+  // ── Item meta (expiry + cost) — stored in localStorage ──
+  function getItemMeta(id) {
+    try { return JSON.parse(localStorage.getItem('sr_meta_' + id) || '{}'); } catch { return {}; }
+  }
+  function setItemMeta(id, patch) {
+    const cur = getItemMeta(id);
+    localStorage.setItem('sr_meta_' + id, JSON.stringify({ ...cur, ...patch }));
+  }
+
+  function renderTopBanner() {
+    const todayStr = today();
+    const in30 = new Date(); in30.setDate(in30.getDate() + 30);
+    const in30Str = in30.toISOString().split('T')[0];
+
+    const lowItems = items.filter(i => {
+      const s = currentStock(i.id);
+      return s <= 0 || (i.minStock > 0 && s <= i.minStock);
+    });
+    const expiringItems = items.filter(i => {
+      const m = getItemMeta(i.id);
+      return m.expiry_date && m.expiry_date <= in30Str && currentStock(i.id) > 0;
+    });
+    const expiredItems = expiringItems.filter(i => getItemMeta(i.id).expiry_date < todayStr);
+    const soonItems    = expiringItems.filter(i => getItemMeta(i.id).expiry_date >= todayStr);
+
+    const banner = document.getElementById('topBanner');
+    let parts = [];
+    if (lowItems.length)    parts.push(`<span style="font-weight:600">⚠ Low/Zero stock (${lowItems.length}):</span> ${lowItems.map(i=>i.name).join(' · ')}`);
+    if (expiredItems.length) parts.push(`<span style="font-weight:600;color:#991b1b">🔴 EXPIRED (${expiredItems.length}):</span> ${expiredItems.map(i=>i.name).join(' · ')}`);
+    if (soonItems.length)   parts.push(`<span style="font-weight:600">🟡 Expiring within 30 days (${soonItems.length}):</span> ${soonItems.map(i=>i.name+' ('+getItemMeta(i.id).expiry_date+')').join(' · ')}`);
+
+    if (parts.length) {
+      banner.innerHTML = parts.join('<br>');
+      banner.style.display = 'block';
+    } else {
+      banner.style.display = 'none';
+    }
+  }
+
   // ── Add Item ──
   async function addItem() {
     const name    = document.getElementById('c-name').value.trim();
@@ -912,6 +971,9 @@
     const unit    = document.getElementById('c-unit').value;
     const minStock= parseFloat(document.getElementById('c-min').value) || 0;
     const opening = parseFloat(document.getElementById('c-opening').value) || 0;
+
+    const cost   = parseFloat(document.getElementById('c-cost').value)   || 0;
+    const expiry = document.getElementById('c-expiry').value || '';
 
     if (!name) { showAlert('Please enter an item name.', 'error'); return; }
     if (items.find(i => i.name.toLowerCase() === name.toLowerCase())) {
@@ -923,6 +985,7 @@
     const { error } = await sb.from('store_items').insert(row);
     if (error) { showAlert('Error saving item: ' + error.message, 'error'); return; }
 
+    if (cost || expiry) setItemMeta(id, { unit_cost: cost || undefined, expiry_date: expiry || undefined });
     items.unshift({ id, name, category: cat, unit, minStock, createdAt: today() });
 
     if (opening > 0) {
@@ -939,9 +1002,12 @@
     updateMetrics();
     renderCatalog();
     showAlert('"' + name + '" added' + (opening > 0 ? ' with opening stock of ' + opening + ' ' + unit : '') + '.');
-    document.getElementById('c-name').value = '';
-    document.getElementById('c-min').value  = '';
+    document.getElementById('c-name').value    = '';
+    document.getElementById('c-min').value     = '';
     document.getElementById('c-opening').value = '';
+    document.getElementById('c-cost').value    = '';
+    document.getElementById('c-expiry').value  = '';
+    renderTopBanner();
   }
 
   async function deleteItem(id) {
@@ -966,10 +1032,13 @@
     const item = itemById(id);
     if (!item) return;
     editingItemId = id;
-    document.getElementById('em-name').value = item.name;
-    document.getElementById('em-cat').value  = item.category;
-    document.getElementById('em-unit').value = item.unit;
-    document.getElementById('em-min').value  = item.minStock || '';
+    const meta = getItemMeta(id);
+    document.getElementById('em-name').value   = item.name;
+    document.getElementById('em-cat').value    = item.category;
+    document.getElementById('em-unit').value   = item.unit;
+    document.getElementById('em-min').value    = item.minStock || '';
+    document.getElementById('em-cost').value   = meta.unit_cost || '';
+    document.getElementById('em-expiry').value = meta.expiry_date || '';
     document.getElementById('editModal').classList.add('open');
     document.getElementById('em-name').focus();
   }
@@ -980,11 +1049,13 @@
   }
 
   async function saveItemEdit() {
-    const id   = editingItemId;
-    const name = document.getElementById('em-name').value.trim();
-    const cat  = document.getElementById('em-cat').value;
-    const unit = document.getElementById('em-unit').value;
-    const min  = parseFloat(document.getElementById('em-min').value) || 0;
+    const id     = editingItemId;
+    const name   = document.getElementById('em-name').value.trim();
+    const cat    = document.getElementById('em-cat').value;
+    const unit   = document.getElementById('em-unit').value;
+    const min    = parseFloat(document.getElementById('em-min').value) || 0;
+    const cost   = parseFloat(document.getElementById('em-cost').value) || 0;
+    const expiry = document.getElementById('em-expiry').value || '';
     if (!name) { showAlert('Item name cannot be empty.', 'error'); return; }
     const duplicate = items.find(i => i.id !== id && i.name.toLowerCase() === name.toLowerCase());
     if (duplicate) { showAlert('Another item with this name already exists.', 'error'); return; }
@@ -992,11 +1063,13 @@
     const { error } = await sb.from('store_items').update({ name, category: cat, unit, min_stock: min }).eq('id', id);
     if (error) { showAlert('Save failed: ' + error.message, 'error'); return; }
 
+    setItemMeta(id, { unit_cost: cost || undefined, expiry_date: expiry || undefined });
     const item = itemById(id);
     item.name = name; item.category = cat; item.unit = unit; item.minStock = min;
     closeEditModal();
     rebuildItemSelect();
     renderCatalog();
+    renderTopBanner();
     showAlert('"' + name + '" updated.');
   }
 
@@ -1042,6 +1115,7 @@
     closeStockModal();
     updateMetrics();
     renderCatalog();
+    renderTopBanner();
     showAlert('Stock added successfully.');
   }
 
@@ -1079,6 +1153,7 @@
     updateMetrics();
     rebuildItemSelect();
     renderRecent();
+    renderTopBanner();
     const item = itemById(itemId);
     showAlert((type === 'OUT' ? 'Issued ' : 'Received ') + qty + ' ' + (item ? item.unit : '') + ' of "' + (item ? item.name : '') + '"');
     clearTxnForm();
@@ -1164,9 +1239,13 @@
 
     const body = document.getElementById('stockBody');
     if (filtered.length === 0) {
-      body.innerHTML = `<tr><td colspan="7" class="empty-state">No items found. Add items in the Item Catalog tab.</td></tr>`;
+      body.innerHTML = `<tr><td colspan="9" class="empty-state">No items found. Add items in the Item Catalog tab.</td></tr>`;
       return;
     }
+
+    const todayStr = today();
+    const in30 = new Date(); in30.setDate(in30.getDate() + 30);
+    const in30Str = in30.toISOString().split('T')[0];
 
     body.innerHTML = filtered.map(i => {
       const stock = currentStock(i.id);
@@ -1179,6 +1258,16 @@
         : isLow
           ? '<span class="badge badge-low">LOW</span>'
           : '<span class="badge badge-ok">OK</span>';
+      const meta = getItemMeta(i.id);
+      let expiryCell = '—';
+      if (meta.expiry_date) {
+        const isExpired = meta.expiry_date < todayStr;
+        const isSoon    = !isExpired && meta.expiry_date <= in30Str;
+        const expStyle  = isExpired ? 'color:#dc2626;font-weight:600' : isSoon ? 'color:#d97706;font-weight:600' : 'color:var(--text-secondary)';
+        const label     = isExpired ? ' (EXPIRED)' : isSoon ? ' (soon)' : '';
+        expiryCell = `<span style="${expStyle}">${meta.expiry_date}${label}</span>`;
+      }
+      const costCell = meta.unit_cost ? `₹${Number(meta.unit_cost).toLocaleString('en-IN')}` : '—';
       return `<tr>
         <td style="font-weight:500">${i.name}</td>
         <td><span class="badge ${catClass(i.category)}">${i.category}</span></td>
@@ -1186,6 +1275,8 @@
         <td style="text-align:right" class="${cls}">${fmtQty(stock)}</td>
         <td style="text-align:right;color:var(--text-secondary)">${min || '—'}</td>
         <td>${badge}</td>
+        <td style="color:var(--text-secondary);font-size:12px">${costCell}</td>
+        <td style="font-size:12px;white-space:nowrap">${expiryCell}</td>
         <td style="color:var(--text-secondary);white-space:nowrap">${lastActivity(i.id)}</td>
       </tr>`;
     }).join('');

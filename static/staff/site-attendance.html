@@ -141,7 +141,7 @@ function startGPS() {
   navigator.geolocation.getCurrentPosition(
     pos => {
       gpsCoords = { lat: pos.coords.latitude, lng: pos.coords.longitude, acc: Math.round(pos.coords.accuracy) };
-      setGps('ok', `Location acquired (±${gpsCoords.acc}m)`);
+      setGps('ok', `Location acquired (±${gpsCoords.acc}m) — HR will verify on-site status`);
       enablePunchBtns();
     },
     err => {
@@ -221,6 +221,13 @@ async function verifyEmp() {
 
 function showIdErr(msg) {
   const el = document.getElementById('idErr');
+  el.textContent = msg;
+  el.style.display = 'block';
+}
+
+function showPunchAlert(msg, cls) {
+  const el = document.getElementById('punchAlert');
+  el.className = 'alert ' + cls;
   el.textContent = msg;
   el.style.display = 'block';
 }

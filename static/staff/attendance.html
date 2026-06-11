@@ -328,6 +328,7 @@
         <button class="btn" id="markAllBtn" style="display:none" onclick="markAllPaid()">✓ Mark All Paid</button>
         <button class="btn" id="slipBtn" style="display:none" onclick="generateSlips()">🖨 Salary Slips</button>
         <button class="btn" id="postFinBtn" style="display:none;color:#0F6E56;border-color:#0F6E5644" onclick="postSalaryToFinancials()">Post to Financials</button>
+        <button class="btn" id="recoverAdvBtn" style="display:none;color:#7c3aed;border-color:#7c3aed55" onclick="markAdvancesRecovered()" title="Mark all advances scheduled for this month as recovered">✓ Mark Advances Recovered</button>
       </div>
     </div>
 
@@ -363,9 +364,7 @@
       </div>
       <div class="field">
         <label>Recovery year</label>
-        <select id="adv-recyear">
-          <option value="2025">2025</option><option value="2026" selected>2026</option>
-        </select>
+        <select id="adv-recyear"></select>
       </div>
     </div>
     <div class="fgrid">
@@ -488,7 +487,15 @@ async function initApp(){
   const m = today.getMonth()+1, y = today.getFullYear();
   ['mvMonth','salMonth'].forEach(id => document.getElementById(id).value = m);
   ['mvYear','salYear'].forEach(id => document.getElementById(id).value = y);
-  document.getElementById('adv-recmonth').value = m;
+  // Populate recovery year options dynamically (current year + next 2 years)
+  const recYearSel = document.getElementById('adv-recyear');
+  recYearSel.innerHTML = [y, y+1, y+2].map(yr => `<option value="${yr}">${yr}</option>`).join('');
+
+  // Default recovery to NEXT month (so advance given today recovers next payroll)
+  const nextM = m === 12 ? 1 : m + 1;
+  const nextY = m === 12 ? y + 1 : y;
+  document.getElementById('adv-recmonth').value = nextM;
+  document.getElementById('adv-recyear').value  = nextY;
 
   await loadEmployees();
   await loadToday();
@@ -1024,6 +1031,7 @@ async function generateSalary(){
   document.getElementById('slipBtn').style.display='';
   document.getElementById('markAllBtn').style.display='';
   document.getElementById('postFinBtn').style.display='';
+  document.getElementById('recoverAdvBtn').style.display='';
 
   // Save to DB (without TDS edits — those get saved when slips generated)
   const allRows2=[...staffRows,...workerRows];
@@ -1074,6 +1082,43 @@ function markAllPaid(){
     if(el) el.checked=true;
   });
   onPaidToggle();
+}
+
+async function markAdvancesRecovered(){
+  const m = parseInt(document.getElementById('salMonth').value);
+  const y = parseInt(document.getElementById('salYear').value);
+  const btn = document.getElementById('recoverAdvBtn');
+  btn.disabled = true;
+  btn.textContent = 'Marking…';
+
+  const { data: advs, error } = await sb.from('advances')
+    .select('id,emp_id,amount')
+    .eq('recovery_month', m)
+    .eq('recovery_year', y)
+    .eq('recovered', false);
+
+  if (error || !advs) {
+    showAlert('Failed to fetch advances: ' + (error?.message||''), 'e');
+    btn.disabled = false; btn.textContent = '✓ Mark Advances Recovered';
+    return;
+  }
+  if (!advs.length) {
+    showAlert('No pending advances scheduled for this month.', 'w');
+    btn.disabled = false; btn.textContent = '✓ Mark Advances Recovered';
+    return;
+  }
+
+  const ids = advs.map(a => a.id);
+  const { error: updErr } = await sb.from('advances').update({ recovered: true }).in('id', ids);
+  if (updErr) {
+    showAlert('Update failed: ' + updErr.message, 'e');
+    btn.disabled = false; btn.textContent = '✓ Mark Advances Recovered';
+    return;
+  }
+
+  const total = advs.reduce((s,a) => s + (parseFloat(a.amount)||0), 0);
+  showAlert(`Marked ${advs.length} advance(s) as recovered (₹${total.toLocaleString('en-IN')}).`, 's');
+  btn.textContent = `✓ ${advs.length} Recovered`;
 }
 
 async function postSalaryToFinancials(){

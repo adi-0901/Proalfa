@@ -346,6 +346,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Helvetica
       </select>
       <select id="lvTypeFilter" onchange="renderLeaves()" style="padding:8px 10px;border:1px solid var(--border2);border-radius:var(--r);background:var(--card);color:var(--text);font-size:13px;outline:none">
         <option value="">All Types</option>
+        <option value="PL">Paid Leave</option>
         <option value="CL">Casual Leave</option>
         <option value="SL">Sick Leave</option>
         <option value="EL">Earned Leave</option>
@@ -371,6 +372,25 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Helvetica
           </tr></thead>
           <tbody id="lvBody"></tbody>
         </table>
+      </div>
+    </div>
+
+    <!-- ── Team Leave Calendar ── -->
+    <div class="fsec" style="margin-bottom:14px">
+      <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;margin-bottom:12px">
+        <div class="fsec-title" style="margin:0">Team Leave Calendar</div>
+        <div style="display:flex;gap:8px;align-items:center">
+          <input type="month" id="lvCalMonth" onchange="renderLeaveCalendar()"
+            style="padding:6px 10px;border:1px solid var(--border2);border-radius:var(--r);background:var(--card);color:var(--text);font-size:12px;outline:none">
+          <div style="display:flex;gap:6px;font-size:11px;flex-wrap:wrap">
+            <span style="padding:2px 7px;border-radius:4px;background:#ecfdf577;border:1px solid var(--green);color:var(--green)">Approved</span>
+            <span style="padding:2px 7px;border-radius:4px;background:var(--amber-bg);border:1px solid var(--amber);color:var(--amber)">Pending</span>
+            <span style="padding:2px 7px;border-radius:4px;background:var(--card2);border:1px solid var(--border2);color:var(--text2)">WO</span>
+          </div>
+        </div>
+      </div>
+      <div style="overflow-x:auto">
+        <div id="lvCalGrid"></div>
       </div>
     </div>
 
@@ -1432,6 +1452,7 @@ async function initLeaves() {
   populateLvEmpFilter();
   renderLeaves();
   renderLeaveBalances();
+  renderLeaveCalendar();
 }
 
 function populateLvEmpFilter() {
@@ -1527,6 +1548,83 @@ function renderLeaveBalances() {
       </div>
     </div>`;
   }).join('');
+}
+
+function renderLeaveCalendar() {
+  const grid = document.getElementById('lvCalGrid');
+  const inp  = document.getElementById('lvCalMonth');
+  if (!grid) return;
+  const now = new Date();
+  const monthVal = inp?.value || `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}`;
+  if (inp && !inp.value) inp.value = monthVal;
+  const [yr, mo] = monthVal.split('-').map(Number);
+  const daysInMonth = new Date(yr, mo, 0).getDate();
+  const active = employees.filter(e => e.status === 'active' || e.status === 'probation');
+
+  // Build set of leave days per employee from the leaves array
+  const TYPE_COLOR = {
+    PL: { bg:'#d1fae577', border:'var(--green)', text:'var(--green)', label:'PL' },
+    CL: { bg:'#dbeafe77', border:'var(--blue)', text:'var(--blue)',  label:'CL' },
+    SL: { bg:'#fef9c377', border:'#ca8a04', text:'#ca8a04', label:'SL' },
+    EL: { bg:'#f3e8ff77', border:'#9333ea', text:'#9333ea', label:'EL' },
+    LWP:{ bg:'var(--red-bg)', border:'var(--red)', text:'var(--red)', label:'LWP'},
+  };
+  const PEND_COLOR = { bg:'var(--amber-bg)', border:'var(--amber)', text:'var(--amber)' };
+
+  // map: empId → { "YYYY-MM-DD": { type, status } }
+  const empLeaveMap = {};
+  leaves.forEach(l => {
+    if (!['approved','pending'].includes(l.status)) return;
+    let cur = new Date(l.from_date + 'T00:00:00');
+    const end = new Date(l.to_date + 'T00:00:00');
+    while (cur <= end) {
+      const ds = cur.toISOString().slice(0,10);
+      if (ds.startsWith(monthVal)) {
+        if (!empLeaveMap[l.emp_id]) empLeaveMap[l.emp_id] = {};
+        empLeaveMap[l.emp_id][ds] = { type: l.type, status: l.status };
+      }
+      cur.setDate(cur.getDate() + 1);
+    }
+  });
+
+  // Day headers
+  const days = Array.from({length: daysInMonth}, (_,i) => i+1);
+  const dayHeaderRow = days.map(d => {
+    const dt  = new Date(yr, mo-1, d);
+    const dow = dt.getDay();
+    const isWO = dow === 4;
+    const isSun = dow === 0;
+    const style = isWO ? 'background:var(--card2);color:var(--text2);font-weight:700'
+                : isSun ? 'color:var(--red)'
+                : '';
+    return `<div style="min-width:28px;text-align:center;font-size:10px;font-weight:600;padding:4px 2px;${style}">${d}<br><span style="font-weight:400">${['Su','Mo','Tu','We','Th','Fr','Sa'][dow]}</span></div>`;
+  }).join('');
+
+  const rows = active.map(e => {
+    const cells = days.map(d => {
+      const ds  = `${yr}-${String(mo).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+      const dt  = new Date(yr, mo-1, d);
+      const isWO = dt.getDay() === 4;
+      const lv  = (empLeaveMap[e.id] || {})[ds];
+      if (lv) {
+        const c = lv.status === 'pending' ? PEND_COLOR : (TYPE_COLOR[lv.type] || TYPE_COLOR.CL);
+        return `<div title="${lv.type} · ${lv.status}" style="min-width:28px;text-align:center;font-size:9px;font-weight:700;padding:4px 2px;background:${c.bg};border:1px solid ${c.border};color:${c.text};border-radius:3px;cursor:default">${TYPE_COLOR[lv.type]?.label || lv.type}</div>`;
+      }
+      if (isWO) return `<div style="min-width:28px;padding:4px 2px;background:var(--card2);border-radius:3px"></div>`;
+      return `<div style="min-width:28px;padding:4px 2px"></div>`;
+    }).join('');
+    return `<div style="display:flex;gap:2px;align-items:center;border-bottom:1px solid var(--border);padding:2px 0">
+      <div style="min-width:150px;font-size:12px;font-weight:500;padding:2px 8px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${e.full_name}</div>
+      ${cells}
+    </div>`;
+  }).join('');
+
+  grid.innerHTML = `
+    <div style="display:flex;gap:2px;align-items:center;border-bottom:2px solid var(--border2);padding-bottom:4px;margin-bottom:4px">
+      <div style="min-width:150px;font-size:11px;font-weight:700;color:var(--text2);padding:2px 8px">EMPLOYEE</div>
+      ${dayHeaderRow}
+    </div>
+    ${rows || '<div style="padding:16px;color:var(--text2)">No active employees.</div>'}`;
 }
 
 // ══════════════════════════════════════════════════════════════

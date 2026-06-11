@@ -255,6 +255,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Helvetica
     <button class="tab" data-tab="projects"    onclick="switchTab('projects',this)">Projects</button>
     <button class="tab" data-tab="credit"      onclick="switchTab('credit',this)">Credit Line</button>
     <button class="tab" data-tab="insurance"   onclick="switchTab('insurance',this)">Insurance</button>
+    <button class="tab" data-tab="compliance"  onclick="switchTab('compliance',this)">📅 Compliance</button>
   </div>
 
   <!-- OVERVIEW -->
@@ -665,6 +666,27 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Helvetica
     </div>
   </div>
 
+  <!-- STATUTORY COMPLIANCE CALENDAR -->
+  <div class="panel" id="panel-compliance">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:8px">
+      <div>
+        <div class="section-title" style="margin:0">Statutory Compliance Calendar</div>
+        <div style="font-size:12px;color:var(--text2);margin-top:3px">Indian statutory filing deadlines · <span id="comp-today-str"></span> · <span id="comp-overdue-count" style="color:var(--red);font-weight:600"></span></div>
+      </div>
+      <select id="comp-filter" onchange="renderCompliance()" style="padding:6px 10px;border:1px solid var(--border2);border-radius:var(--r);background:var(--card);color:var(--text);font-size:12px;outline:none">
+        <option value="">All</option>
+        <option value="upcoming">Upcoming (next 30d)</option>
+        <option value="overdue">Overdue</option>
+        <option value="GST">GST</option>
+        <option value="TDS">TDS/TCS</option>
+        <option value="PF">PF / ESI</option>
+        <option value="PT">Prof. Tax</option>
+        <option value="Audit">Audit / ROC</option>
+      </select>
+    </div>
+    <div id="comp-body"></div>
+  </div>
+
   <!-- PROJECT MODAL -->
   <div class="modal-overlay" id="projModal" style="display:none" onclick="if(event.target===this)closeProjModal()">
     <div class="modal">
@@ -1039,6 +1061,211 @@ function switchTab(name, el) {
   if (name === 'projects')    loadProjects();
   if (name === 'credit')      loadCredit();
   if (name === 'insurance')   loadInsurance();
+  if (name === 'compliance')  renderCompliance();
+}
+
+// ── STATUTORY COMPLIANCE ─────────────────────────────────────────────────────────
+
+const COMPLIANCE_ITEMS = [
+  // GST
+  { cat:'GST',  name:'GSTR-1 (monthly)',       day:11, freq:'monthly',  note:'Outward supplies for previous month' },
+  { cat:'GST',  name:'GSTR-3B (monthly)',       day:20, freq:'monthly',  note:'Summary return & tax payment' },
+  { cat:'GST',  name:'GSTR-3B (QRMP scheme)',   day:22, freq:'monthly',  note:'For QRMP quarterly filers' },
+  { cat:'GST',  name:'GSTR-9 Annual Return',    month:12, day:31, freq:'annual', note:'Due 31 Dec for prev FY' },
+  // TDS
+  { cat:'TDS',  name:'TDS Deposit (FY quarter end months)', day:30, months:[6,9,12], freq:'quarterly', note:'Q1 Jul, Q2 Oct, Q3 Jan, Q4 May 30' },
+  { cat:'TDS',  name:'TDS Deposit (other months)',          day:7,  freq:'monthly',  note:'Due 7th every month except Mar/Jun/Sep/Dec' },
+  { cat:'TDS',  name:'TDS Return Form 24Q/26Q', day:31, months:[7,10,1,5], freq:'quarterly', note:'Q1: 31 Jul; Q2: 31 Oct; Q3: 31 Jan; Q4: 31 May' },
+  // PF / ESI
+  { cat:'PF',   name:'PF Deposit',              day:15, freq:'monthly',  note:'EPFO deposit for previous month payroll' },
+  { cat:'PF',   name:'ESI Deposit',             day:15, freq:'monthly',  note:'ESIC deposit for previous month' },
+  { cat:'PF',   name:'ESI Return (half-yearly)',day:11, months:[11,5],   freq:'half-yearly', note:'Nov 11 (Apr–Sep) & May 11 (Oct–Mar)' },
+  // Professional Tax (Maharashtra)
+  { cat:'PT',   name:'Prof. Tax Deposit (MH)',  day:20, freq:'monthly',  note:'Maharashtra PT — due 20th each month' },
+  { cat:'PT',   name:'Prof. Tax Annual Return', month:2, day:28, freq:'annual', note:'Maharashtra — Feb 28' },
+  // Audit / ROC
+  { cat:'Audit',name:'Income Tax Return (Audit)',month:10,day:31, freq:'annual', note:'For cos requiring tax audit — 31 Oct' },
+  { cat:'Audit',name:'MCA Annual Return (MGT-7)',month:11,day:29, freq:'annual', note:'Within 60 days of AGM — ~Nov 29' },
+  { cat:'Audit',name:'Balance Sheet Filing (AOC-4)',month:10,day:29, freq:'annual', note:'Within 30 days of AGM — ~Oct 29' },
+  { cat:'Audit',name:'AGM (Annual General Meeting)',month:9, day:30, freq:'annual', note:'Within 6 months of FY end — Sep 30' },
+];
+
+function complianceDeadlinesThisAndNext(baseDate) {
+  const year  = baseDate.getFullYear();
+  const month = baseDate.getMonth() + 1; // 1-12
+  const deadlines = [];
+
+  COMPLIANCE_ITEMS.forEach(item => {
+    if (item.freq === 'annual') {
+      const m = item.month || month;
+      const d = new Date(year, m - 1, item.day);
+      if (d < baseDate) { d.setFullYear(year + 1); }
+      deadlines.push({ ...item, date: d });
+    } else if (item.freq === 'monthly') {
+      // Next occurrence
+      const thisMonth = new Date(year, month - 1, item.day);
+      const d = thisMonth < baseDate ? new Date(year, month, item.day) : thisMonth;
+      deadlines.push({ ...item, date: d });
+    } else if (item.freq === 'quarterly' || item.freq === 'half-yearly') {
+      const months = item.months || [];
+      let best = null;
+      months.forEach(m => {
+        const y = m < month ? year + 1 : year;
+        const d = new Date(y, m - 1, item.day);
+        if (!best || d < best) best = d;
+      });
+      if (best) deadlines.push({ ...item, date: best });
+    }
+  });
+
+  return deadlines.sort((a,b) => a.date - b.date);
+}
+
+function renderCompliance() {
+  const today  = new Date(); today.setHours(0,0,0,0);
+  const in30   = new Date(today); in30.setDate(in30.getDate() + 30);
+  const todayStr = today.toISOString().slice(0,10);
+  document.getElementById('comp-today-str').textContent = 'Today: ' + today.toLocaleDateString('en-IN', { weekday:'short', day:'numeric', month:'short', year:'numeric' });
+
+  const filter  = document.getElementById('comp-filter').value;
+  let deadlines = complianceDeadlinesThisAndNext(today);
+
+  if (filter === 'upcoming') deadlines = deadlines.filter(d => d.date >= today && d.date <= in30);
+  else if (filter === 'overdue') deadlines = deadlines.filter(d => d.date < today);
+  else if (filter) deadlines = deadlines.filter(d => d.cat === filter);
+
+  const overdueCount = complianceDeadlinesThisAndNext(today).filter(d => d.date < today).length;
+  const overdueEl = document.getElementById('comp-overdue-count');
+  overdueEl.textContent = overdueCount > 0 ? overdueCount + ' overdue' : 'All current';
+
+  const catColors = { GST:'#2563eb', TDS:'#7c3aed', PF:'#059669', PT:'#d97706', Audit:'#dc2626' };
+  const catBg     = { GST:'#eff6ff', TDS:'#f5f3ff', PF:'#ecfdf5', PT:'#fffbeb', Audit:'#fef2f2' };
+
+  if (!deadlines.length) {
+    document.getElementById('comp-body').innerHTML = '<div class="no-data">No items match the selected filter.</div>';
+    return;
+  }
+
+  document.getElementById('comp-body').innerHTML = `
+    <div class="tbl-card">
+      <div class="tbl-wrap">
+        <table class="fin-tbl">
+          <thead><tr><th>Category</th><th>Filing / Payment</th><th>Due Date</th><th>Days Left</th><th>Notes</th></tr></thead>
+          <tbody>
+            ${deadlines.map(d => {
+              const ds = d.date.toISOString().slice(0,10);
+              const diff = Math.round((d.date - today) / 864e5);
+              const isOverdue = diff < 0;
+              const isUrgent  = !isOverdue && diff <= 7;
+              const isSoon    = !isOverdue && !isUrgent && diff <= 30;
+              const rowStyle  = isOverdue ? 'background:#fef2f2;color:#111' : isUrgent ? 'background:#fffbeb;color:#111' : '';
+              const diffLabel = isOverdue
+                ? `<span style="color:#dc2626;font-weight:700">${Math.abs(diff)}d overdue</span>`
+                : isUrgent
+                ? `<span style="color:#d97706;font-weight:700">${diff}d left</span>`
+                : isSoon
+                ? `<span style="color:#2563eb">${diff}d</span>`
+                : `<span style="color:var(--text2)">${diff}d</span>`;
+              return `<tr style="${rowStyle}">
+                <td><span style="background:${catBg[d.cat]};color:${catColors[d.cat]};padding:2px 8px;border-radius:4px;font-size:11px;font-weight:700">${d.cat}</span></td>
+                <td style="font-weight:500">${d.name}</td>
+                <td style="white-space:nowrap;font-variant-numeric:tabular-nums">${new Date(ds).toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'numeric'})}</td>
+                <td style="text-align:right">${diffLabel}</td>
+                <td style="color:var(--text2);font-size:12px">${d.note}</td>
+              </tr>`;
+            }).join('')}
+          </tbody>
+        </table>
+      </div>
+    </div>`;
+}
+
+// ── INVOICE DRAFT ─────────────────────────────────────────────────────────────────
+
+let _invDraftProject = null;
+
+function openInvModal(projId) {
+  const p = projects.find(x => x.id === projId);
+  if (!p) return;
+  _invDraftProject = p;
+  const c = projComputed(p);
+
+  const today = new Date().toISOString().slice(0,10);
+  const [y, m] = today.split('-');
+  const seq = String(Math.floor(Math.random() * 900) + 100);
+  document.getElementById('inv-date').value   = today;
+  document.getElementById('inv-no').value     = `INV/${y.slice(2)}${m}/${seq}`;
+  document.getElementById('inv-client').value = p.client_name || '';
+  document.getElementById('inv-proj').value   = `${p.project_code ? p.project_code + ' — ' : ''}${p.project_name}`;
+  document.getElementById('inv-amount').value = c.outstanding > 0 ? Math.round(c.outstanding) : '';
+  document.getElementById('inv-gst').value    = c.gstRate || 18;
+  document.getElementById('inv-desc').value   = '';
+  updateInvSummary();
+  document.getElementById('invDraftModal').style.display = 'flex';
+}
+
+function closeInvModal() {
+  document.getElementById('invDraftModal').style.display = 'none';
+}
+
+function updateInvSummary() {
+  const amt    = parseFloat(document.getElementById('inv-amount').value) || 0;
+  const gst    = parseFloat(document.getElementById('inv-gst').value)    || 0;
+  const base   = gst > 0 ? amt / (1 + gst/100) : amt;
+  const gstAmt = amt - base;
+  document.getElementById('inv-summary').innerHTML = gst > 0
+    ? `Base (excl. GST): ₹${fmt(base)} &nbsp;·&nbsp; CGST ${gst/2}% = ₹${fmt(gstAmt/2)} &nbsp;·&nbsp; SGST ${gst/2}% = ₹${fmt(gstAmt/2)} &nbsp;·&nbsp; <strong>Total: ₹${fmt(amt)}</strong>`
+    : `Invoice total: ₹${fmt(amt)}`;
+}
+
+function printInvDraft() {
+  const p    = _invDraftProject;
+  if (!p) return;
+  const date  = document.getElementById('inv-date').value;
+  const no    = document.getElementById('inv-no').value;
+  const amt   = parseFloat(document.getElementById('inv-amount').value) || 0;
+  const gst   = parseFloat(document.getElementById('inv-gst').value)    || 0;
+  const desc  = document.getElementById('inv-desc').value.trim() || 'Invoice for services rendered';
+  const terms = document.getElementById('inv-terms').value;
+  const base  = gst > 0 ? amt / (1 + gst/100) : amt;
+  const gstAmt = amt - base;
+  const fmtDate = d => new Date(d).toLocaleDateString('en-IN', { day:'2-digit', month:'long', year:'numeric' });
+  const fmtN = n => Math.round(n).toLocaleString('en-IN');
+
+  const html = `<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Invoice ${no}</title>
+  <style>body{font-family:Arial,sans-serif;margin:0;padding:32px;color:#111;font-size:13px}
+  .hdr{display:flex;justify-content:space-between;margin-bottom:24px}
+  .co{font-size:18px;font-weight:700}h2{font-size:22px;color:#2563eb;margin:0}
+  table{width:100%;border-collapse:collapse;margin-bottom:16px}
+  th,td{padding:8px 12px;border:1px solid #ddd;text-align:left}th{background:#f9fafb;font-weight:600}
+  .amt{text-align:right}.total{font-weight:700;font-size:14px;background:#f0fdf4}
+  .footer{margin-top:40px;font-size:11px;color:#666;border-top:1px solid #e5e7eb;padding-top:10px}
+  @media print{body{padding:16px}}</style></head><body>
+  <div class="hdr">
+    <div><div class="co">Proalfa Dynamic Pvt. Ltd.</div><div style="color:#666;margin-top:4px">GSTIN: [Your GSTIN] · [Address]</div></div>
+    <div style="text-align:right"><h2>TAX INVOICE</h2><div style="color:#666;margin-top:4px">No: <strong>${no}</strong></div><div style="color:#666">Date: ${fmtDate(date)}</div></div>
+  </div>
+  <table><tr><th style="width:50%">Bill To</th><th>Project</th></tr>
+  <tr><td><strong>${p.client_name || '—'}</strong></td><td>${p.project_name}${p.project_code ? ' (' + p.project_code + ')' : ''}</td></tr></table>
+  <table>
+    <thead><tr><th>#</th><th>Description</th><th class="amt">Qty</th><th class="amt">Rate</th><th class="amt">Amount (₹)</th></tr></thead>
+    <tbody>
+      <tr><td>1</td><td>${desc}</td><td class="amt">1</td><td class="amt">₹${fmtN(base)}</td><td class="amt">₹${fmtN(base)}</td></tr>
+    </tbody>
+  </table>
+  <table style="margin-left:auto;width:320px">
+    <tr><td>Base Amount</td><td class="amt">₹${fmtN(base)}</td></tr>
+    ${gst > 0 ? `<tr><td>CGST @ ${gst/2}%</td><td class="amt">₹${fmtN(gstAmt/2)}</td></tr><tr><td>SGST @ ${gst/2}%</td><td class="amt">₹${fmtN(gstAmt/2)}</td></tr>` : ''}
+    <tr class="total"><td>Total</td><td class="amt">₹${fmtN(amt)}</td></tr>
+  </table>
+  <div><strong>Payment Terms:</strong> ${terms}</div>
+  <div class="footer">This is a draft invoice generated by Proalfa ERP. Verify figures before sending.</div>
+  </body></html>`;
+
+  const w = window.open('', '_blank');
+  w.document.write(html);
+  w.document.close();
+  setTimeout(() => { w.print(); }, 400);
 }
 
 // ── OVERVIEW ────────────────────────────────────────────────────────────────────
@@ -1513,6 +1740,7 @@ function renderProjects() {
     ].filter(r => r.val > 0);
     return `<div class="proj-card ${borderCls}">
       <button class="proj-edit" onclick="openProjModal('${p.id}')">Edit</button>
+      <button class="proj-edit" style="right:56px;color:#2563eb;border-color:#2563eb" onclick="openInvModal('${p.id}')">🧾 Invoice</button>
       <div class="proj-code">${p.project_code || '—'}</div>
       <div class="proj-name">${p.project_name}</div>
       <div class="proj-client">${p.client_name || '—'} &nbsp;<span class="badge ${statusBadge}">${p.status}</span></div>
@@ -2701,6 +2929,40 @@ async function confirmImport() {
       </div>
     </div>
 
+  </div>
+</div>
+
+<!-- INVOICE DRAFT MODAL -->
+<div class="modal-overlay" id="invDraftModal" style="display:none" onclick="if(event.target===this)closeInvModal()">
+  <div class="modal" style="max-width:520px">
+    <div class="modal-head"><h3>🧾 Draft Invoice</h3><button class="modal-close" onclick="closeInvModal()">×</button></div>
+    <div class="modal-body">
+      <div class="mgrid2">
+        <div class="mfg"><label>Invoice Date</label><input type="date" id="inv-date"></div>
+        <div class="mfg"><label>Invoice No.</label><input type="text" id="inv-no" placeholder="e.g. INV/2526/001"></div>
+      </div>
+      <div class="mfg"><label>Client</label><input type="text" id="inv-client" readonly style="background:var(--card2);opacity:.8"></div>
+      <div class="mfg"><label>Project</label><input type="text" id="inv-proj" readonly style="background:var(--card2);opacity:.8"></div>
+      <div class="mgrid2">
+        <div class="mfg"><label>Invoice Amount (₹ incl. GST)</label><input type="number" id="inv-amount" placeholder="0" min="0" oninput="updateInvSummary()"></div>
+        <div class="mfg"><label>GST Rate (%)</label><input type="number" id="inv-gst" placeholder="18" min="0" max="28" oninput="updateInvSummary()"></div>
+      </div>
+      <div class="mfg"><label>Description / Milestone</label><input type="text" id="inv-desc" placeholder="e.g. 2nd running bill — fabrication complete"></div>
+      <div class="mfg"><label>Payment terms</label>
+        <select id="inv-terms" style="width:100%;padding:8px 10px;border:1px solid var(--border2);border-radius:var(--r);background:var(--card2);color:var(--text);font-size:13px;outline:none;font-family:inherit">
+          <option>30 days from invoice date</option>
+          <option>15 days from invoice date</option>
+          <option>45 days from invoice date</option>
+          <option>On delivery</option>
+          <option>Immediate</option>
+        </select>
+      </div>
+      <div style="padding:12px 14px;background:var(--card2);border-radius:var(--r);font-size:12px;color:var(--text2);margin-top:12px" id="inv-summary"></div>
+    </div>
+    <div class="modal-foot" style="padding:12px 20px;border-top:1px solid var(--border);display:flex;gap:10px;justify-content:flex-end">
+      <button class="btn" onclick="closeInvModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="printInvDraft()">🖨 Print / Download</button>
+    </div>
   </div>
 </div>
 
