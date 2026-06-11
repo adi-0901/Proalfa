@@ -143,32 +143,20 @@ function Get-Outstanding([string]$billType) {
     return $rows
 }
 
-# ── FETCH VOUCHERS (TDLMESSAGE — avoids Day Book UI rendering error) ──────────
+# ── FETCH VOUCHERS (REMOTECOLLECTION — date-filtered by SVFROMDATE/SVTODATE) ──
 function Get-Vouchers() {
     $xml = @"
 <ENVELOPE><HEADER><TALLYREQUEST>Export Data</TALLYREQUEST></HEADER>
 <BODY><EXPORTDATA><REQUESTDESC>
-<REPORTNAME>ProVchRpt</REPORTNAME>
 <STATICVARIABLES>
 <SVEXPORTFORMAT>XML</SVEXPORTFORMAT>
 <SVFROMDATE>$FY_START</SVFROMDATE><SVTODATE>$FY_END</SVTODATE>
 </STATICVARIABLES>
-</REQUESTDESC>
-<TDLMESSAGE>
-<REPORT ISMODIFY="No" ISFIXED="No" ISOPTION="No" ISINTERNAL="No" NAME="ProVchRpt"><FORMS>ProVchFrm</FORMS></REPORT>
-<FORM ISMODIFY="No" ISFIXED="No" ISOPTION="No" ISINTERNAL="No" NAME="ProVchFrm"><TOPPARTS>ProVchPrt</TOPPARTS><XMLTAG>"VOUCHERS"</XMLTAG></FORM>
-<PART ISMODIFY="No" ISFIXED="No" ISOPTION="No" ISINTERNAL="No" NAME="ProVchPrt"><TOPLINES>ProVchLn</TOPLINES><REPEAT>ProVchLn : ProVchColl</REPEAT><SCROLLED>Vertical</SCROLLED></PART>
-<LINE ISMODIFY="No" ISFIXED="No" ISOPTION="No" ISINTERNAL="No" NAME="ProVchLn"><LEFTFIELDS>FVD,FVT,FVN,FVP,FVR,FVA,FVG</LEFTFIELDS><XMLTAG>"VOUCHER"</XMLTAG></LINE>
-<FIELD ISMODIFY="No" ISFIXED="No" ISOPTION="No" ISINTERNAL="No" NAME="FVD"><SET>`$Date</SET><XMLTAG>"DATE"</XMLTAG></FIELD>
-<FIELD ISMODIFY="No" ISFIXED="No" ISOPTION="No" ISINTERNAL="No" NAME="FVT"><SET>`$VoucherTypeName</SET><XMLTAG>"VOUCHERTYPENAME"</XMLTAG></FIELD>
-<FIELD ISMODIFY="No" ISFIXED="No" ISOPTION="No" ISINTERNAL="No" NAME="FVN"><SET>`$VoucherNumber</SET><XMLTAG>"VOUCHERNUMBER"</XMLTAG></FIELD>
-<FIELD ISMODIFY="No" ISFIXED="No" ISOPTION="No" ISINTERNAL="No" NAME="FVP"><SET>`$PartyLedgerName</SET><XMLTAG>"PARTYLEDGERNAME"</XMLTAG></FIELD>
-<FIELD ISMODIFY="No" ISFIXED="No" ISOPTION="No" ISINTERNAL="No" NAME="FVR"><SET>`$Narration</SET><XMLTAG>"NARRATION"</XMLTAG></FIELD>
-<FIELD ISMODIFY="No" ISFIXED="No" ISOPTION="No" ISINTERNAL="No" NAME="FVA"><SET>`$Amount</SET><XMLTAG>"AMOUNT"</XMLTAG></FIELD>
-<FIELD ISMODIFY="No" ISFIXED="No" ISOPTION="No" ISINTERNAL="No" NAME="FVG"><SET>`$GUID</SET><XMLTAG>"GUID"</XMLTAG></FIELD>
-<COLLECTION ISMODIFY="No" ISFIXED="No" ISOPTION="No" ISINTERNAL="No" NAME="ProVchColl"><TYPE>Voucher</TYPE></COLLECTION>
-</TDLMESSAGE>
-</EXPORTDATA></BODY></ENVELOPE>
+<REQUESTEDLIST><REMOTECOLLECTION NAME="VCH">
+<TYPE>Voucher</TYPE>
+<FETCH>Date,VoucherTypeName,VoucherNumber,PartyLedgerName,Narration,Amount,GUID</FETCH>
+</REMOTECOLLECTION></REQUESTEDLIST>
+</REQUESTDESC></EXPORTDATA></BODY></ENVELOPE>
 "@
     $raw = Invoke-Tally $xml
     try { [xml]$doc = $raw } catch {
@@ -181,6 +169,7 @@ function Get-Vouchers() {
 
     foreach ($v in $doc.SelectNodes("//VOUCHER")) {
         $vt = XText $v "VOUCHERTYPENAME"
+        if (-not $vt) { $vt = $v.GetAttribute("VCHTYPE") }
         if ($valid -notcontains $vt) { continue }
 
         $vd = ToDate (XText $v "DATE"); if (-not $vd) { continue }
@@ -189,6 +178,8 @@ function Get-Vouchers() {
         $am = ToAmt (XText $v "AMOUNT")
         $nr = XText $v "NARRATION"
         $g  = XText $v "GUID"
+        if (-not $g) { $g = $v.GetAttribute("GUID") }
+        if (-not $g) { $g = $v.GetAttribute("REMOTEID") }
 
         $key = if ($g) { $g } else { "$vd|$vt|$vn|$am" }
         if ($seen.ContainsKey($key)) { continue }
@@ -209,31 +200,23 @@ function Get-Vouchers() {
     return $rows
 }
 
-# ── FETCH BANK & CASH BALANCES (TDLMESSAGE) ──────────────────
+# ── FETCH BANK & CASH BALANCES (REMOTECOLLECTION) ────────────
 function Get-BankBalances() {
     $xml = @"
 <ENVELOPE><HEADER><TALLYREQUEST>Export Data</TALLYREQUEST></HEADER>
 <BODY><EXPORTDATA><REQUESTDESC>
-<REPORTNAME>ProLedRpt</REPORTNAME>
 <STATICVARIABLES><SVEXPORTFORMAT>XML</SVEXPORTFORMAT></STATICVARIABLES>
-</REQUESTDESC>
-<TDLMESSAGE>
-<REPORT ISMODIFY="No" ISFIXED="No" ISOPTION="No" ISINTERNAL="No" NAME="ProLedRpt"><FORMS>ProLedFrm</FORMS></REPORT>
-<FORM ISMODIFY="No" ISFIXED="No" ISOPTION="No" ISINTERNAL="No" NAME="ProLedFrm"><TOPPARTS>ProLedPrt</TOPPARTS><XMLTAG>"LEDGERS"</XMLTAG></FORM>
-<PART ISMODIFY="No" ISFIXED="No" ISOPTION="No" ISINTERNAL="No" NAME="ProLedPrt"><TOPLINES>ProLedLn</TOPLINES><REPEAT>ProLedLn : ProLedColl</REPEAT><SCROLLED>Vertical</SCROLLED></PART>
-<LINE ISMODIFY="No" ISFIXED="No" ISOPTION="No" ISINTERNAL="No" NAME="ProLedLn"><LEFTFIELDS>FLN,FLP,FLB</LEFTFIELDS><XMLTAG>"LEDGER"</XMLTAG></LINE>
-<FIELD ISMODIFY="No" ISFIXED="No" ISOPTION="No" ISINTERNAL="No" NAME="FLN"><SET>`$Name</SET><XMLTAG>"NAME"</XMLTAG></FIELD>
-<FIELD ISMODIFY="No" ISFIXED="No" ISOPTION="No" ISINTERNAL="No" NAME="FLP"><SET>`$Parent</SET><XMLTAG>"PARENT"</XMLTAG></FIELD>
-<FIELD ISMODIFY="No" ISFIXED="No" ISOPTION="No" ISINTERNAL="No" NAME="FLB"><SET>`$ClosingBalance</SET><XMLTAG>"CLOSINGBALANCE"</XMLTAG></FIELD>
-<COLLECTION ISMODIFY="No" ISFIXED="No" ISOPTION="No" ISINTERNAL="No" NAME="ProLedColl"><TYPE>Ledger</TYPE></COLLECTION>
-</TDLMESSAGE>
-</EXPORTDATA></BODY></ENVELOPE>
+<REQUESTEDLIST><REMOTECOLLECTION NAME="LED">
+<TYPE>Ledger</TYPE>
+<FETCH>Name,Parent,ClosingBalance</FETCH>
+</REMOTECOLLECTION></REQUESTEDLIST>
+</REQUESTDESC></EXPORTDATA></BODY></ENVELOPE>
 "@
     $raw = Invoke-Tally $xml
     try { [xml]$doc = $raw } catch { return @() }
 
     $rows = @()
-    foreach ($l in $doc.SelectNodes("//LEDGER")) {
+    foreach ($l in $doc.SelectNodes("//*[local-name()='LEDGER']")) {
         $parent = XText $l "PARENT"
         $ltype  = if ($parent -ieq "Bank Accounts") { "bank" } `
                   elseif ($parent -ieq "Cash-in-Hand") { "cash" } `
