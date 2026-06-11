@@ -10,8 +10,8 @@ $ErrorActionPreference = "Continue"
 $TALLY_URL    = "http://localhost:9000"
 $SUPABASE_URL = "https://gzjzuudhtvljpwcqygtk.supabase.co"
 $SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imd6anp1dWRodHZsanB3Y3F5Z3RrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzgzOTY4NTksImV4cCI6MjA5Mzk3Mjg1OX0.pCBKZwMDvu8UAfKEXL8_hgkuG95A-MtVKK6sM2qFxEs"
-$FY_START     = "20250401"
-$FY_END       = "20260331"
+$FY_START     = "20260401"
+$FY_END       = (Get-Date -Format "yyyyMMdd")
 $TODAY        = (Get-Date).Date
 $SYNC_TS      = (Get-Date -Format "yyyy-MM-ddTHH:mm:ss")
 
@@ -67,7 +67,7 @@ function SB-Del([string]$tbl) {
 }
 
 function SB-Post([string]$tbl, $rows, [string]$conflict = "") {
-    $arr = @($rows)
+    $arr = @( $rows | Where-Object { $_ -ne $null } )
     if ($arr.Count -eq 0) { Write-Host "  —  No data for $tbl"; return }
     try {
         $json = ($arr | ConvertTo-Json -Depth 5 -Compress)
@@ -143,17 +143,32 @@ function Get-Outstanding([string]$billType) {
     return $rows
 }
 
-# ── FETCH VOUCHERS (DAY BOOK) ─────────────────────────────────
+# ── FETCH VOUCHERS (TDLMESSAGE — avoids Day Book UI rendering error) ──────────
 function Get-Vouchers() {
     $xml = @"
 <ENVELOPE><HEADER><TALLYREQUEST>Export Data</TALLYREQUEST></HEADER>
 <BODY><EXPORTDATA><REQUESTDESC>
-<REPORTNAME>Day Book</REPORTNAME>
+<REPORTNAME>ProVchRpt</REPORTNAME>
 <STATICVARIABLES>
 <SVEXPORTFORMAT>XML</SVEXPORTFORMAT>
 <SVFROMDATE>$FY_START</SVFROMDATE><SVTODATE>$FY_END</SVTODATE>
 </STATICVARIABLES>
-</REQUESTDESC></EXPORTDATA></BODY></ENVELOPE>
+</REQUESTDESC>
+<TDLMESSAGE>
+<REPORT ISMODIFY="No" ISFIXED="No" ISOPTION="No" ISINTERNAL="No" NAME="ProVchRpt"><FORMS>ProVchFrm</FORMS></REPORT>
+<FORM ISMODIFY="No" ISFIXED="No" ISOPTION="No" ISINTERNAL="No" NAME="ProVchFrm"><TOPPARTS>ProVchPrt</TOPPARTS><XMLTAG>"VOUCHERS"</XMLTAG></FORM>
+<PART ISMODIFY="No" ISFIXED="No" ISOPTION="No" ISINTERNAL="No" NAME="ProVchPrt"><TOPLINES>ProVchLn</TOPLINES><REPEAT>ProVchLn : ProVchColl</REPEAT><SCROLLED>Vertical</SCROLLED></PART>
+<LINE ISMODIFY="No" ISFIXED="No" ISOPTION="No" ISINTERNAL="No" NAME="ProVchLn"><LEFTFIELDS>FVD,FVT,FVN,FVP,FVR,FVA,FVG</LEFTFIELDS><XMLTAG>"VOUCHER"</XMLTAG></LINE>
+<FIELD ISMODIFY="No" ISFIXED="No" ISOPTION="No" ISINTERNAL="No" NAME="FVD"><SET>`$Date</SET><XMLTAG>"DATE"</XMLTAG></FIELD>
+<FIELD ISMODIFY="No" ISFIXED="No" ISOPTION="No" ISINTERNAL="No" NAME="FVT"><SET>`$VoucherTypeName</SET><XMLTAG>"VOUCHERTYPENAME"</XMLTAG></FIELD>
+<FIELD ISMODIFY="No" ISFIXED="No" ISOPTION="No" ISINTERNAL="No" NAME="FVN"><SET>`$VoucherNumber</SET><XMLTAG>"VOUCHERNUMBER"</XMLTAG></FIELD>
+<FIELD ISMODIFY="No" ISFIXED="No" ISOPTION="No" ISINTERNAL="No" NAME="FVP"><SET>`$PartyLedgerName</SET><XMLTAG>"PARTYLEDGERNAME"</XMLTAG></FIELD>
+<FIELD ISMODIFY="No" ISFIXED="No" ISOPTION="No" ISINTERNAL="No" NAME="FVR"><SET>`$Narration</SET><XMLTAG>"NARRATION"</XMLTAG></FIELD>
+<FIELD ISMODIFY="No" ISFIXED="No" ISOPTION="No" ISINTERNAL="No" NAME="FVA"><SET>`$Amount</SET><XMLTAG>"AMOUNT"</XMLTAG></FIELD>
+<FIELD ISMODIFY="No" ISFIXED="No" ISOPTION="No" ISINTERNAL="No" NAME="FVG"><SET>`$GUID</SET><XMLTAG>"GUID"</XMLTAG></FIELD>
+<COLLECTION ISMODIFY="No" ISFIXED="No" ISOPTION="No" ISINTERNAL="No" NAME="ProVchColl"><TYPE>Voucher</TYPE></COLLECTION>
+</TDLMESSAGE>
+</EXPORTDATA></BODY></ENVELOPE>
 "@
     $raw = Invoke-Tally $xml
     try { [xml]$doc = $raw } catch {
@@ -165,19 +180,16 @@ function Get-Vouchers() {
     $seen  = @{}
 
     foreach ($v in $doc.SelectNodes("//VOUCHER")) {
-        $vt = $v.GetAttribute("VCHTYPE")
-        if (-not $vt) { $vt = XText $v "VOUCHERTYPENAME" }
+        $vt = XText $v "VOUCHERTYPENAME"
         if ($valid -notcontains $vt) { continue }
 
         $vd = ToDate (XText $v "DATE"); if (-not $vd) { continue }
         $vn = XText $v "VOUCHERNUMBER"
-        $pt = XText $v "PARTYLEDGERNAME"; if (-not $pt) { $pt = XText $v "PARTYNAME" }
+        $pt = XText $v "PARTYLEDGERNAME"
         $am = ToAmt (XText $v "AMOUNT")
         $nr = XText $v "NARRATION"
+        $g  = XText $v "GUID"
 
-        $g = $v.GetAttribute("REMOTEID")
-        if (-not $g) { $g = $v.GetAttribute("GUID") }
-        if (-not $g) { $g = $v.GetAttribute("MASTERID") }
         $key = if ($g) { $g } else { "$vd|$vt|$vn|$am" }
         if ($seen.ContainsKey($key)) { continue }
         $seen[$key] = 1
@@ -197,24 +209,31 @@ function Get-Vouchers() {
     return $rows
 }
 
-# ── FETCH BANK & CASH BALANCES ────────────────────────────────
+# ── FETCH BANK & CASH BALANCES (TDLMESSAGE) ──────────────────
 function Get-BankBalances() {
     $xml = @"
 <ENVELOPE><HEADER><TALLYREQUEST>Export Data</TALLYREQUEST></HEADER>
 <BODY><EXPORTDATA><REQUESTDESC>
+<REPORTNAME>ProLedRpt</REPORTNAME>
 <STATICVARIABLES><SVEXPORTFORMAT>XML</SVEXPORTFORMAT></STATICVARIABLES>
-<REQUESTEDLIST><REMOTECOLLECTION NAME="LEDGERS">
-<TYPE>Ledger</TYPE>
-<FETCH>Name,ClosingBalance,Parent</FETCH>
-</REMOTECOLLECTION></REQUESTEDLIST>
-</REQUESTDESC></EXPORTDATA></BODY></ENVELOPE>
+</REQUESTDESC>
+<TDLMESSAGE>
+<REPORT ISMODIFY="No" ISFIXED="No" ISOPTION="No" ISINTERNAL="No" NAME="ProLedRpt"><FORMS>ProLedFrm</FORMS></REPORT>
+<FORM ISMODIFY="No" ISFIXED="No" ISOPTION="No" ISINTERNAL="No" NAME="ProLedFrm"><TOPPARTS>ProLedPrt</TOPPARTS><XMLTAG>"LEDGERS"</XMLTAG></FORM>
+<PART ISMODIFY="No" ISFIXED="No" ISOPTION="No" ISINTERNAL="No" NAME="ProLedPrt"><TOPLINES>ProLedLn</TOPLINES><REPEAT>ProLedLn : ProLedColl</REPEAT><SCROLLED>Vertical</SCROLLED></PART>
+<LINE ISMODIFY="No" ISFIXED="No" ISOPTION="No" ISINTERNAL="No" NAME="ProLedLn"><LEFTFIELDS>FLN,FLP,FLB</LEFTFIELDS><XMLTAG>"LEDGER"</XMLTAG></LINE>
+<FIELD ISMODIFY="No" ISFIXED="No" ISOPTION="No" ISINTERNAL="No" NAME="FLN"><SET>`$Name</SET><XMLTAG>"NAME"</XMLTAG></FIELD>
+<FIELD ISMODIFY="No" ISFIXED="No" ISOPTION="No" ISINTERNAL="No" NAME="FLP"><SET>`$Parent</SET><XMLTAG>"PARENT"</XMLTAG></FIELD>
+<FIELD ISMODIFY="No" ISFIXED="No" ISOPTION="No" ISINTERNAL="No" NAME="FLB"><SET>`$ClosingBalance</SET><XMLTAG>"CLOSINGBALANCE"</XMLTAG></FIELD>
+<COLLECTION ISMODIFY="No" ISFIXED="No" ISOPTION="No" ISINTERNAL="No" NAME="ProLedColl"><TYPE>Ledger</TYPE></COLLECTION>
+</TDLMESSAGE>
+</EXPORTDATA></BODY></ENVELOPE>
 "@
     $raw = Invoke-Tally $xml
     try { [xml]$doc = $raw } catch { return @() }
 
     $rows = @()
-    $bankGroups = "Bank Accounts","Cash-in-Hand"
-    foreach ($l in $doc.SelectNodes("//*[local-name()='LEDGER']")) {
+    foreach ($l in $doc.SelectNodes("//LEDGER")) {
         $parent = XText $l "PARENT"
         $ltype  = if ($parent -ieq "Bank Accounts") { "bank" } `
                   elseif ($parent -ieq "Cash-in-Hand") { "cash" } `
