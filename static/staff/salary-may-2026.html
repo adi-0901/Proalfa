@@ -1,0 +1,493 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Salary Register — May 2026 | Proalfa</title>
+<style>
+  @page { size: A3 landscape; margin: 8mm; }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 11px;
+    color: #000;
+    background: #e8e8e8;
+    padding: 24px;
+  }
+
+  .sheet {
+    background: #fff;
+    max-width: 1300px;
+    margin: 0 auto;
+    padding: 28px 32px 36px;
+    box-shadow: 0 2px 20px rgba(0,0,0,.18);
+    border-radius: 4px;
+  }
+
+  /* ── print button ── */
+  .print-btn {
+    display: block;
+    margin: 0 auto 20px;
+    padding: 10px 36px;
+    background: #1a3e8c;
+    color: #fff;
+    border: none;
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    letter-spacing: .3px;
+  }
+  .print-btn:hover { background: #0d2a6a; }
+
+  /* ── header ── */
+  .co-header { text-align: center; margin-bottom: 6px; }
+  .co-name {
+    font-size: 20px;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 3px;
+    color: #0d2a5e;
+    margin-bottom: 3px;
+  }
+  .sheet-title {
+    font-size: 14px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    margin-bottom: 2px;
+  }
+  .sheet-meta { font-size: 10px; color: #666; }
+  .divider {
+    border: none;
+    border-top: 3px solid #0d2a5e;
+    margin: 10px 0 18px;
+  }
+
+  /* ── section label ── */
+  .section-label {
+    display: inline-block;
+    background: #0d2a5e;
+    color: #fff;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: .6px;
+    text-transform: uppercase;
+    padding: 4px 14px;
+    margin: 14px 0 0;
+  }
+
+  /* ── tables ── */
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 4px;
+    margin-bottom: 4px;
+  }
+  th {
+    background: #dde5f5;
+    color: #0d2a5e;
+    border: 1px solid #9ab;
+    padding: 5px 6px;
+    font-size: 9.5px;
+    font-weight: 700;
+    text-align: center;
+    white-space: nowrap;
+  }
+  td {
+    border: 1px solid #c5cdd8;
+    padding: 4px 6px;
+    text-align: center;
+    vertical-align: middle;
+    font-size: 10.5px;
+  }
+  td.left { text-align: left; }
+  td.desig { text-align: left; font-size: 9.5px; color: #444; }
+  tr:nth-child(even) td { background: #f7f9fc; }
+  tr.total-row td {
+    background: #dde5f5 !important;
+    font-weight: 700;
+    font-size: 11px;
+  }
+  .blank { color: #bbb; font-style: italic; font-size: 10px; }
+  .gross-col { background: #edf2ff !important; font-weight: 700; }
+  .gross-head { background: #b8ccf0 !important; }
+  .fixed-tag { font-size: 8.5px; color: #888; font-weight: normal; }
+
+  /* ── grand total box ── */
+  .gt-wrap { display: flex; justify-content: flex-end; margin-top: 10px; }
+  .gt-table { border-collapse: collapse; min-width: 340px; }
+  .gt-table td { padding: 5px 16px; border: 1px solid #9ab; font-size: 11px; }
+  .gt-header td {
+    background: #0d2a5e;
+    color: #fff;
+    font-weight: 700;
+    font-size: 12px;
+    border-color: #0d2a5e;
+  }
+  .gt-header td:last-child { text-align: right; }
+  .gt-row td:last-child { text-align: right; }
+  .gt-note td { font-size: 9px; color: #888; background: #f7f7f7; }
+
+  /* ── note ── */
+  .note {
+    font-size: 9px;
+    color: #888;
+    margin-top: 5px;
+    padding-left: 2px;
+    line-height: 1.5;
+  }
+
+  /* ── signatures ── */
+  .sign-section {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 44px;
+  }
+  .sign-box { text-align: center; width: 200px; }
+  .sign-line {
+    border-top: 1px solid #000;
+    margin-top: 36px;
+    padding-top: 5px;
+    font-size: 11px;
+  }
+
+  /* ── print overrides ── */
+  @media print {
+    body { background: #fff; padding: 0; }
+    .sheet { box-shadow: none; padding: 0; max-width: 100%; }
+    .print-btn { display: none; }
+  }
+</style>
+</head>
+<body>
+<div class="sheet">
+
+  <button class="print-btn" onclick="window.print()">🖨&nbsp; Print / Save as PDF</button>
+
+  <div class="co-header">
+    <div class="co-name">Proalfa Dynamic Pvt. Ltd.</div>
+    <div class="sheet-title">SALARY REGISTER — MAY 2026</div>
+    <div class="sheet-meta">
+      Calendar Days: 31 &nbsp;|&nbsp; Working Days (Basis): 26 &nbsp;|&nbsp; Paid Holiday: 1 &nbsp;|&nbsp;
+      Formula: Earned = Monthly × (P+WO+PH) / 26 &nbsp;|&nbsp; OT = Basic × 2 / 26 / 8 per hr
+    </div>
+  </div>
+  <hr class="divider">
+
+  <!-- ═══════════════ SECTION A — WORKERS ═══════════════ -->
+  <div class="section-label">Section A — Workers</div>
+  <table>
+    <thead>
+      <tr>
+        <th>SR</th>
+        <th>Name</th>
+        <th>Designation</th>
+        <th>Present</th>
+        <th>W.O.</th>
+        <th>P.H.</th>
+        <th>Absent</th>
+        <th>Earning<br>Days</th>
+        <th>OT<br>Hrs</th>
+        <th>Monthly<br>Salary (₹)</th>
+        <th>Earned<br>Salary (₹)</th>
+        <th>OT<br>Amount (₹)</th>
+        <th class="gross-head">Gross<br>Payable (₹)</th>
+      </tr>
+    </thead>
+    <tbody>
+      <!-- 1. Bapi Layek  | P:17 WO:3 PH:1 A:10 | Earn:21 OT:58.5 | Monthly:32000 Basic:16000 -->
+      <!-- Earned = 32000×21/26 = 25846 | OT = 16000/104×58.5 = 9000 | Gross = 34846 -->
+      <tr>
+        <td>1</td>
+        <td class="left">Bapi Layek</td>
+        <td class="desig">Plasma Mc Operator</td>
+        <td>17</td><td>3</td><td>1</td><td>10</td><td>21</td><td>58.5</td>
+        <td>32,000</td>
+        <td>25,846</td>
+        <td>9,000</td>
+        <td class="gross-col">34,846</td>
+      </tr>
+
+      <!-- 2. Niten Jain  | P:5 WO:1 PH:1 A:24 | Earn:7 OT:25.5 | Monthly:15000 Basic:7500 -->
+      <!-- Earned = 15000×7/26 = 4038 | OT = 7500/104×25.5 = 1839 | Gross = 5877 -->
+      <tr>
+        <td>2</td>
+        <td class="left">Niten Jain</td>
+        <td class="desig">Helper</td>
+        <td>5</td><td>1</td><td>1</td><td>24</td><td>7</td><td>25.5</td>
+        <td>15,000</td>
+        <td>4,038</td>
+        <td>1,839</td>
+        <td class="gross-col">5,877</td>
+      </tr>
+
+      <!-- 3. Ravi Kumar Bharti | P:9 WO:1 PH:0 A:0 NJ rest | Earn:10 OT:34 | Monthly:32000 Basic:20000 (ERP) -->
+      <!-- Earned = 32000×10/26 = 12308 | OT = 20000/104×34 = 6538 | Gross = 18846 -->
+      <tr>
+        <td>3</td>
+        <td class="left">Ravi Kumar Bharti</td>
+        <td class="desig">Plasma Mc Operator</td>
+        <td>9</td><td>1</td><td>0</td><td>0</td><td>10</td><td>34</td>
+        <td>32,000</td>
+        <td>12,308</td>
+        <td>6,538</td>
+        <td class="gross-col">18,846</td>
+      </tr>
+
+      <!-- 4. Ashok Bhilala | P:8 WO:2 PH:1 A:20 | Earn:11 OT:23 | Monthly:31000 Basic:29000 (ERP) -->
+      <!-- Earned = 31000×11/26 = 13115 | OT = 29000/104×23 = 6414 | Gross = 19529 -->
+      <tr>
+        <td>4</td>
+        <td class="left">Ashok Bhilala</td>
+        <td class="desig">PTW Fitup Operator</td>
+        <td>8</td><td>2</td><td>1</td><td>20</td><td>11</td><td>23</td>
+        <td>31,000</td>
+        <td>13,115</td>
+        <td>6,414</td>
+        <td class="gross-col">19,529</td>
+      </tr>
+
+      <!-- 5. Dipak Bhimrao Khadase | P:26 WO:4 PH:1 A:0 | Earn:31≥26→full OT:78.5 | Monthly:15000 Basic:10000 (ERP) -->
+      <!-- Earned = 15000 (full) | OT = 10000/104×78.5 = 7548 | Gross = 22548 -->
+      <tr>
+        <td>5</td>
+        <td class="left">Dipak Bhimrao Khadase</td>
+        <td class="desig">Helper</td>
+        <td>26</td><td>4</td><td>1</td><td>0</td><td>31</td><td>78.5</td>
+        <td>15,000</td>
+        <td>15,000</td>
+        <td>7,548</td>
+        <td class="gross-col">22,548</td>
+      </tr>
+
+      <!-- 6. Jayvant Ranjane | P:23 WO:4 PH:1 A:3 | Earn:28≥26→full OT:0 | Monthly:13000 Basic:6500 -->
+      <!-- Earned = 13000 (full) | OT = 0 | Gross = 13000 -->
+      <tr>
+        <td>6</td>
+        <td class="left">Jayvant Ranjane</td>
+        <td class="desig">House Keeping</td>
+        <td>23</td><td>4</td><td>1</td><td>3</td><td>28</td><td>0</td>
+        <td>13,000</td>
+        <td>13,000</td>
+        <td>0</td>
+        <td class="gross-col">13,000</td>
+      </tr>
+
+      <!-- 7. Sachin Thakur | P:6 WO:1 PH:0 A:10 | Earn:7 OT:1 | Salary: TBD -->
+      <tr>
+        <td>7</td>
+        <td class="left">Sachin Thakur</td>
+        <td class="desig">Hydra Operator</td>
+        <td>6</td><td>1</td><td>0</td><td>10</td><td>7</td><td>1</td>
+        <td class="blank">—</td>
+        <td class="blank">—</td>
+        <td class="blank">—</td>
+        <td class="blank">—</td>
+      </tr>
+
+      <!-- 8. Javed Miya | P:6 WO:1 PH:0 A:0 NJ rest | Earn:7 OT:24.5 | Monthly:25000 Basic:20000 (ERP) -->
+      <!-- Earned = 25000×7/26 = 6731 | OT = 20000/104×24.5 = 4712 | Gross = 11443 -->
+      <tr>
+        <td>8</td>
+        <td class="left">Javed Miya</td>
+        <td class="desig">Hydra Operator</td>
+        <td>6</td><td>1</td><td>0</td><td>0</td><td>7</td><td>24.5</td>
+        <td>25,000</td>
+        <td>6,731</td>
+        <td>4,712</td>
+        <td class="gross-col">11,443</td>
+      </tr>
+
+      <!-- TOTAL ROW -->
+      <!-- Earned: 25846+4038+12308+13115+15000+13000+6731 = 90,038 -->
+      <!-- OT: 9000+1839+6538+6414+7548+0+4712 = 36,051 -->
+      <!-- Gross: 90038+36051 = 126,089 (rounding diff) → 1,26,090 -->
+      <tr class="total-row">
+        <td colspan="10" class="left" style="padding-left:10px">WORKERS TOTAL &nbsp; <span style="font-weight:normal;font-size:9.5px;color:#555">(excl. Sachin Thakur — salary pending)</span></td>
+        <td>90,038</td>
+        <td>36,051</td>
+        <td class="gross-col" style="background:#b8ccf0 !important">1,26,089</td>
+      </tr>
+    </tbody>
+  </table>
+  <div class="note">
+    * Non-ERP ex-employees (Bapi Layek, Niten Jain, Jayvant Ranjane, Sachin Thakur) added for this sheet only — not enrolled in HR system.<br>
+    * OT basis: Basic salary ÷ 26 ÷ 8 × 2. For non-ERP workers, basic = 50% of monthly. ERP workers use recorded basic salary.
+  </div>
+
+  <!-- ═══════════════ SECTION B — STAFF ═══════════════ -->
+  <div class="section-label" style="margin-top:20px">Section B — Staff</div>
+  <table>
+    <thead>
+      <tr>
+        <th>SR</th>
+        <th>Name</th>
+        <th>Designation</th>
+        <th>Present</th>
+        <th>W.O.</th>
+        <th>P.H.</th>
+        <th>Absent</th>
+        <th>Earning<br>Days</th>
+        <th>Monthly<br>Salary (₹)</th>
+        <th>Earned<br>Salary (₹)</th>
+        <th class="gross-head">Gross<br>Payable (₹)</th>
+      </tr>
+    </thead>
+    <tbody>
+      <!-- 1. Aditya Jaybhay | Director | Fixed draw -->
+      <tr>
+        <td>1</td>
+        <td class="left">Aditya Jaybhay</td>
+        <td class="desig">Director</td>
+        <td>0</td><td>4</td><td>0</td><td>—</td><td>—</td>
+        <td>5,00,000</td>
+        <td>5,00,000 <span class="fixed-tag">(fixed)</span></td>
+        <td class="gross-col">5,00,000</td>
+      </tr>
+
+      <!-- 2. Sunil Jaybhay | MD | Fixed draw -->
+      <tr>
+        <td>2</td>
+        <td class="left">Sunil Jaybhay</td>
+        <td class="desig">Managing Director</td>
+        <td>0</td><td>4</td><td>0</td><td>—</td><td>—</td>
+        <td>3,00,000</td>
+        <td>3,00,000 <span class="fixed-tag">(fixed)</span></td>
+        <td class="gross-col">3,00,000</td>
+      </tr>
+
+      <!-- 3. Hemant Gadkari | Plant Head | Salary blank -->
+      <tr>
+        <td>3</td>
+        <td class="left">Hemant Gadkari</td>
+        <td class="desig">Plant Head</td>
+        <td>2</td><td>1</td><td>1</td><td>27</td><td>4</td>
+        <td class="blank">—</td>
+        <td class="blank">—</td>
+        <td class="blank">—</td>
+      </tr>
+
+      <!-- 4. Yogesh Gorad | P:24 WO:3 PH:1 A:3 | Earn:28≥26→full | Monthly:45000 -->
+      <tr>
+        <td>4</td>
+        <td class="left">Yogesh Gorad</td>
+        <td class="desig">Plant Head / Programmer</td>
+        <td>24</td><td>3</td><td>1</td><td>3</td><td>28</td>
+        <td>45,000</td>
+        <td>45,000</td>
+        <td class="gross-col">45,000</td>
+      </tr>
+
+      <!-- 5. Hanumant Wadane | P:24 WO:3 PH:1 A:3 | Earn:28≥26→full | Monthly:115000 -->
+      <tr>
+        <td>5</td>
+        <td class="left">Hanumant Wadane</td>
+        <td class="desig">Senior Project Manager</td>
+        <td>24</td><td>3</td><td>1</td><td>3</td><td>28</td>
+        <td>1,15,000</td>
+        <td>1,15,000</td>
+        <td class="gross-col">1,15,000</td>
+      </tr>
+
+      <!-- 6. Tejash Waghe | P:19 WO:3 PH:1 A:8 | Earn:23<26 | Monthly:8000 -->
+      <!-- Earned = 8000×23/26 = 7077 -->
+      <tr>
+        <td>6</td>
+        <td class="left">Tejash Waghe</td>
+        <td class="desig">Office Boy</td>
+        <td>19</td><td>3</td><td>1</td><td>8</td><td>23</td>
+        <td>8,000</td>
+        <td>7,077</td>
+        <td class="gross-col">7,077</td>
+      </tr>
+
+      <!-- 7. Rajesh Jadhav | P:26 WO:4 PH:1 A:0 | Earn:31≥26→full | Monthly:21000 -->
+      <tr>
+        <td>7</td>
+        <td class="left">Rajesh Jadhav</td>
+        <td class="desig">Electrician</td>
+        <td>26</td><td>4</td><td>1</td><td>0</td><td>31</td>
+        <td>21,000</td>
+        <td>21,000</td>
+        <td class="gross-col">21,000</td>
+      </tr>
+
+      <!-- 8. Laxman Bapu | P:22 WO:4 PH:1 A:4 | Earn:27≥26→full | Monthly:25000 -->
+      <tr>
+        <td>8</td>
+        <td class="left">Laxman Bapu</td>
+        <td class="desig">Driver</td>
+        <td>22</td><td>4</td><td>1</td><td>4</td><td>27</td>
+        <td>25,000</td>
+        <td>25,000</td>
+        <td class="gross-col">25,000</td>
+      </tr>
+
+      <!-- 9. Karan Bodake | P:9 WO:1 PH:0 A:0 NJ rest | Earn:10<26 | Monthly:20000 -->
+      <!-- Earned = 20000×10/26 = 7692 -->
+      <tr>
+        <td>9</td>
+        <td class="left">Karan Bodake</td>
+        <td class="desig">Dispatch Co-ordinator</td>
+        <td>9</td><td>1</td><td>0</td><td>0</td><td>10</td>
+        <td>20,000</td>
+        <td>7,692</td>
+        <td class="gross-col">7,692</td>
+      </tr>
+
+      <!-- TOTAL ROW -->
+      <!-- Earned: 5,00,000+3,00,000+45,000+1,15,000+7,077+21,000+25,000+7,692 = 10,20,769 -->
+      <tr class="total-row">
+        <td colspan="9" class="left" style="padding-left:10px">STAFF TOTAL &nbsp; <span style="font-weight:normal;font-size:9.5px;color:#555">(excl. Hemant Gadkari — salary pending)</span></td>
+        <td>10,20,769</td>
+        <td class="gross-col" style="background:#b8ccf0 !important">10,20,769</td>
+      </tr>
+    </tbody>
+  </table>
+  <div class="note">
+    * Hemant Gadkari salary to be filled in — added here for attendance record only.<br>
+    * Aditya Jaybhay &amp; Sunil Jaybhay: Fixed monthly draw — attendance not tracked on device.
+  </div>
+
+  <!-- ═══════════════ GRAND TOTAL ═══════════════ -->
+  <div class="gt-wrap">
+    <table class="gt-table">
+      <tr class="gt-header">
+        <td>GRAND TOTAL PAYROLL — MAY 2026</td>
+        <td>₹ 11,46,858</td>
+      </tr>
+      <tr class="gt-row">
+        <td style="color:#555">Section A — Workers</td>
+        <td>₹ 1,26,089</td>
+      </tr>
+      <tr class="gt-row">
+        <td style="color:#555">Section B — Staff</td>
+        <td>₹ 10,20,769</td>
+      </tr>
+      <tr class="gt-note">
+        <td colspan="2">Pending: Sachin Thakur (Worker) &amp; Hemant Gadkari (Staff) — salary not provided</td>
+      </tr>
+    </table>
+  </div>
+
+  <!-- ═══════════════ SIGNATURES ═══════════════ -->
+  <div class="sign-section">
+    <div class="sign-box">
+      <div class="sign-line">Prepared By</div>
+    </div>
+    <div class="sign-box">
+      <div class="sign-line">Checked By</div>
+    </div>
+    <div class="sign-box">
+      <div class="sign-line">Accounts / Finance</div>
+    </div>
+    <div class="sign-box">
+      <div class="sign-line">Authorised By — MD</div>
+    </div>
+  </div>
+
+</div>
+</body>
+</html>

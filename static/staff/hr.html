@@ -1877,7 +1877,7 @@ function renderExpenseLedger(resetPage) {
   if (catF)  rows = rows.filter(e => e.category === catF);
   if (modeF) rows = rows.filter(e => e.payment_mode === modeF);
   if (billF) rows = rows.filter(e => e.bill_status === billF);
-  rows.sort((a, b) => (a.date||'') < (b.date||'') ? -1 : (a.date||'') > (b.date||'') ? 1 : 0);
+  rows.sort((a, b) => (a.date||'') > (b.date||'') ? -1 : (a.date||'') < (b.date||'') ? 1 : 0);
   const el = document.getElementById('exp-ledger-body');
   const monthEl = document.getElementById('exp-ledger-month');
   if (monthEl) {
