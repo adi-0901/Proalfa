@@ -2048,9 +2048,11 @@ function onTdsSectionChange() {
   calcTds();
 }
 function calcTds() {
-  const amt  = parseFloat(document.getElementById('ex-amount').value) || 0;
+  const net  = parseFloat(document.getElementById('ex-amount').value) || 0;
   const rate = parseFloat(document.getElementById('ex-tds-rate').value) || 0;
-  document.getElementById('ex-tds-amount').value = amt && rate ? (amt * rate / 100).toFixed(2) : '';
+  if (!net || !rate) { document.getElementById('ex-tds-amount').value = ''; return; }
+  const gross = net / (1 - rate / 100);
+  document.getElementById('ex-tds-amount').value = Math.round(gross - net).toFixed(2);
 }
 
 function editExpense(id) {
