@@ -439,9 +439,9 @@
         <thead><tr>
           <th>ID</th><th>Name</th><th>Designation</th><th>Type</th>
           <th style="text-align:right">Monthly (₹)</th>
-          <th>Weekly Off</th><th>OT Eligible</th><th>Status</th><th></th>
+          <th>Weekly Off</th><th>OT Eligible</th><th>PL Balance</th><th>Status</th><th></th>
         </tr></thead>
-        <tbody id="empBody"><tr><td colspan="8" class="loading">Loading…</td></tr></tbody>
+        <tbody id="empBody"><tr><td colspan="10" class="loading">Loading…</td></tr></tbody>
       </table>
     </div>
   </div>
@@ -465,6 +465,7 @@ let sb;
 
 // ── State ─────────────────────────────────────────────────────
 let employees = [];
+let _plBalances = {}; // emp_id -> { available, soonest_expiry }
 let advances  = [];
 const MONTHS  = ['','January','February','March','April','May','June','July','August','September','October','November','December'];
 const WO_DAY  = { thursday:4, sunday:0 }; // JS getDay() 0=Sun,4=Thu
@@ -498,6 +499,7 @@ async function initApp(){
   document.getElementById('adv-recyear').value  = nextY;
 
   await loadEmployees();
+  loadPlBalances(); // non-blocking — updates employee list when ready
   await loadToday();
   await loadAdvances();
   updateMetrics();
@@ -514,6 +516,13 @@ function showAlert(msg, type='s'){
 function fmtDate(d){ if(!d)return'—'; const [y,m,dd]=d.split('-'); return `${dd}/${m}/${y}`; }
 function fmtINR(n){ return '₹'+parseFloat(n||0).toLocaleString('en-IN',{maximumFractionDigits:0}); }
 function daysInMonth(m,y){ return new Date(y,m,0).getDate(); }
+function toMonthStr(m,y){ return `${y}-${String(m).padStart(2,'0')}`; }
+function addMonthsToStr(ymStr,n){
+  const [yr,mo]=ymStr.split('-').map(Number);
+  const d=new Date(yr,mo-1+n,1);
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
+}
+function monthStrLabel(ymStr){ const [y,m]=ymStr.split('-'); return `${MONTHS[parseInt(m)]} ${y}`; }
 function thuCount(m,y){
   let c=0,d=new Date(y,m-1,1);
   while(d.getMonth()===m-1){ if(d.getDay()===4)c++; d.setDate(d.getDate()+1); } return c;
@@ -619,8 +628,14 @@ function rebuildEmpSelects(){
 
 function renderEmployeeList(){
   const body=document.getElementById('empBody');
-  if(!employees.length){ body.innerHTML='<tr><td colspan="9" class="empty">No employees found.</td></tr>'; return; }
-  body.innerHTML=employees.map(e=>`<tr>
+  if(!employees.length){ body.innerHTML='<tr><td colspan="10" class="empty">No employees found.</td></tr>'; return; }
+  body.innerHTML=employees.map(e=>{
+    const pl = _plBalances[e.emp_id];
+    const plCell = pl
+      ? `<span style="font-weight:600;color:var(--green)">${pl.available}</span>
+         <span style="font-size:10px;color:var(--muted);display:block">exp ${monthStrLabel(pl.soonest_expiry)}</span>`
+      : `<span style="color:var(--muted)">0</span>`;
+    return `<tr>
     <td style="color:var(--muted)">${e.emp_id}</td>
     <td style="font-weight:500">${e.name}</td>
     <td>${e.designation||'—'}</td>
@@ -628,9 +643,11 @@ function renderEmployeeList(){
     <td style="text-align:right;font-weight:600">${fmtINR(e.monthly_salary)}</td>
     <td style="color:var(--muted);text-transform:capitalize">${e.weekly_off}</td>
     <td style="text-align:center">${e.ot_eligible?'✅':'—'}</td>
+    <td style="text-align:center">${plCell}</td>
     <td><span class="badge ${e.active?'b-present':'b-absent'}">${e.active?'Active':'Inactive'}</span></td>
     <td><button type="button" onclick="removeEmployee('${e.emp_id}','${e.name.replace(/'/g,"\\'")}')" style="background:none;border:none;color:var(--red);cursor:pointer;font-size:13px;padding:2px 6px" title="Remove">✕</button></td>
-  </tr>`).join('');
+  </tr>`;
+  }).join('');
 }
 
 async function removeEmployee(emp_id, name){
@@ -639,6 +656,20 @@ async function removeEmployee(emp_id, name){
   if(error){ showAlert('Error: '+error.message,'e'); return; }
   showAlert(name+' removed.');
   await loadEmployees();
+}
+
+async function loadPlBalances(){
+  const now = new Date();
+  const mStr = toMonthStr(now.getMonth()+1, now.getFullYear());
+  const {data} = await sb.from('pl_ledger').select('emp_id,earned_month,expiry_month').eq('status','available').gte('expiry_month', mStr);
+  _plBalances = {};
+  (data||[]).forEach(p=>{
+    if(!_plBalances[p.emp_id]) _plBalances[p.emp_id] = {available:0, soonest_expiry:p.expiry_month};
+    _plBalances[p.emp_id].available++;
+    if(p.expiry_month < _plBalances[p.emp_id].soonest_expiry)
+      _plBalances[p.emp_id].soonest_expiry = p.expiry_month;
+  });
+  renderEmployeeList();
 }
 
 // ── Today's attendance ────────────────────────────────────────
@@ -774,13 +805,18 @@ async function generateSalary(){
   const startD=`${y}-${String(m).padStart(2,'0')}-01`;
   const endD  =`${y}-${String(m).padStart(2,'0')}-${String(daysInMonth(m,y)).padStart(2,'0')}`;
 
-  const [attRes, advRes] = await Promise.all([
+  const mStr = toMonthStr(m, y);
+
+  const [attRes, advRes, plRes] = await Promise.all([
     sb.from('attendance').select('*').gte('date',startD).lte('date',endD),
-    sb.from('advances').select('*').eq('recovery_month',m).eq('recovery_year',y)
+    sb.from('advances').select('*').eq('recovery_month',m).eq('recovery_year',y),
+    sb.from('pl_ledger').select('id,emp_id,earned_month,expiry_month').eq('status','available')
   ]);
 
   const attData = attRes.data||[];
   const advData = advRes.data||[];
+  // PLs valid for this month: exclude current month's (added separately as +1) and expired ones
+  const plData  = (plRes.data||[]).filter(p => p.expiry_month >= mStr && p.earned_month < mStr);
   const cal = daysInMonth(m,y);
   const fyStart = m >= 4 ? y : y - 1;
   const fyLabel = `FY ${fyStart}-${String(fyStart+1).slice(-2)}`;
@@ -794,9 +830,11 @@ async function generateSalary(){
     const present   = recs.filter(r=>r.status==='present').length;
     const half      = recs.filter(r=>r.status==='half_day').length;
     const effectivePresent = present + half*0.5;
-    const absentTotal      = Math.max(0, working - effectivePresent);
-    const plUsed           = Math.min(1, absentTotal);
-    const unpaidAbsent     = Math.max(0, absentTotal - plUsed);
+    const absentTotal  = Math.max(0, working - effectivePresent);
+    const empPlCredits = plData.filter(p => p.emp_id === emp.emp_id);
+    const plAvail      = empPlCredits.length + 1; // existing valid PLs + this month's credit
+    const plUsed       = Math.min(plAvail, absentTotal);
+    const unpaidAbsent = Math.max(0, absentTotal - plUsed);
     const paidDays  = cal - woDays;                              // working days in month
     const perDay    = emp.monthly_salary / (paidDays || cal);    // per paid-working-day rate
     const basic     = parseFloat(emp.basic_salary) || Math.round(emp.monthly_salary * 0.5);
@@ -825,13 +863,24 @@ async function generateSalary(){
     const erPf   = emp.pf_applicable  ? Math.round(epfBasis * 0.12) : 0;
     const erEsic = (emp.esic_applicable && grossWithOt<=21000) ? Math.round(grossWithOt * 0.0325) : 0;
 
-    const row = {emp,cal,woDays,working,present,half,plUsed,unpaidAbsent,perDay,
+    const row = {emp,cal,woDays,working,present,half,plUsed,plAvail,unpaidAbsent,perDay,
                  basic,special,earnedBasic,earnedSpecial,gross,otHrs,otPay,grossWithOt,
-                 pf,esic,pt,tds,advAmt,totalDed,net,erPf,erEsic,m,y,fyLabel};
+                 pf,esic,pt,tds,advAmt,totalDed,net,erPf,erEsic,m,y,fyLabel,mStr};
     emp.type==='staff' ? staffRows.push(row) : workerRows.push(row);
   });
 
   _lastSalaryRows = [...staffRows,...workerRows];
+
+  // Upsert PL credit for this month (1 per active employee, idempotent)
+  const plCredits = employees.filter(e=>e.active).map(e=>({
+    emp_id: e.emp_id, earned_month: mStr,
+    expiry_month: addMonthsToStr(mStr, 4), status: 'available'
+  }));
+  if(plCredits.length){
+    await sb.from('pl_ledger').upsert(plCredits, {onConflict:'emp_id,earned_month', ignoreDuplicates:true});
+  }
+  // Expire any PLs whose validity window has passed
+  await sb.from('pl_ledger').update({status:'expired'}).eq('status','available').lt('expiry_month', mStr);
 
   const totS = staffRows.reduce((s,r)=>({gross:s.gross+r.grossWithOt,pf:s.pf+r.pf,esic:s.esic+r.esic,pt:s.pt+r.pt,tds:s.tds+r.tds,adv:s.adv+r.advAmt,net:s.net+r.net}),{gross:0,pf:0,esic:0,pt:0,tds:0,adv:0,net:0});
   const totW = workerRows.reduce((s,r)=>({gross:s.gross+r.grossWithOt,pf:s.pf+r.pf,esic:s.esic+r.esic,pt:s.pt+r.pt,tds:s.tds+r.tds,adv:s.adv+r.advAmt,net:s.net+r.net}),{gross:0,pf:0,esic:0,pt:0,tds:0,adv:0,net:0});
@@ -1172,9 +1221,19 @@ async function postSalaryToFinancials(){
   const {error} = await sb.from('hr_expenses').insert(entriesToInsert);
   if(error){ showAlert('Post failed: '+error.message,'e'); return; }
 
-  // Mark salary_records as paid
+  // Mark salary_records as paid, and consume PL credits
   for(const r of paidRows){
     await sb.from('salary_records').update({paid:true}).eq('emp_id',r.emp.emp_id).eq('month',m).eq('year',y);
+    if(r.plUsed > 0){
+      const mStr = r.mStr || toMonthStr(m, y);
+      const {data:credits} = await sb.from('pl_ledger')
+        .select('id').eq('emp_id', r.emp.emp_id).eq('status','available')
+        .gte('expiry_month', mStr).order('earned_month',{ascending:true}).limit(r.plUsed);
+      if(credits?.length){
+        await sb.from('pl_ledger').update({status:'used', used_in_month: mStr})
+          .in('id', credits.map(c=>c.id));
+      }
+    }
   }
 
   showAlert(`Posted ${fmtINR(totalNet)} to Financials for ${paidRows.length} employee${paidRows.length!==1?'s':''}.`,'s');
