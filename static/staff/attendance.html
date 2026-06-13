@@ -797,12 +797,13 @@ async function generateSalary(){
     const absentTotal      = Math.max(0, working - effectivePresent);
     const plUsed           = Math.min(1, absentTotal);
     const unpaidAbsent     = Math.max(0, absentTotal - plUsed);
-    const perDay    = emp.monthly_salary / cal;
+    const paidDays  = cal - woDays;                              // working days in month
+    const perDay    = emp.monthly_salary / (paidDays || cal);    // per paid-working-day rate
     const basic     = parseFloat(emp.basic_salary) || Math.round(emp.monthly_salary * 0.5);
     const special   = emp.monthly_salary - basic;
-    // Earned amounts (pro-rated for unpaid absent)
-    const earnedBasic   = Math.round(basic   - unpaidAbsent * (basic/cal));
-    const earnedSpecial = Math.round(special - unpaidAbsent * (special/cal));
+    // Earned amounts (pro-rated for unpaid absent days)
+    const earnedBasic   = Math.round(basic   - unpaidAbsent * (basic/paidDays));
+    const earnedSpecial = Math.round(special - unpaidAbsent * (special/paidDays));
     const gross     = earnedBasic + earnedSpecial;
     const otHrs     = recs.reduce((s,r)=>s+(r.ot_hours||0),0);
     const otPay     = emp.ot_eligible ? Math.round(otHrs * (perDay/8)) : 0;
@@ -1736,10 +1737,11 @@ function printRegistrationForm(){
 }
 
 // ── Site Attendance Approvals ─────────────────────────────────
-const LATE_MINS_JS    = 10 * 60;       // 10:00
-const SHIFT_END_MINS  = 18 * 60;       // 18:00
-const HALF_IN_MINS_JS = 12 * 60;       // 12:00
-const HALF_OUT_MINS_JS= 15 * 60;       // 15:00
+const LATE_MINS_JS      = 10 * 60;        // 10:00 — grace period
+const SHIFT_END_MINS    = 17 * 60 + 30;   // 17:30 — shift ends 5:30 PM
+const OT_THRESHOLD_MINS = 18 * 60;        // 18:00 — OT only counts if past 6 PM
+const HALF_IN_MINS_JS   = 12 * 60;        // 12:00 — check-in after this = half day
+const HALF_OUT_MINS_JS  = 14 * 60 + 30;   // 14:30 — check-out before this = half day
 
 function toMins(t){ if(!t) return 0; const[h,m]=t.split(':').map(Number); return h*60+m; }
 function calcStatus(ci,co){
@@ -1747,7 +1749,12 @@ function calcStatus(ci,co){
   if(co && toMins(co) < HALF_OUT_MINS_JS) return 'half_day';
   return 'present';
 }
-function calcOt(co){ if(!co) return 0; return Math.max(0, Math.round((toMins(co)-SHIFT_END_MINS)/60*100)/100); }
+function calcOt(co){
+  if(!co) return 0;
+  const m = toMins(co);
+  if(m <= OT_THRESHOLD_MINS) return 0; // ≤30 min OT (before 6 PM) doesn't count
+  return Math.round((m - SHIFT_END_MINS) / 60 * 100) / 100;
+}
 
 async function renderApprovals(){
   const el = document.getElementById('approvalsContent');

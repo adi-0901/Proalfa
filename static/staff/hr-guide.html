@@ -155,7 +155,7 @@
           <li><a href="#e3">Step 3 — Attendance Setup</a></li>
           <li><a href="#e4">Step 4 — Daily Attendance</a></li>
           <li><a href="#e5">Step 5 — Leave Management</a></li>
-          <li><a href="#e6">Step 6 — Monthly Salary</a></li>
+          <li><a href="#e6">Step 6 — Monthly Salary & Calculation Logic</a></li>
           <li><a href="#e7">Step 7 — Increments & Letters</a></li>
           <li><a href="#e8">Step 8 — Exit Process</a></li>
         </ul>
@@ -417,13 +417,23 @@
   <!-- E4 -->
   <h2 id="e4">Step 4 — Daily Attendance</h2>
 
+  <h3>Shift Timings</h3>
+  <table>
+    <thead><tr><th>Timing</th><th>Rule</th></tr></thead>
+    <tbody>
+      <tr><td><strong>9:00 AM</strong></td><td>Shift start. 8 hours net work + 30 min lunch = out at 5:30 PM.</td></tr>
+      <tr><td><strong>After 10:00 AM check-in</strong></td><td>Flagged <span class="badge badge-amber">Late</span> — note in records.</td></tr>
+      <tr><td><strong>Check-in after 12:00 PM</strong></td><td>Marked <span class="badge badge-amber">Half Day</span> automatically.</td></tr>
+      <tr><td><strong>Check-out before 2:30 PM</strong></td><td>Marked <span class="badge badge-amber">Half Day</span> automatically.</td></tr>
+      <tr><td><strong>5:30 PM</strong></td><td>Shift end. No OT calculated for checkout before 6:00 PM.</td></tr>
+      <tr><td><strong>After 6:00 PM check-out</strong></td><td>OT counted from 5:30 PM. First 30 min (5:30–6:00) is a buffer — OT only kicks in past 6:00 PM.</td></tr>
+    </tbody>
+  </table>
+
   <h3>What Gets Auto-tracked</h3>
   <ul>
     <li>Machine syncs every minute via cron. Records appear in <strong>Today</strong> view within 1–2 minutes of punching.</li>
     <li>The system auto-classifies: <span class="badge badge-green">Present</span> <span class="badge badge-amber">Half Day</span> <span class="badge badge-red">Late</span> based on punch times.</li>
-    <li>Check-in after <strong>10:00 AM</strong> → flagged Late.</li>
-    <li>Check-in after <strong>12:00 PM</strong> or check-out before <strong>3:00 PM</strong> → Half Day.</li>
-    <li>Check-out after <strong>6:00 PM</strong> → OT hours calculated automatically.</li>
     <li>Punches before <strong>5:00 AM</strong> are attributed to the previous day's shift (for night-shift OT).</li>
   </ul>
 
@@ -471,6 +481,92 @@
   <div class="erp-step"><div class="num">5</div><div class="body">Click <strong>Post to Financials</strong> to record the salary in the Finance system.</div></div>
   <div class="erp-step"><div class="num">6</div><div class="body">Click <strong>Export CSV</strong> to download the salary sheet — share with accounts for bank transfer processing.</div></div>
   <div class="erp-step"><div class="num">7</div><div class="body">Click <strong>Generate Salary Slips</strong> → Print/Save each slip as PDF → distribute to employees (WhatsApp is fine).</div></div>
+
+  <h3>How the ERP Calculates Salary</h3>
+  <p>Understanding this helps you verify the numbers and explain them to employees.</p>
+
+  <h4>Step 1 — Working Days</h4>
+  <table>
+    <thead><tr><th>Term</th><th>Formula</th><th>Example (June — 30 days, 4 Sundays off)</th></tr></thead>
+    <tbody>
+      <tr><td><strong>Calendar Days</strong></td><td>Total days in the month</td><td>30</td></tr>
+      <tr><td><strong>Weekly Offs</strong></td><td>Count of weekly-off day in the month (per employee's setting)</td><td>4 Sundays</td></tr>
+      <tr><td><strong>Paid Working Days</strong></td><td>Calendar Days − Weekly Offs</td><td>30 − 4 = <strong>26</strong></td></tr>
+      <tr><td><strong>Per Day Rate</strong></td><td>Monthly Salary ÷ Paid Working Days</td><td>₹30,000 ÷ 26 = <strong>₹1,154</strong></td></tr>
+    </tbody>
+  </table>
+
+  <h4>Step 2 — Attendance Tally</h4>
+  <table>
+    <thead><tr><th>Status</th><th>Counts as</th></tr></thead>
+    <tbody>
+      <tr><td><span class="badge badge-green">Present</span></td><td>1 full paid day</td></tr>
+      <tr><td><span class="badge badge-amber">Half Day</span></td><td>0.5 paid day</td></tr>
+      <tr><td><span class="badge badge-blue">Weekly Off</span></td><td>Paid (not a working day, already excluded)</td></tr>
+      <tr><td><span class="badge badge-blue">Paid Leave</span></td><td>Paid day (no deduction)</td></tr>
+      <tr><td><span class="badge badge-red">Absent (unpaid)</span></td><td>Deducted at per day rate</td></tr>
+    </tbody>
+  </table>
+
+  <div class="box box-rule">
+    <strong>1 Paid Leave per month:</strong> The ERP automatically uses 1 PL to cover the first absent day of the month. If an employee is absent 1 day → 0 unpaid deduction (PL used). Absent 2 days → 1 day unpaid. Absent 3 days → 2 days unpaid. And so on.
+  </div>
+
+  <h4>Step 3 — Gross Salary Calculation</h4>
+  <table>
+    <thead><tr><th></th><th>Formula</th><th>Example</th></tr></thead>
+    <tbody>
+      <tr><td><strong>Effective Present</strong></td><td>Present + (Half Days × 0.5)</td><td>22 + 1×0.5 = 22.5</td></tr>
+      <tr><td><strong>Total Absent</strong></td><td>Paid Working Days − Effective Present</td><td>26 − 22.5 = 3.5</td></tr>
+      <tr><td><strong>PL Used</strong></td><td>min(1, Total Absent)</td><td>min(1, 3.5) = 1</td></tr>
+      <tr><td><strong>Unpaid Absent</strong></td><td>Total Absent − PL Used</td><td>3.5 − 1 = 2.5 days</td></tr>
+      <tr><td><strong>Salary Deduction</strong></td><td>Unpaid Absent × Per Day Rate</td><td>2.5 × ₹1,154 = ₹2,885</td></tr>
+      <tr><td><strong>Gross</strong></td><td>Monthly Salary − Deduction</td><td>₹30,000 − ₹2,885 = <strong>₹27,115</strong></td></tr>
+    </tbody>
+  </table>
+
+  <h4>Step 4 — OT Pay (Workers only)</h4>
+  <table>
+    <thead><tr><th></th><th>Formula</th><th>Example</th></tr></thead>
+    <tbody>
+      <tr><td><strong>Eligible for OT?</strong></td><td>Only employees set as "Worker (OT eligible)" in HR</td><td>Yes</td></tr>
+      <tr><td><strong>OT Trigger</strong></td><td>Checkout must be after 6:00 PM (first 30 min past 5:30 PM is a buffer)</td><td>Checkout at 7:30 PM</td></tr>
+      <tr><td><strong>OT Hours</strong></td><td>Checkout time − 5:30 PM</td><td>7:30 PM − 5:30 PM = <strong>2 hrs</strong></td></tr>
+      <tr><td><strong>OT Per Hour Rate</strong></td><td>Per Day Rate ÷ 8</td><td>₹1,154 ÷ 8 = <strong>₹144</strong></td></tr>
+      <tr><td><strong>OT Pay</strong></td><td>OT Hours × OT Per Hour Rate</td><td>2 × ₹144 = <strong>₹289</strong></td></tr>
+    </tbody>
+  </table>
+
+  <div class="box box-warn">
+    <strong>OT buffer rule:</strong> If an employee checks out between 5:30 PM and 6:00 PM (up to 30 min late), <strong>no OT is calculated</strong>. OT only starts being counted when checkout is strictly after 6:00 PM. The OT hours are still measured from 5:30 PM once the threshold is crossed.
+    <br><br>Example: Checkout at 5:50 PM → 0 OT. Checkout at 6:15 PM → 0:45 hrs OT (from 5:30 PM).
+  </div>
+
+  <h4>Step 5 — Deductions</h4>
+  <table>
+    <thead><tr><th>Deduction</th><th>Formula</th><th>On What Base</th></tr></thead>
+    <tbody>
+      <tr><td><strong>PF (Employee)</strong></td><td>12% of Earned Basic</td><td>Earned Basic (capped at ₹15,000 basic unless "actual" is set)</td></tr>
+      <tr><td><strong>ESIC (Employee)</strong></td><td>0.75% of Gross+OT</td><td>Only if Gross+OT ≤ ₹21,000</td></tr>
+      <tr><td><strong>Professional Tax</strong></td><td>₹200 flat</td><td>If PT-applicable toggle is on</td></tr>
+      <tr><td><strong>TDS</strong></td><td>As set by CA</td><td>Editable in salary sheet (default 0)</td></tr>
+      <tr><td><strong>Advance Recovery</strong></td><td>As logged in Advances tab</td><td>Auto-deducted</td></tr>
+    </tbody>
+  </table>
+
+  <h4>Step 6 — Net Wages</h4>
+  <p><strong>Net = Gross + OT Pay − PF − ESIC − PT − TDS − Advance Recovery</strong></p>
+
+  <div class="box box-tip">
+    <strong>Full example — Worker, ₹15,000/month, June (30 days, 4 Sundays off, Thursday as weekly off adds more offs — adjust per actual):</strong><br><br>
+    Paid Working Days = 26 &nbsp;|&nbsp; Per Day = ₹577<br>
+    Present: 22 days, Half Days: 0, Absent: 4 (1 PL used → 3 unpaid)<br>
+    Deduction: 3 × ₹577 = ₹1,731 &nbsp;|&nbsp; Basic Gross: ₹13,269<br>
+    OT: 5 hrs (3 days past 6 PM) × (₹577÷8) = ₹360<br>
+    Gross+OT: ₹13,629<br>
+    PF: 12% of ₹6,635 basic = ₹796 &nbsp;|&nbsp; ESIC: 0.75% × ₹13,629 = ₹102 &nbsp;|&nbsp; PT: ₹200<br>
+    <strong>Net: ₹13,629 − ₹1,098 = ₹12,531</strong>
+  </div>
 
   <h3>Checklist Before Finalising Salary</h3>
   <ul class="checklist">
